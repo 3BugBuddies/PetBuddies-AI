@@ -51,7 +51,7 @@ public class MotorScoreService {
     @Transactional
     public ScoreResponse recalcular(Long petNetApiAnimalId, String motivo) {
         Integer scoreAnterior = scoreRepository
-                .findFirstByPetNetApiAnimalIdOrderByCalculadoEmDesc(petNetApiAnimalId)
+                .findScoreMaisRecente(petNetApiAnimalId)
                 .map(ScoreRiscoAnimalEntity::getScore)
                 .orElse(null);
 
@@ -89,20 +89,20 @@ public class MotorScoreService {
     @Transactional(readOnly = true)
     public Optional<ScoreResponse> buscarMaisRecente(Long petNetApiAnimalId) {
         return scoreRepository
-                .findFirstByPetNetApiAnimalIdOrderByCalculadoEmDesc(petNetApiAnimalId)
+                .findScoreMaisRecente(petNetApiAnimalId)
                 .map(ScoreResponse::from);
     }
 
     @Transactional(readOnly = true)
     public Page<ScoreResponse> listarHistorico(Long petNetApiAnimalId, Pageable pageable) {
         return scoreRepository
-                .findByPetNetApiAnimalIdOrderByCalculadoEmDesc(petNetApiAnimalId, pageable)
+                .findScoresPorAnimal(petNetApiAnimalId, pageable)
                 .map(ScoreResponse::from);
     }
 
     private FatorRiscoEntity calcularVacinaAtrasada(Long petNetApiAnimalId) {
         long vencidas = eventoPlanoRepository
-                .findByPlano_PetNetApiAnimalIdAndTipoAndStatusAndDataAlvoBefore(
+                .findEventosVencidosPorAnimal(
                         petNetApiAnimalId, TipoEventoProtocolo.VACINACAO,
                         StatusEventoPlano.PENDENTE, LocalDate.now())
                 .size();
@@ -174,7 +174,7 @@ public class MotorScoreService {
     }
 
     private void atualizarScoreNoPlano(Long petNetApiAnimalId, int scoreTotal) {
-        planoRepository.findByPetNetApiAnimalIdAndStatus(petNetApiAnimalId, StatusPlano.ATIVO)
+        planoRepository.findPlanoPorAnimalEStatus(petNetApiAnimalId, StatusPlano.ATIVO)
                 .ifPresent(plano -> {
                     plano.setScoreAtual(scoreTotal);
                     plano.setUltimoRecalculo(LocalDateTime.now());

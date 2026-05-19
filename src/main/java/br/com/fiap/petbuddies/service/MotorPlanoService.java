@@ -43,7 +43,7 @@ public class MotorPlanoService {
     @Transactional
     public PlanoResponse instanciarPreventivo(PlanoPreventivoRequest req) {
         Optional<PlanoCuidadoAnimalEntity> existente = planoRepository
-                .findByPetNetApiAnimalIdAndStatusAndProtocolo_Categoria(
+                .findPlanoAtivoPorCategoria(
                         req.getPetNetApiAnimalId(), StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO);
 
         if (existente.isPresent()) {
@@ -71,7 +71,7 @@ public class MotorPlanoService {
     @Transactional
     public PlanoResponse instanciarPosCirurgico(PlanoPosCirurgicoRequest req) {
         Optional<PlanoCuidadoAnimalEntity> existente = planoRepository
-                .findByPetNetApiAnimalIdAndPetNetApiConsultaId(
+                .findPlanoPorAnimalEConsulta(
                         req.getPetNetApiAnimalId(), req.getPetNetApiConsultaId());
 
         if (existente.isPresent()) {
@@ -97,7 +97,7 @@ public class MotorPlanoService {
     @Transactional(readOnly = true)
     public Optional<PlanoResponse> buscarPlanoAtivo(Long petNetApiAnimalId) {
         return planoRepository
-                .findByPetNetApiAnimalIdAndStatusAndProtocolo_Categoria(
+                .findPlanoAtivoPorCategoria(
                         petNetApiAnimalId, StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO)
                 .map(PlanoResponse::from);
     }
@@ -105,7 +105,7 @@ public class MotorPlanoService {
     @Transactional(readOnly = true)
     public Page<EventoPlanoDto> listarEventos(Long petNetApiAnimalId, Pageable pageable) {
         return eventoPlanoRepository
-                .findByPlano_PetNetApiAnimalId(petNetApiAnimalId, pageable)
+                .findEventosPorAnimal(petNetApiAnimalId, pageable)
                 .map(EventoPlanoDto::from);
     }
 

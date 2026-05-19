@@ -12,6 +12,7 @@ public class AnimalMotorDto {
     private LocalDate dataNascimento;
     private Boolean condicaoCronica;
     private Boolean castrado;
+    private Boolean preCadastro;
     private Sexo sexo;
     private Especie especie;
     private Porte porte;
@@ -30,6 +31,9 @@ public class AnimalMotorDto {
 
     public Boolean getCastrado() { return castrado; }
     public void setCastrado(Boolean castrado) { this.castrado = castrado; }
+
+    public Boolean getPreCadastro() { return preCadastro; }
+    public void setPreCadastro(Boolean preCadastro) { this.preCadastro = preCadastro; }
 
     public Sexo getSexo() { return sexo; }
     public void setSexo(Sexo sexo) { this.sexo = sexo; }

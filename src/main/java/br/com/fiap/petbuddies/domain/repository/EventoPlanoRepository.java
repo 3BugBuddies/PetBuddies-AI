@@ -6,6 +6,8 @@ import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,8 +19,11 @@ public interface EventoPlanoRepository extends JpaRepository<EventoPlanoEntity, 
 
     List<EventoPlanoEntity> findByDataAlvoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusEventoPlano status);
 
-    Page<EventoPlanoEntity> findByPlano_PetNetApiAnimalId(Long petNetApiAnimalId, Pageable pageable);
+    @Query("SELECT e FROM EventoPlanoEntity e WHERE e.plano.petNetApiAnimalId = :animalId")
+    Page<EventoPlanoEntity> findEventosPorAnimal(@Param("animalId") Long animalId, Pageable pageable);
 
-    List<EventoPlanoEntity> findByPlano_PetNetApiAnimalIdAndTipoAndStatusAndDataAlvoBefore(
-            Long petNetApiAnimalId, TipoEventoProtocolo tipo, StatusEventoPlano status, LocalDate data);
+    @Query("SELECT e FROM EventoPlanoEntity e WHERE e.plano.petNetApiAnimalId = :animalId AND e.tipo = :tipo AND e.status = :status AND e.dataAlvo < :data")
+    List<EventoPlanoEntity> findEventosVencidosPorAnimal(
+            @Param("animalId") Long animalId, @Param("tipo") TipoEventoProtocolo tipo,
+            @Param("status") StatusEventoPlano status, @Param("data") LocalDate data);
 }
