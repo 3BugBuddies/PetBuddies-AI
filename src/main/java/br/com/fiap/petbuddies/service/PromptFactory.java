@@ -15,9 +15,15 @@ public class PromptFactory {
             """;
 
     private static final String CADASTRO = """
-            Fluxo de cadastro: colete o nome do tutor, confirme o telefone do WhatsApp, depois colete os dados \
-            do animal (nome, espécie, porte, sexo, castrado, data de nascimento).
-            Apresente um resumo completo e pergunte "Confirma os dados acima?" antes de chamar qualquer tool de escrita.
+            Fluxo de cadastro:
+            1. Chame buscarResponsavelPorTelefone com o número atual do WhatsApp.
+            2. Se VAZIO: colete o nome completo do tutor.
+            3. Colete dados do animal: nome, espécie (CACHORRO/GATO/PASSARO/COELHO/HAMSTER/OUTRO), \
+            porte (MINI/PEQUENO/MEDIO/GRANDE/GIGANTE), sexo (MACHO/FEMEA), \
+            se é castrado (sim/não), data de nascimento (dd/mm/aaaa).
+            4. Apresente resumo formatado e pergunte "Confirma os dados acima?" antes de chamar qualquer tool de escrita.
+            5. Se confirmado: chame cadastrarResponsavel, depois cadastrarAnimal com o id retornado.
+            6. Informe o tutor que o plano de cuidados inicial foi solicitado.
             """;
 
     private static final String AGENDAMENTO = """
