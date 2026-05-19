@@ -10,54 +10,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "protocolo")
+@Table(name = "T_PB_PROTOCOLO")
 public class ProtocoloEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_PROTOCOLO")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "NM_NOME", nullable = false)
     private String nome;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "TP_CATEGORIA", nullable = false)
     private CategoriaProtocolo categoria;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "ES_ESPECIE", nullable = false)
     private Especie especie;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "PT_PORTE")
     private Porte porte;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "SX_SEXO")
     private Sexo sexo;
 
+    @Column(name = "CT_CASTRADO")
     private Boolean castrado;
 
-    @Column(nullable = false)
+    @Column(name = "AT_ATIVO", nullable = false)
     private boolean ativo = true;
 
-    @Column
+    @Column(name = "NR_IDADE_MIN_MESES")
     private Integer idadeMinMeses;
 
-    @Column
+    @Column(name = "NR_IDADE_MAX_MESES")
     private Integer idadeMaxMeses;
 
-    @Column
+    @Column(name = "DS_DESCRICAO")
     private String descricao;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime criadoEm;
+    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EventoProtocoloEntity> eventos = new ArrayList<>();
 
     @PrePersist
-    private void prePersist() {
-        criadoEm = LocalDateTime.now();
-    }
+    private void prePersist() { createdAt = LocalDateTime.now(); }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -92,7 +94,7 @@ public class ProtocoloEntity {
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
 
-    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public List<EventoProtocoloEntity> getEventos() { return eventos; }
     public void setEventos(List<EventoProtocoloEntity> eventos) { this.eventos = eventos; }

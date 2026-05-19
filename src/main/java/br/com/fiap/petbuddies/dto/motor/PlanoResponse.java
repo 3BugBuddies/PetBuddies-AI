@@ -30,7 +30,7 @@ public class PlanoResponse {
         r.protocoloNome = plano.getProtocolo().getNome();
         r.categoria = plano.getProtocolo().getCategoria().name();
         r.status = plano.getStatus().name();
-        r.instanciadoEm = plano.getCriadoEm();
+        r.instanciadoEm = plano.getCreatedAt();
         r.scoreAtual = plano.getScoreAtual();
         r.eventos = plano.getEventos().stream()
                 .filter(e -> e.getStatus() != StatusEventoPlano.CANCELADO)

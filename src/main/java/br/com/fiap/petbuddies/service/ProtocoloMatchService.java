@@ -32,7 +32,7 @@ public class ProtocoloMatchService {
                 .filter(p -> aceitaCastrado(p, castrado))
                 .filter(p -> aceitaIdade(p, idadeEmMeses))
                 .max(Comparator.comparingInt(this::calcularEspecificidade)
-                        .thenComparing(p -> p.getCriadoEm() != null ? p.getCriadoEm() : java.time.LocalDateTime.MIN));
+                        .thenComparing(p -> p.getCreatedAt() != null ? p.getCreatedAt() : java.time.LocalDateTime.MIN));
     }
 
     private boolean aceitaPorte(ProtocoloEntity p, Porte porte) {

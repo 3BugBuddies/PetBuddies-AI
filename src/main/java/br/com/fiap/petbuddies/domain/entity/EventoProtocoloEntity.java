@@ -4,40 +4,41 @@ import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "evento_protocolo")
+@Table(name = "T_PB_EVENTO_PROTOCOLO")
 public class EventoProtocoloEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_EVENTO_PROTOCOLO")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "protocolo_id", nullable = false)
+    @JoinColumn(name = "ID_PROTOCOLO", nullable = false)
     private ProtocoloEntity protocolo;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "TP_TIPO", nullable = false)
     private TipoEventoProtocolo tipo;
 
-    @Column(nullable = false)
+    @Column(name = "NM_NOME", nullable = false)
     private String nome;
 
-    @Column(nullable = false)
+    @Column(name = "NR_DIAS_APOS_INICIO", nullable = false)
     private int diasAposInicio;
 
-    @Column
+    @Column(name = "NR_MES_APLICACAO")
     private Integer mesAplicacao;
 
-    @Column
+    @Column(name = "NR_RECORRENCIA_MESES")
     private Integer recorrenciaMeses;
 
-    @Column
+    @Column(name = "ST_PRIORIDADE")
     private String prioridade;
 
-    @Column
+    @Column(name = "ST_URGENCIA")
     private String urgencia;
 
-    @Column
+    @Column(name = "DS_DESCRICAO")
     private String descricao;
 
     public Long getId() { return id; }

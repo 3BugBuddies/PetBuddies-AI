@@ -7,33 +7,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "score_risco_animal")
+@Table(name = "T_PB_SCORE_RISCO_ANIMAL")
 public class ScoreRiscoAnimalEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_SCORE_RISCO_ANIMAL")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "ID_PET_NET_ANIMAL", nullable = false)
     private Long petNetApiAnimalId;
 
-    @Column(nullable = false)
+    @Column(name = "NR_SCORE", nullable = false)
     private int score;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "CS_CLASSIFICACAO", nullable = false)
     private ClassificacaoRisco classificacao;
 
-    @Column(nullable = false)
+    @Column(name = "DT_CALCULADO_EM", nullable = false)
     private LocalDateTime calculadoEm;
 
     @OneToMany(mappedBy = "scoreRisco", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FatorRiscoEntity> fatores = new ArrayList<>();
 
     @PrePersist
-    private void prePersist() {
-        calculadoEm = LocalDateTime.now();
-    }
+    private void prePersist() { calculadoEm = LocalDateTime.now(); }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -7,56 +7,54 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "plano_cuidado_animal")
+@Table(name = "T_PB_PLANO_CUIDADO_ANIMAL")
 public class PlanoCuidadoAnimalEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_PLANO_CUIDADO_ANIMAL")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "ID_PET_NET_ANIMAL", nullable = false)
     private Long petNetApiAnimalId;
 
-    @Column
+    @Column(name = "ID_PET_NET_CONSULTA")
     private Long petNetApiConsultaId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "protocolo_id", nullable = false)
+    @JoinColumn(name = "ID_PROTOCOLO", nullable = false)
     private ProtocoloEntity protocolo;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "ST_STATUS", nullable = false)
     private StatusPlano status = StatusPlano.ATIVO;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime criadoEm;
+    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    private LocalDateTime atualizadoEm;
+    @Column(name = "AT_UPDATED_AT")
+    private LocalDateTime updatedAt;
 
-    @Column
+    @Column(name = "NR_SCORE_ATUAL")
     private Integer scoreAtual;
 
-    @Column
+    @Column(name = "DT_ULTIMO_RECALCULO")
     private LocalDateTime ultimoRecalculo;
 
-    @Column
+    @Column(name = "DT_CANCELADO_EM")
     private LocalDateTime canceladoEm;
 
-    @Column
+    @Column(name = "MT_MOTIVO_CANCELAMENTO")
     private String motivoCancelamento;
 
     @OneToMany(mappedBy = "plano", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EventoPlanoEntity> eventos = new ArrayList<>();
 
     @PrePersist
-    private void prePersist() {
-        criadoEm = LocalDateTime.now();
-    }
+    private void prePersist() { createdAt = LocalDateTime.now(); }
 
     @PreUpdate
-    private void preUpdate() {
-        atualizadoEm = LocalDateTime.now();
-    }
+    private void preUpdate() { updatedAt = LocalDateTime.now(); }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -73,9 +71,9 @@ public class PlanoCuidadoAnimalEntity {
     public StatusPlano getStatus() { return status; }
     public void setStatus(StatusPlano status) { this.status = status; }
 
-    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
-    public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public Integer getScoreAtual() { return scoreAtual; }
     public void setScoreAtual(Integer scoreAtual) { this.scoreAtual = scoreAtual; }

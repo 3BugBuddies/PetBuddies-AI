@@ -7,52 +7,53 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "evento_plano")
+@Table(name = "T_PB_EVENTO_PLANO")
 public class EventoPlanoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_EVENTO_PLANO")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plano_id", nullable = false)
+    @JoinColumn(name = "ID_PLANO_CUIDADO_ANIMAL", nullable = false)
     private PlanoCuidadoAnimalEntity plano;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "evento_protocolo_id")
+    @JoinColumn(name = "ID_EVENTO_PROTOCOLO")
     private EventoProtocoloEntity eventoProtocolo;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "TP_TIPO", nullable = false)
     private TipoEventoProtocolo tipo;
 
-    @Column(nullable = false)
+    @Column(name = "NM_NOME", nullable = false)
     private String nome;
 
-    @Column(nullable = false)
+    @Column(name = "DT_DATA_ALVO", nullable = false)
     private LocalDate dataAlvo;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "ST_STATUS", nullable = false)
     private StatusEventoPlano status = StatusEventoPlano.PENDENTE;
 
+    @Column(name = "OB_OBSERVACAO")
     private String observacao;
 
-    @Column
+    @Column(name = "ID_PET_NET_PROCEDIMENTO")
     private Long petNetApiProcedimentoId;
 
-    @Column
+    @Column(name = "DT_EXECUTADO_EM")
     private LocalDateTime executadoEm;
 
-    @Column(nullable = false)
+    @Column(name = "NR_TENTATIVAS", nullable = false)
     private int tentativas = 0;
 
-    private LocalDateTime atualizadoEm;
+    @Column(name = "AT_UPDATED_AT")
+    private LocalDateTime updatedAt;
 
     @PreUpdate
-    private void preUpdate() {
-        atualizadoEm = LocalDateTime.now();
-    }
+    private void preUpdate() { updatedAt = LocalDateTime.now(); }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -76,10 +77,10 @@ public class EventoPlanoEntity {
     public void setObservacao(String observacao) { this.observacao = observacao; }
 
     public EventoProtocoloEntity getEventoProtocolo() { return eventoProtocolo; }
-    public void setEventoProtocolo(EventoProtocoloEntity eventoProtocolo) { this.eventoProtocolo = eventoProtocolo; }
+    public void setEventoProtocolo(EventoProtocoloEntity ep) { this.eventoProtocolo = ep; }
 
     public Long getPetNetApiProcedimentoId() { return petNetApiProcedimentoId; }
-    public void setPetNetApiProcedimentoId(Long petNetApiProcedimentoId) { this.petNetApiProcedimentoId = petNetApiProcedimentoId; }
+    public void setPetNetApiProcedimentoId(Long id) { this.petNetApiProcedimentoId = id; }
 
     public LocalDateTime getExecutadoEm() { return executadoEm; }
     public void setExecutadoEm(LocalDateTime executadoEm) { this.executadoEm = executadoEm; }
@@ -87,5 +88,5 @@ public class EventoPlanoEntity {
     public int getTentativas() { return tentativas; }
     public void setTentativas(int tentativas) { this.tentativas = tentativas; }
 
-    public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
