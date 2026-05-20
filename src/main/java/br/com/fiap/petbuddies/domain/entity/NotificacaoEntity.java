@@ -17,7 +17,7 @@ public class NotificacaoEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_EVENTO_PLANO", nullable = false)
+    @JoinColumn(name = "ID_EVENTO_PLANO", nullable = true)
     private EventoPlanoEntity eventoPlano;
 
     @Column(name = "ID_PET_NET_ANIMAL", nullable = false)
