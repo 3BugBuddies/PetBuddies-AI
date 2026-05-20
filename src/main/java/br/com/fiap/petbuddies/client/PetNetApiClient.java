@@ -55,6 +55,9 @@ public class PetNetApiClient {
                     .body(req)
                     .retrieve().body(AnimalDto.class);
         } catch (HttpClientErrorException e) {
+            int status = e.getStatusCode().value();
+            if (status == 400) throw new PetNetApiUnavailableException("combinação especie/porte sem TipoAnimal cadastrado: " + e.getResponseBodyAsString());
+            if (status == 404) throw new PetNetApiUnavailableException("responsável não encontrado no sistema clínico");
             throw new PetNetApiUnavailableException(e);
         } catch (Exception e) {
             throw new PetNetApiUnavailableException(e);
@@ -70,6 +73,54 @@ public class PetNetApiClient {
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 404) return List.of();
             throw new PetNetApiUnavailableException(e);
+        } catch (Exception e) {
+            throw new PetNetApiUnavailableException(e);
+        }
+    }
+
+    public List<JanelaAtendimentoDto> listarJanelasDisponiveis() {
+        try {
+            List<JanelaAtendimentoDto> result = restClient.get()
+                    .uri("/api/janela-atendimento")
+                    .retrieve().body(new ParameterizedTypeReference<List<JanelaAtendimentoDto>>() {});
+            return result != null ? result : List.of();
+        } catch (Exception e) {
+            throw new PetNetApiUnavailableException(e);
+        }
+    }
+
+    public ConsultaDto agendarConsulta(AgendarConsultaRequest req) {
+        try {
+            return restClient.post()
+                    .uri("/api/consulta")
+                    .body(req)
+                    .retrieve().body(ConsultaDto.class);
+        } catch (HttpClientErrorException e) {
+            throw new PetNetApiUnavailableException(e.getResponseBodyAsString());
+        } catch (Exception e) {
+            throw new PetNetApiUnavailableException(e);
+        }
+    }
+
+    public List<ConsultaDto> listarConsultasDoAnimal(Long animalId) {
+        try {
+            List<ConsultaDto> result = restClient.get()
+                    .uri("/api/consulta?animalId={id}", animalId)
+                    .retrieve().body(new ParameterizedTypeReference<List<ConsultaDto>>() {});
+            return result != null ? result : List.of();
+        } catch (Exception e) {
+            throw new PetNetApiUnavailableException(e);
+        }
+    }
+
+    public ConsultaDto cancelarConsulta(Long consultaId, CancelarConsultaRequest req) {
+        try {
+            return restClient.patch()
+                    .uri("/api/consulta/{id}", consultaId)
+                    .body(req)
+                    .retrieve().body(ConsultaDto.class);
+        } catch (HttpClientErrorException e) {
+            throw new PetNetApiUnavailableException(e.getResponseBodyAsString());
         } catch (Exception e) {
             throw new PetNetApiUnavailableException(e);
         }
