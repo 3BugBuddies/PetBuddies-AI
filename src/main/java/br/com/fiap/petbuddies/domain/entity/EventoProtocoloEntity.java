@@ -8,7 +8,8 @@ import jakarta.persistence.*;
 public class EventoProtocoloEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pb_evento_prot")
+    @SequenceGenerator(name = "seq_pb_evento_prot", sequenceName = "SEQ_T_PB_EVENTO_PROT", allocationSize = 1)
     @Column(name = "ID_EVENTO_PROTOCOLO")
     private Long id;
 

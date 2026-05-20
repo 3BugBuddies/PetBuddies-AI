@@ -11,7 +11,8 @@ import java.util.List;
 public class ScoreRiscoAnimalEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pb_score")
+    @SequenceGenerator(name = "seq_pb_score", sequenceName = "SEQ_T_PB_SCORE", allocationSize = 1)
     @Column(name = "ID_SCORE_RISCO_ANIMAL")
     private Long id;
 

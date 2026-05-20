@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 public class EventoPlanoEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pb_evento_plano")
+    @SequenceGenerator(name = "seq_pb_evento_plano", sequenceName = "SEQ_T_PB_EVENTO_PLANO", allocationSize = 1)
     @Column(name = "ID_EVENTO_PLANO")
     private Long id;
 

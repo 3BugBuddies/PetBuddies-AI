@@ -11,7 +11,8 @@ import java.util.List;
 public class PlanoCuidadoAnimalEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pb_plano")
+    @SequenceGenerator(name = "seq_pb_plano", sequenceName = "SEQ_T_PB_PLANO", allocationSize = 1)
     @Column(name = "ID_PLANO_CUIDADO_ANIMAL")
     private Long id;
 

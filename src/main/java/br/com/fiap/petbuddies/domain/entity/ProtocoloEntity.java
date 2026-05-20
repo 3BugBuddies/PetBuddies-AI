@@ -14,7 +14,8 @@ import java.util.List;
 public class ProtocoloEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pb_protocolo")
+    @SequenceGenerator(name = "seq_pb_protocolo", sequenceName = "SEQ_T_PB_PROTOCOLO", allocationSize = 1)
     @Column(name = "ID_PROTOCOLO")
     private Long id;
 

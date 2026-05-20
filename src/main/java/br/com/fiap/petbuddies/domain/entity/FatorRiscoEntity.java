@@ -8,7 +8,8 @@ import jakarta.persistence.*;
 public class FatorRiscoEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pb_fator_risco")
+    @SequenceGenerator(name = "seq_pb_fator_risco", sequenceName = "SEQ_T_PB_FATOR_RISCO", allocationSize = 1)
     @Column(name = "ID_FATOR_RISCO")
     private Long id;
 

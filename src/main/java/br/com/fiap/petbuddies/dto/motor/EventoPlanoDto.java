@@ -1,14 +1,25 @@
 package br.com.fiap.petbuddies.dto.motor;
 
 import br.com.fiap.petbuddies.domain.entity.EventoPlanoEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
+@Schema(description = "Evento de um plano de cuidado")
 public class EventoPlanoDto {
 
+    @Schema(description = "ID do evento")
     private Long id;
+
+    @Schema(description = "Tipo do evento (VACINA, CONSULTA_ROTINA, EXAME…)")
     private String tipo;
+
+    @Schema(description = "Nome descritivo do evento")
     private String nome;
+
+    @Schema(description = "Data-alvo para realização do evento")
     private LocalDate dataAlvo;
+
+    @Schema(description = "Status atual do evento (PENDENTE, CONCLUIDO, CANCELADO)")
     private String status;
 
     public static EventoPlanoDto from(EventoPlanoEntity e) {

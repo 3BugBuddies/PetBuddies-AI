@@ -3,12 +3,14 @@ package br.com.fiap.petbuddies.controller;
 import br.com.fiap.petbuddies.dto.evolution.EvolutionWebhookDTO;
 import br.com.fiap.petbuddies.service.ChatService;
 import br.com.fiap.petbuddies.service.EvolutionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Tag(name = "bot")
+@Tag(name = "bot — webhook", description = "Recebe eventos da Evolution API (WhatsApp gateway)")
 public class WebhookController {
 
     private final ChatService chatService;
@@ -20,6 +22,13 @@ public class WebhookController {
     }
 
     @PostMapping("/webhook/whatsapp")
+    @Operation(
+        summary = "Webhook Evolution API",
+        description = "Recebe eventos de mensagem da Evolution API. "
+            + "Sempre retorna 200 para evitar retry infinito — erros são absorvidos internamente. "
+            + "Mensagens próprias (fromMe=true) e payloads sem texto são ignorados silenciosamente."
+    )
+    @ApiResponse(responseCode = "200", description = "Evento recebido (sempre — inclusive em caso de erro interno)")
     public ResponseEntity<Void> receberMensagem(@RequestBody EvolutionWebhookDTO payload) {
         var data = payload.getData();
         if (data == null || data.getKey() == null || data.getKey().isFromMe()) {

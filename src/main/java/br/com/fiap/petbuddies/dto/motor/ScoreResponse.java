@@ -1,21 +1,34 @@
 package br.com.fiap.petbuddies.dto.motor;
 
 import br.com.fiap.petbuddies.domain.entity.ScoreRiscoAnimalEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Schema(description = "Score de risco calculado para o animal")
 public class ScoreResponse {
 
+    @Schema(description = "ID do registro de score")
     private Long id;
+
+    @Schema(description = "ID do animal no PetBuddies-API (.NET)")
     private Long petNetApiAnimalId;
+
+    @Schema(description = "Valor numérico do score (0–100)")
     private Integer score;
+
+    @Schema(description = "Classificação de risco (BAIXO, MEDIO, ALTO, CRITICO)")
     private String classificacao;
+
+    @Schema(description = "Data/hora do cálculo")
     private LocalDateTime calculadoEm;
+
+    @Schema(description = "Fatores que compuseram o score")
     private List<FatorRiscoDto> fatores;
 
-    // null nos GETs
+    @Schema(description = "Score anterior ao recálculo. null nos GETs de histórico")
     private Integer scoreAnterior;
 
     public static ScoreResponse from(ScoreRiscoAnimalEntity e) {

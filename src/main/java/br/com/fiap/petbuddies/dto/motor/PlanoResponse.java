@@ -2,25 +2,43 @@ package br.com.fiap.petbuddies.dto.motor;
 
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoAnimalEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusEventoPlano;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Schema(description = "Plano de cuidado do animal")
 public class PlanoResponse {
 
+    @Schema(description = "ID do plano")
     private Long id;
+
+    @Schema(description = "ID do animal no PetBuddies-API (.NET)")
     private Long petNetApiAnimalId;
+
+    @Schema(description = "Nome do protocolo aplicado")
     private String protocoloNome;
+
+    @Schema(description = "Categoria do protocolo (PREVENTIVO, POS_CIRURGICO…)")
     private String categoria;
+
+    @Schema(description = "Status atual do plano (ATIVO, CANCELADO…)")
     private String status;
+
+    @Schema(description = "Data/hora de instanciação do plano")
     private LocalDateTime instanciadoEm;
 
+    @Schema(description = "Score de risco atual do animal")
     private Integer scoreAtual;
+
+    @Schema(description = "Eventos do plano (excluindo cancelados)")
     private List<EventoPlanoDto> eventos;
 
-    // null nos GETs
+    @Schema(description = "true se criado nesta chamada, false se já existia. null nos GETs")
     private Boolean criado;
+
+    @Schema(description = "Motivo quando criado=false (ex: SEM_PROTOCOLO_COMPATIVEL). null nos GETs")
     private String motivo;
 
     public static PlanoResponse from(PlanoCuidadoAnimalEntity plano, Boolean criado, String motivo) {

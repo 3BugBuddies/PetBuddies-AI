@@ -1,13 +1,24 @@
 package br.com.fiap.petbuddies.dto.motor;
 
 import br.com.fiap.petbuddies.domain.entity.FatorRiscoEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Fator de risco que contribuiu para o score")
 public class FatorRiscoDto {
 
+    @Schema(description = "Tipo do fator (IDADE, CASTRADO, CONDICAO_CRONICA, FREQUENCIA_CONSULTAS)")
     private String tipo;
+
+    @Schema(description = "Peso do fator no cálculo (0–10)")
     private Integer peso;
+
+    @Schema(description = "Valor bruto detectado para o fator")
     private Integer valor;
+
+    @Schema(description = "Contribuição percentual do fator no score final")
     private Double contribuicao;
+
+    @Schema(description = "Descrição textual do fator")
     private String descricao;
 
     public static FatorRiscoDto from(FatorRiscoEntity e) {
