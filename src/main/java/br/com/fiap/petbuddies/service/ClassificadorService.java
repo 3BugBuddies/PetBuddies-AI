@@ -8,6 +8,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class ClassificadorService {
 
@@ -27,7 +29,8 @@ public class ClassificadorService {
 
             REGRA CRÍTICA: Respostas curtas (1-3 palavras), valores isolados como "Sim", "Não", "Macho", "Fêmea", \
             "Pequeno", "Grande", datas (ex: "06/04/2021") ou números soltos são quase sempre continuação de um \
-            formulário ativo — classifique como CADASTRO na dúvida. Nunca classifique respostas objetivas curtas como GERAL.
+            formulário ativo. Se a mensagem parece uma primeira mensagem sem contexto ("sim", "não", "pequeno", "macho"), \
+            classifique como GERAL. Nunca invente CADASTRO sem uma intenção de cadastro explícita.
 
             Responda APENAS com JSON válido, sem explicação: {"intencao":"INTENT","confianca":0.0}
             O valor de confianca deve estar entre 0.0 e 1.0.
@@ -62,6 +65,50 @@ public class ClassificadorService {
             log.warn("[INTENT] falha na classificação para tel={}: {}", telefone, e.getMessage());
             return fallback();
         }
+    }
+
+    public Optional<Intencao> classificarLocalmente(String mensagem) {
+        String texto = RespostaParserService.normalizar(mensagem);
+
+        if (contemAlgum(texto, "marcar consulta", "agendar", "horario", "horário",
+                "cancelar consulta", "consulta para", "consulta pro", "consulta pra",
+                "minhas consultas", "minha consulta", "proxima consulta", "próxima consulta",
+                "tenho consulta", "consulta marcada", "consultas marcadas", "ver consulta")) {
+            return Optional.of(Intencao.AGENDAMENTO);
+        }
+        if (contemAlgum(texto, "vomit", "diarre", "febre", "apatia", "coceira", "tosse",
+                "toss", "convuls", "sangue", "dor", "respirar", "lacrimej", "olho",
+                "atropel", "intoxic")) {
+            return Optional.of(Intencao.TRIAGEM);
+        }
+        if (contemAlgum(texto, "plano", "vacina", "vermif", "cuidado pendente",
+                "proximo cuidado", "proximo cuidado", "risco", "score")) {
+            return Optional.of(Intencao.CONSULTA_PLANO);
+        }
+        if (contemAlgum(texto, "cadastrar", "cadastro", "registrar", "novo pet",
+                "outro animal", "adicionar animal")) {
+            return Optional.of(Intencao.CADASTRO);
+        }
+        return Optional.empty();
+    }
+
+    public boolean respostaCurtaSemFluxo(String mensagem) {
+        String texto = RespostaParserService.normalizar(mensagem);
+        return texto.matches("^(sim|s|nao|n|macho|femea|mini|pequeno|medio|grande|gigante|castrado|castrada)$")
+                || texto.matches("^\\d{1,2}/\\d{1,2}/\\d{2,4}$")
+                || texto.matches("^\\d+$");
+    }
+
+    public boolean isAfirmacaoSimples(String mensagem) {
+        String texto = RespostaParserService.normalizar(mensagem);
+        return texto.matches("^(sim|s|quero|pode|pode sim|vamos|claro|ok|por favor)$");
+    }
+
+    private static boolean contemAlgum(String texto, String... termos) {
+        for (String termo : termos) {
+            if (texto.contains(RespostaParserService.normalizar(termo))) return true;
+        }
+        return false;
     }
 
     private IntentResult fallback() {

@@ -8,6 +8,9 @@ public class ConversationContext {
     private Intencao intencaoAtual;
     private boolean responsavelIdentificado;
     private Long responsavelId;
+    private String responsavelNome;
+    private String stageAtual;
+    private String dadosColetados;
 
     public ConversationContext() {}
 
@@ -24,4 +27,13 @@ public class ConversationContext {
 
     public Long getResponsavelId() { return responsavelId; }
     public void setResponsavelId(Long responsavelId) { this.responsavelId = responsavelId; }
+
+    public String getResponsavelNome() { return responsavelNome; }
+    public void setResponsavelNome(String responsavelNome) { this.responsavelNome = responsavelNome; }
+
+    public String getStageAtual() { return stageAtual; }
+    public void setStageAtual(String stageAtual) { this.stageAtual = stageAtual; }
+
+    public String getDadosColetados() { return dadosColetados; }
+    public void setDadosColetados(String dadosColetados) { this.dadosColetados = dadosColetados; }
 }

@@ -1,7 +1,6 @@
 package br.com.fiap.petbuddies.domain.repository;
 
 import br.com.fiap.petbuddies.domain.entity.TriagemSessaoEntity;
-import br.com.fiap.petbuddies.domain.enums.ClassificacaoTriagem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -12,6 +11,4 @@ public interface TriagemSessaoRepository extends JpaRepository<TriagemSessaoEnti
     Optional<TriagemSessaoEntity> findFirstByTelefoneAndFinalizadaEmIsNullOrderByIniciadaEmDesc(String telefone);
 
     List<TriagemSessaoEntity> findByPetNetApiAnimalIdOrderByIniciadaEmDesc(Long petNetApiAnimalId);
-
-    List<TriagemSessaoEntity> findByClassificacaoAndAlertaEnviadoFalse(ClassificacaoTriagem classificacao);
 }

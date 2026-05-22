@@ -1,0 +1,9 @@
+package br.com.fiap.petbuddies.domain.enums;
+
+public enum CadastroStage {
+    CADASTRO_IDENTIFICANDO_TUTOR,
+    CADASTRO_AGUARDANDO_NOME_TUTOR,
+    CADASTRO_COLETANDO_ANIMAL,
+    CADASTRO_AGUARDANDO_CONFIRMACAO,
+    CADASTRO_FINALIZADO
+}

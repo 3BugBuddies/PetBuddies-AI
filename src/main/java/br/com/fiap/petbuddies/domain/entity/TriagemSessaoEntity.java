@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import br.com.fiap.petbuddies.domain.enums.ClassificacaoTriagem;
+import br.com.fiap.petbuddies.domain.enums.TriagemStage;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -37,8 +38,24 @@ public class TriagemSessaoEntity {
     @Column(name = "TX_RECOMENDACAO", length = 1000)
     private String recomendacao;
 
-    @Column(name = "BL_ALERTA_ENVIADO", nullable = false)
-    private Boolean alertaEnviado = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "DS_STAGE_ATUAL", length = 60)
+    private TriagemStage stageAtual;
+
+    @Column(name = "TX_RESPOSTA_P1", length = 500)
+    private String respostaP1;
+
+    @Column(name = "TX_RESPOSTA_P2", length = 500)
+    private String respostaP2;
+
+    @Column(name = "TX_RESPOSTA_P3", length = 500)
+    private String respostaP3;
+
+    @Column(name = "TX_RESPOSTA_P4", length = 500)
+    private String respostaP4;
+
+    @Column(name = "BL_EMERGENCIA_SUSPEITA", nullable = false)
+    private Boolean emergenciaSuspeita = false;
 
     @Column(name = "DT_INICIADA_EM", nullable = false, updatable = false)
     private LocalDateTime iniciadaEm;
@@ -65,8 +82,18 @@ public class TriagemSessaoEntity {
     public void setScoreTriagem(Integer scoreTriagem) { this.scoreTriagem = scoreTriagem; }
     public String getRecomendacao() { return recomendacao; }
     public void setRecomendacao(String recomendacao) { this.recomendacao = recomendacao; }
-    public Boolean getAlertaEnviado() { return alertaEnviado; }
-    public void setAlertaEnviado(Boolean alertaEnviado) { this.alertaEnviado = alertaEnviado; }
+    public TriagemStage getStageAtual() { return stageAtual; }
+    public void setStageAtual(TriagemStage stageAtual) { this.stageAtual = stageAtual; }
+    public String getRespostaP1() { return respostaP1; }
+    public void setRespostaP1(String respostaP1) { this.respostaP1 = respostaP1; }
+    public String getRespostaP2() { return respostaP2; }
+    public void setRespostaP2(String respostaP2) { this.respostaP2 = respostaP2; }
+    public String getRespostaP3() { return respostaP3; }
+    public void setRespostaP3(String respostaP3) { this.respostaP3 = respostaP3; }
+    public String getRespostaP4() { return respostaP4; }
+    public void setRespostaP4(String respostaP4) { this.respostaP4 = respostaP4; }
+    public Boolean getEmergenciaSuspeita() { return emergenciaSuspeita; }
+    public void setEmergenciaSuspeita(Boolean emergenciaSuspeita) { this.emergenciaSuspeita = emergenciaSuspeita; }
     public LocalDateTime getIniciadaEm() { return iniciadaEm; }
     public LocalDateTime getFinalizadaEm() { return finalizadaEm; }
     public void setFinalizadaEm(LocalDateTime finalizadaEm) { this.finalizadaEm = finalizadaEm; }
