@@ -101,6 +101,7 @@ O `POST` de evento de protocolo é `POST /api/protocolos/{protocoloId}/eventos`,
 
 ```
 petbuddies-ai/
+├── assets/
 ├── docs/
 │   └── postman/
 │       └── petbuddies-ai-java.postman_collection.json
@@ -156,12 +157,27 @@ DAO faria sentido se precisássemos de controle fino sobre o `EntityManager`. Aq
 | `ScoreRiscoAnimalEntity` | `T_PB_SCORE_RISCO_ANIMAL` | 1:N → FatorRiscoEntity | `T_PB_ANIMAL` |
 | `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | N:1 → ScoreRiscoAnimalEntity | — |
 
+**Diagrama 1 — Catálogo e Plano de Cuidado**
+Relacionamentos entre `ProtocoloEntity`, `EventoProtocoloEntity`, `PlanoCuidadoAnimalEntity` e `EventoPlanoEntity`, com os enums de domínio associados.
+
+![Diagrama de classes — Protocolo, Plano e Eventos](assets/diagrama-java-entidades-base.png)
+
+**Diagrama 2 — Score de Risco**
+Estrutura de cálculo de risco: `ScoreRiscoAnimalEntity` agrega múltiplos `FatorRiscoEntity`, cada um com tipo, peso e valor individual.
+
+![Diagrama de classes — Score e Fatores de Risco](assets/diagrama-java-score-motor.jpeg)
+
 ### Conversação Bot — 2 entidades
 
 | Entidade | Tabela | Relacionamentos | Vínculo .NET |
 |----------|--------|-----------------|--------------|
 | `SessaoBotEntity` | `T_PB_SESSAO_BOT` | — | — |
 | `TriagemSessaoEntity` | `T_PB_TRIAGEM_SESSAO` | — | `T_PB_ANIMAL`, `T_PB_RESPONSAVEL` |
+
+**Diagrama 3 — Sessão Conversacional e Triagem**
+`SessaoBotEntity` gerencia o estado do fluxo ativo por telefone. `TriagemSessaoEntity` registra as respostas às 4 perguntas clínicas e o score calculado.
+
+![Diagrama de classes — Sessão Bot e Triagem](assets/diagrama-java-entidades-bot.jpeg)
 
 ### Enums
 
