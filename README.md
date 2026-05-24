@@ -1,6 +1,6 @@
-# petbuddies-ai — Challenge FIAP 2026 | Java Advanced
+# PetBuddies AI — Challenge FIAP 2026 | Java Advanced
 
-Bot WhatsApp + Motor de cuidado contínuo para pets desenvolvido com Spring Boot e Spring AI, como parte do Challenge da disciplina de **Java Advanced (2TDS)** — FIAP 2026.
+Bot WhatsApp + Motor de cuidado contínuo para pets desenvolvido com Spring Boot e Spring AI, como parte do Challenge da disciplina de **Java Advanced (2TDSR)** — FIAP 2026.
 
 O serviço recebe mensagens via Evolution API, classifica a intenção do tutor (cadastro, agendamento, triagem, consulta ao plano preventivo), executa chamadas ao Gemini 2.5 Flash e responde pelo WhatsApp. O motor de personalização de cuidado para cada pet mantém planos preventivos, eventos e scores de risco por animal.
 
@@ -33,19 +33,9 @@ O serviço recebe mensagens via Evolution API, classifica a intenção do tutor 
 
 ---
 
-### Setup rápido para avaliação
-
-```bash
-# 1. Configure as credenciais Oracle via .env ou variáveis de ambiente
-# 2. Execute
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-# 3. Swagger: http://localhost:8080/swagger-ui.html → tags de catálogo no topo
-# 4. Postman: importar docs/postman/petbuddies-ai-java.postman_collection.json
-```
-
 ## Avaliação Java — roteiro de endpoints de Protocolo
 
-> Estes endpoints são **autocontidos**: não dependem da API .NET nem do WhatsApp. O avaliador precisa apenas do `petbuddies-ai` rodando com Oracle FIAP configurado.
+> Estes endpoints são **autocontidos**: As Entidades Protocolo e EventoProtocolo não dependem da API .NET nem do WhatsApp. O avaliador precisa apenas do `Petbuddies-AI` rodando com Oracle FIAP configurado.
 
 ### Contexto dos recursos testados
 
@@ -148,14 +138,26 @@ DAO faria sentido se precisássemos de controle fino sobre o `EntityManager`. Aq
 
 ### Motor Core — 6 entidades
 
+Tabelas Independentes - Sem vinculo com .NET
+
+| Entidade | Tabela | Relacionamentos |
+|----------|--------|-----------------|
+| `ProtocoloEntity` | `T_PB_PROTOCOLO` | 1:N → EventoProtocoloEntity |
+| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | N:1 → ProtocoloEntity |
+
+Tabelas Dependentes - Com vinculo com .NET
+
 | Entidade | Tabela | Relacionamentos | Vínculo .NET |
 |----------|--------|-----------------|--------------|
-| `ProtocoloEntity` | `T_PB_PROTOCOLO` | 1:N → EventoProtocoloEntity | — |
-| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | N:1 → ProtocoloEntity | — |
 | `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | N:1 → ProtocoloEntity; 1:N → EventoPlanoEntity | `T_PB_ANIMAL`, `T_PB_CONSULTA` |
 | `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | N:1 → PlanoCuidadoAnimalEntity | `T_PB_PROCEDIMENTO` |
 | `ScoreRiscoAnimalEntity` | `T_PB_SCORE_RISCO_ANIMAL` | 1:N → FatorRiscoEntity | `T_PB_ANIMAL` |
-| `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | N:1 → ScoreRiscoAnimalEntity | — |
+
+Tabelas Dependentes de tabelas relacionadas ao .NET
+
+| Entidade | Tabela | Relacionamentos |
+|----------|--------|-----------------|
+| `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | N:1 → ScoreRiscoAnimalEntity |
 
 **Diagrama 1 — Catálogo e Plano de Cuidado**
 Relacionamentos entre `ProtocoloEntity`, `EventoProtocoloEntity`, `PlanoCuidadoAnimalEntity` e `EventoPlanoEntity`, com os enums de domínio associados.
@@ -267,7 +269,7 @@ O Hibernate gerencia o schema automaticamente via `ddl-auto=update` — as tabel
 
 ```bash
 # Clonar o repositório
-git clone https://github.com/3BugBuddies/PetBudies-AI
+git clone https://github.com/3BugBuddies/PetBuddies-AI
 cd petbuddies-ai
 
 # Configurar credenciais
