@@ -1,0 +1,260 @@
+{
+  "info": {
+    "name": "PetBuddies AI — Java (Catálogo)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "protocoloId", "value": "1" },
+    { "key": "eventoId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Protocolos",
+      "item": [
+        {
+          "name": "Lista protocolos ativos — 200",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/protocolos"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Busca por categoria — 200",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/protocolos/buscar?categoria=PREVENTIVO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "protocolos", "buscar"],
+              "query": [{ "key": "categoria", "value": "PREVENTIVO" }]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Busca por categoria e espécie — 200",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/protocolos/buscar?categoria=PREVENTIVO&especie=CACHORRO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "protocolos", "buscar"],
+              "query": [
+                { "key": "categoria", "value": "PREVENTIVO" },
+                { "key": "especie", "value": "CACHORRO" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Busca protocolo por id — 200",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/protocolos/{{protocoloId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Busca protocolo por id inexistente — 404",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/protocolos/999999"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"] } }]
+        },
+        {
+          "name": "Cria protocolo — 201",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/protocolos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Protocolo Vacinação Cachorro Filhote\",\n  \"categoria\": \"PREVENTIVO\",\n  \"especie\": \"CACHORRO\",\n  \"porte\": \"PEQUENO\",\n  \"sexo\": \"MACHO\",\n  \"castrado\": false,\n  \"idadeMinMeses\": 0,\n  \"idadeMaxMeses\": 12,\n  \"descricao\": \"Protocolo para filhotes até 1 ano\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('protocoloId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cria protocolo sem campos obrigatórios — 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/protocolos",
+            "body": { "mode": "raw", "raw": "{}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 400', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "Atualiza protocolo — 200",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/protocolos/{{protocoloId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Protocolo Vacinação Cachorro Filhote (atualizado)\",\n  \"categoria\": \"PREVENTIVO\",\n  \"especie\": \"CACHORRO\",\n  \"descricao\": \"Atualizado via Postman\"\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Remove protocolo — 204",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/protocolos/{{protocoloId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 204', () => pm.response.to.have.status(204));"] } }]
+        },
+      ]
+    },
+    {
+      "name": "Eventos de Protocolo",
+      "item": [
+        {
+          "name": "Cria protocolo para eventos (setup)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/protocolos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Protocolo para testes de evento\",\n  \"categoria\": \"PREVENTIVO\",\n  \"especie\": \"GATO\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('protocoloId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lista eventos do protocolo — 200",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/protocolos/{{protocoloId}}/eventos"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Lista eventos filtrados por tipo — 200",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/protocolos/{{protocoloId}}/eventos?tipo=VACINACAO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "protocolos", "{{protocoloId}}", "eventos"],
+              "query": [{ "key": "tipo", "value": "VACINACAO" }]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Cria evento no protocolo — 201",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/protocolos/{{protocoloId}}/eventos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VACINACAO\",\n  \"nome\": \"V4 — primeira dose\",\n  \"diasAposInicio\": 7,\n  \"mesAplicacao\": 2,\n  \"prioridade\": \"ALTA\",\n  \"descricao\": \"Vacina quádrupla felina\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('eventoId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cria evento sem campos obrigatórios — 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/protocolos/{{protocoloId}}/eventos",
+            "body": { "mode": "raw", "raw": "{}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 400', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "Cria evento com tipo inválido — 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/protocolos/{{protocoloId}}/eventos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VACINA\",\n  \"nome\": \"Tipo inválido\",\n  \"diasAposInicio\": 7\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 400', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "Busca evento por id — 200",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/eventos-protocolo/{{eventoId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Busca evento por id inexistente — 404",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/eventos-protocolo/999999"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404));"] } }]
+        },
+        {
+          "name": "Atualiza evento — 200",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/eventos-protocolo/{{eventoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VACINACAO\",\n  \"nome\": \"V4 — primeira dose (atualizado)\",\n  \"diasAposInicio\": 10\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Remove evento — 204",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/eventos-protocolo/{{eventoId}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 204', () => pm.response.to.have.status(204));"] } }]
+        }
+      ]
+    }
+  ]
+}

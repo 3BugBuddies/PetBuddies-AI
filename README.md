@@ -2,43 +2,9 @@
 
 Bot WhatsApp + Motor de cuidado contínuo para pets desenvolvido com Spring Boot e Spring AI, como parte do Challenge da disciplina de **Java Advanced (2TDS)** — FIAP 2026.
 
-O serviço recebe mensagens via Evolution API, classifica a intenção do tutor (cadastro, agendamento, triagem, consulta ao plano), executa tool calling com Gemini 2.5 Flash e responde pelo WhatsApp. O motor de personalização mantém planos preventivos, eventos e scores de risco por animal.
+O serviço recebe mensagens via Evolution API, classifica a intenção do tutor (cadastro, agendamento, triagem, consulta ao plano preventivo), executa chamadas ao Gemini 2.5 Flash e responde pelo WhatsApp. O motor de personalização de cuidado para cada pet mantém planos preventivos, eventos e scores de risco por animal.
 
 ---
-
-## Avaliação isolada — endpoints do catálogo
-
-> Estes endpoints são **autocontidos** (sem dependência de outro serviço). O avaliador pode testá-los apenas com Oracle FIAP configurado.
-
-### Setup rápido para o avaliador
-
-```bash
-# 1. Clone e configure credenciais Oracle em src/main/resources/application-dev.yml
-# 2. Execute
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-# 3. Swagger: http://localhost:8080/swagger-ui.html → grupo "catalogo"
-# 4. Postman: importar docs/postman/petbuddies-ai-java.postman_collection.json
-```
-
-### Endpoints disponíveis para avaliação
-
-| Método | Rota | Descrição | Critério |
-|---|---|---|---|
-| GET | `/api/protocolos` | Lista todos ativos | JPQL/Query Method |
-| GET | `/api/protocolos/buscar?categoria=&especie=` | Filtro combinado | Busca customizada com parâmetros |
-| GET | `/api/protocolos/{id}` | Por id — 404 se ausente | Tratamento de erro |
-| POST | `/api/protocolos` | Cria — Bean Validation — 201 | Bean Validation |
-| PUT | `/api/protocolos/{id}` | Atualiza — 200 | CRUD |
-| DELETE | `/api/protocolos/{id}` | Remove — 204 | CRUD |
-| GET | `/api/protocolos/{id}/eventos` | Lista eventos (sort por diasAposInicio) | Query Method |
-| GET | `/api/protocolos/{id}/eventos?tipo=VACINA` | Filtra por tipo | Busca customizada com parâmetros |
-| GET | `/api/eventos-protocolo/{id}` | Por id — 404 se ausente | Tratamento de erro |
-| POST | `/api/protocolos/{id}/eventos` | Cria evento — Bean Validation — 201 | Bean Validation |
-| PUT | `/api/eventos-protocolo/{id}` | Atualiza — 200 | CRUD |
-| DELETE | `/api/eventos-protocolo/{id}` | Remove — 204 | CRUD |
-
----
-
 ## Integrantes do Grupo
 
 | Nome | RM |
@@ -57,224 +23,165 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 | Dependência | Categoria | Descrição |
 |-------------|-----------|-----------|
 | Spring Web | WEB | API REST + Webhook |
-| Spring Data JPA | SQL | 6 entidades motor + memória de conversa |
+| Spring Data JPA | SQL | 8 entidades JPA (motor + conversação bot) |
 | Oracle Driver | SQL | Oracle FIAP |
 | Spring AI OpenAI | AI | Gemini via endpoint OpenAI-compatible |
 | Spring AI JDBC Memory | AI | Memória de conversa persistida |
 | Bean Validation | I/O | Validação de DTOs |
-| Springdoc OpenAPI | Dev | Swagger UI — grupos `bot`, `motor` e `catalogo` |
+| Springdoc OpenAPI | Dev | Swagger UI único com tags ordenadas por domínio |
+
 
 ---
 
-## Estrutura de Packages
-
-```
-br.com.fiap.petbuddies/
-  client/        — PetNetApiClient (6 métodos HTTP reais para a API .NET)
-  config/        — ChatClientConfig, PetNetApiClientConfig, OpenApiConfig
-  controller/
-    bot/         — WebhookController (/webhook/whatsapp),
-                   SimulationController (/simulate-message)
-    motor/       — MotorPlanoController, MotorScoreController
-    protocolo/   — ProtocoloController, EventoProtocoloController
-  domain/
-    entity/      — 8 entidades JPA (motor core + sessões bot + triagem)
-    enums/       — 11 enums (Especie, Porte, Sexo, StatusPlano, Intencao,
-                   ClassificacaoTriagem, TipoEventoProtocolo, ...)
-    repository/  — 8 repositórios Spring Data com buscas customizadas (@Query)
-  dto/
-    bot/         — IntentResult, ConversationContext, AtoComunicativo,
-                   SimulateMessageRequest, SimulateMessageResponse
-    client/      — ResponsavelDto, AnimalDto, AnimalMotorDto, UltimaConsultaDto,
-                   CadastrarResponsavelRequest, CadastrarAnimalRequest,
-                   AgendarConsultaRequest, CancelarConsultaRequest
-    motor/       — PlanoPreventivoRequest, PlanoPosCirurgicoRequest,
-                   RecalcularScoreRequest, PlanoResponse, ScoreResponse,
-                   EventoPlanoDto, FatorRiscoDto
-    protocolo/   — ProtocoloRequest, ProtocoloResponse,
-                   EventoProtocoloRequest, EventoProtocoloResponse
-    ErrorDto     — raiz, usado por todos os handlers
-  exception/     — PetNetApiNotFoundException, PetNetApiUnavailableException,
-                   PetNetApiConflictException, PlanoNaoEncontradoException,
-                   ProtocoloNaoEncontradoException, EventoProtocoloNaoEncontradoException
-  flow/          — orquestração determinística dos fluxos conversacionais
-    dto/         — FlowResponse, DadosCadastroPendente, DadosAgendamentoPendente,
-                   DadosConsultaPlanoPendente, AnimalResumo, JanelaOfertada,
-                   TriagemScoreResultado
-    AgendamentoFlowService, CadastroFlowService, ConsultaPlanoFlowService,
-    TriagemFlowService, FlowSessaoHelper, FlowSupport
-  handler/       — GlobalExceptionHandler (@RestControllerAdvice)
-  service/
-    bot/         — ChatService, ClassificadorService, RedatorService,
-                   RespostaParserService, EvolutionService
-    motor/       — MotorPlanoService, MotorScoreService,
-                   ProtocoloMatchService, TriagemScoreService
-    protocolo/   — ProtocoloService, EventoProtocoloService
-```
-
----
-
-## Entidades JPA (Motor Core)
-
-| Entidade | Tabela | Descrição |
-|----------|--------|-----------|
-| `ProtocoloEntity` | `T_PB_PROTOCOLO` | Protocolo de cuidado por espécie/porte/sexo/idade |
-| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | Eventos template do protocolo (vacinas, consultas, etc.) |
-| `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | Plano instanciado por animal (preventivo ou pós-cirúrgico) |
-| `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | Evento concreto do plano (com data alvo e status) |
-| `ScoreRiscoAnimalEntity` | `T_PB_SCORE_RISCO_ANIMAL` | Score de risco calculado por animal |
-| `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | Fatores individuais que compõem o score |
-
----
-
-## Pré-requisitos
-
-- Java 21+
-- Maven 3.9+
-- Oracle FIAP (VPN ou rede local) — entidades JPA + memória de conversa
-- Chave Gemini API (`GEMINI_API_KEY`)
-- Evolution API rodando (Docker)
-- `petbuddies-api` (.NET) rodando em `http://localhost:5297`
-
----
-
-## Variáveis de Ambiente
-
-Copie `.env.example` para `.env` e preencha:
-
-```env
-GEMINI_API_KEY=          # chave da Google AI Studio
-ORACLE_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL
-ORACLE_USER=             # usuário Oracle FIAP (RM)
-ORACLE_PASSWORD=         # senha Oracle FIAP
-EVOLUTION_API_URL=http://localhost:8081
-EVOLUTION_API_KEY=       # chave da instância Evolution
-EVOLUTION_API_INSTANCE=petbuddies
-```
-
-O profile `dev` aponta para `petbuddies-api` em `http://localhost:5297`.
-O profile `docker` usa `http://petbuddies-net:5000`.
-
----
-
-## Como Executar
-
-### Localmente
+### Setup rápido para avaliação
 
 ```bash
-cp .env.example .env
-# preencher .env com credenciais reais
-
-mvn spring-boot:run
+# 1. Configure as credenciais Oracle via .env ou variáveis de ambiente
+# 2. Execute
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# 3. Swagger: http://localhost:8080/swagger-ui.html → tags de catálogo no topo
+# 4. Postman: importar docs/postman/petbuddies-ai-java.postman_collection.json
 ```
 
-Acesse:
-- **Swagger UI:** `http://localhost:8080/swagger-ui.html`
-- **Simular mensagem:** `POST http://localhost:8080/simulate-message`
+## Avaliação Java — roteiro de endpoints de Protocolo
 
-### Simular mensagem sem WhatsApp
+> Estes endpoints são **autocontidos**: não dependem da API .NET nem do WhatsApp. O avaliador precisa apenas do `petbuddies-ai` rodando com Oracle FIAP configurado.
 
-```bash
-curl -X POST http://localhost:8080/simulate-message \
-  -H "Content-Type: application/json" \
-  -d '{"telefone":"5511999999999","texto":"Quero cadastrar meu pet"}'
-```
+### Contexto dos recursos testados
 
-### Com Docker
+O catálogo de protocolos é a parte administrativa do motor de cuidado. Ele guarda as regras que dizem qual plano o sistema deve gerar para cada animal e quais ações esse plano deve conter.
 
-```bash
-mvn package -DskipTests
-docker build -t petbuddies-ai .
-docker run --rm \
-  -e GEMINI_API_KEY=sua_chave \
-  -e ORACLE_USER=seu_usuario \
-  -e ORACLE_PASSWORD=sua_senha \
-  -e SPRING_PROFILES_ACTIVE=docker \
-  -p 8080:8080 \
-  petbuddies-ai
-```
+- **Protocolo** é um modelo de cuidado. Exemplo: um protocolo preventivo para cachorro filhote ou um protocolo pós-cirúrgico para gato. Ele define a categoria (`PREVENTIVO` ou `POS_CIRURGICO`) e os critérios de aplicação, como espécie, porte, sexo, castração e faixa de idade.
+
+
+- **Evento de protocolo** é uma ação prevista dentro desse modelo. Exemplo: vacinação, vermifugação, exame ou retorno. Cada evento informa quando deve acontecer em relação ao início do plano (`diasAposInicio`).
+
+
+- Quando um animal é cadastrado na API .NET, o .NET chama o motor Java. O motor escolhe um protocolo compatível e transforma os eventos de protocolo em eventos reais do plano daquele animal.
+
+
+- O bot usa esse motor indiretamente: o tutor conversa pelo WhatsApp, cadastra o animal, consulta o plano e recebe respostas baseadas nesses protocolos e eventos.
+
+
+- Por isso esta seção pode ser testada isoladamente: ela valida a base de regras do motor sem depender do WhatsApp, da Evolution API ou da API .NET.
+
+### Fluxo sugerido
+
+| Ordem | No projeto | Método | Rota | Retorno esperado |
+|---|---|---|---|---|
+| 1 | Cadastra um novo modelo de cuidado | `POST` | `/api/protocolos` | `201` com o protocolo criado |
+| 2 | Mostra os modelos de cuidado disponíveis para o motor | `GET` | `/api/protocolos` | `200` com lista de protocolos ativos |
+| 3 | Localiza protocolos usados em planos preventivos | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO` | `200` com protocolos da categoria |
+| 4 | Simula a seleção de regra para um perfil de animal | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO&especie=CACHORRO` | `200` com filtro combinado |
+| 5 | Consulta um modelo específico | `GET` | `/api/protocolos/{id}` | `200` com o protocolo |
+| 6 | Ajusta uma regra de cuidado já cadastrada | `PUT` | `/api/protocolos/{id}` | `200` com dados atualizados |
+| 7 | Adiciona uma ação planejada ao modelo | `POST` | `/api/protocolos/{protocoloId}/eventos` | `201` com o evento criado |
+| 8 | Mostra a sequência de cuidado do protocolo | `GET` | `/api/protocolos/{protocoloId}/eventos` | `200` com eventos ordenados por `diasAposInicio` |
+| 9 | Isola ações de um tipo dentro do plano | `GET` | `/api/protocolos/{protocoloId}/eventos?tipo=VACINACAO` | `200` com eventos filtrados |
+| 10 | Consulta uma ação planejada específica | `GET` | `/api/eventos-protocolo/{id}` | `200` com o evento |
+| 11 | Ajusta prazo ou descrição de uma ação planejada | `PUT` | `/api/eventos-protocolo/{id}` | `200` com evento atualizado |
+| 12 | Remove uma ação do modelo | `DELETE` | `/api/eventos-protocolo/{id}` | `204` sem corpo |
+| 13 | Remove um modelo de cuidado de teste | `DELETE` | `/api/protocolos/{id}` | `204` sem corpo |
+
+O `POST` de evento de protocolo é `POST /api/protocolos/{protocoloId}/eventos`, e não `POST /api/eventos-protocolo`, porque o evento é filho de um protocolo. Ele só faz sentido vinculado ao modelo de cuidado que depois será usado pelo motor para gerar eventos reais no plano de um animal.
+
+### Validações e respostas de erro
+
+| Situação | Método | Rota | Retorno esperado |
+|---|---|---|---|
+| Tenta criar protocolo sem campos obrigatórios | `POST` | `/api/protocolos` com `{}` | `400` com `ErrorDto` |
+| Busca protocolo inexistente | `GET` | `/api/protocolos/999999` | `404` com `ErrorDto` |
+| Tenta criar evento sem tipo, nome ou prazo | `POST` | `/api/protocolos/{protocoloId}/eventos` com `{}` | `400` com `ErrorDto` |
+| Tenta criar evento com enum inválido | `POST` | `/api/protocolos/{protocoloId}/eventos` com `"tipo": "VACINA"` | `400` com valores aceitos |
+| Busca evento inexistente | `GET` | `/api/eventos-protocolo/999999` | `404` com `ErrorDto` |
 
 ---
 
-## Seed de Protocolos
+## Estrutura do Projeto
 
-Antes de testar os endpoints do motor, executar no Oracle FIAP:
-
-```bash
-# conectar ao Oracle e executar:
-sql/seed-protocolos-exemplo.sql
+```
+petbuddies-ai/
+├── docs/
+│   └── postman/
+│       └── petbuddies-ai-java.postman_collection.json
+├── src/main/java/br/com/fiap/petbuddies/
+│   ├── client/        # PetNetApiClient
+│   ├── config/        # ChatClientConfig, PetNetApiClientConfig, OpenApiConfig
+│   ├── controller/
+│   │   ├── bot/       # WebhookController, SimulationController
+│   │   ├── motor/     # MotorPlanoController, MotorScoreController
+│   │   └── protocolo/ # ProtocoloController, EventoProtocoloController
+│   ├── domain/
+│   │   ├── entity/    # 8 entidades JPA
+│   │   ├── enums/     # 14 enums de domínio
+│   │   └── repository/# 8 repositórios Spring Data
+│   ├── dto/
+│   │   ├── bot/       # DTOs conversação
+│   │   ├── client/    # DTOs integração .NET
+│   │   ├── evolution/ # EvolutionWebhookDTO
+│   │   ├── motor/     # DTOs motor de cuidado
+│   │   └── protocolo/ # DTOs catálogo
+│   ├── exception/     # Exceções de domínio
+│   ├── flow/          # Orquestração fluxos conversacionais
+│   │   └── dto/       # DTOs de estado dos fluxos
+│   ├── handler/       # GlobalExceptionHandler
+│   └── service/
+│       ├── bot/       # ChatService, ClassificadorService, RedatorService, ...
+│       ├── motor/     # MotorPlanoService, MotorScoreService, ...
+│       └── protocolo/ # ProtocoloService, EventoProtocoloService
+├── .env.example
+├── Dockerfile
+└── README.md
 ```
 
-Sem o seed, `POST /api/motor/planos/instanciar` retorna `{ "criado": false, "motivo": "SEM_PROTOCOLO_COMPATIVEL" }` — comportamento esperado.
+
+## Por que Repository e não DAO?
+
+O Spring Data JPA já gerencia o `EntityManager` automaticamente — ciclo de vida, transações, thread-safety. O `JpaRepository` entrega o CRUD pronto via interface, sem precisar implementar nada na mão.
+
+DAO faria sentido se precisássemos de controle fino sobre o `EntityManager`. Aqui, o Spring cuida disso melhor do que faríamos manualmente.
 
 ---
 
-## Endpoints
+## Modelo de Dados
 
-### Bot
+### Motor Core — 6 entidades
 
-| Método | Path | Status | Descrição |
-|--------|------|--------|-----------|
-| `POST` | `/webhook/whatsapp` | 200 | Recebe eventos Evolution API (sempre 200 — evita retry) |
-| `POST` | `/simulate-message` | 200 | Simula mensagem WhatsApp para debug |
+| Entidade | Tabela | Relacionamentos | Vínculo .NET |
+|----------|--------|-----------------|--------------|
+| `ProtocoloEntity` | `T_PB_PROTOCOLO` | 1:N → EventoProtocoloEntity | — |
+| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | N:1 → ProtocoloEntity | — |
+| `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | N:1 → ProtocoloEntity; 1:N → EventoPlanoEntity | `T_PB_ANIMAL`, `T_PB_CONSULTA` |
+| `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | N:1 → PlanoCuidadoAnimalEntity | `T_PB_PROCEDIMENTO` |
+| `ScoreRiscoAnimalEntity` | `T_PB_SCORE_RISCO_ANIMAL` | 1:N → FatorRiscoEntity | `T_PB_ANIMAL` |
+| `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | N:1 → ScoreRiscoAnimalEntity | — |
 
-### Motor — Planos
+### Conversação Bot — 2 entidades
 
-| Método | Path | Status | Descrição |
-|--------|------|--------|-----------|
-| `POST` | `/api/motor/planos/instanciar` | 201 / 200 | Instancia plano preventivo (idempotente por animalId) |
-| `POST` | `/api/motor/planos/pos-cirurgico` | 201 / 200 | Instancia plano pós-cirúrgico (idempotente por consultaId) |
-| `GET` | `/api/motor/planos/{petNetApiAnimalId}` | 200 / 404 | Retorna plano ativo + eventos |
-| `GET` | `/api/motor/planos/{petNetApiAnimalId}/eventos` | 200 | Lista eventos paginada (`?page=0&size=10`) |
+| Entidade | Tabela | Relacionamentos | Vínculo .NET |
+|----------|--------|-----------------|--------------|
+| `SessaoBotEntity` | `T_PB_SESSAO_BOT` | — | — |
+| `TriagemSessaoEntity` | `T_PB_TRIAGEM_SESSAO` | — | `T_PB_ANIMAL`, `T_PB_RESPONSAVEL` |
 
-### Motor — Scores
+### Enums
 
-| Método | Path | Status | Descrição |
-|--------|------|--------|-----------|
-| `POST` | `/api/motor/scores/recalcular` | 200 | Recalcula e persiste score de risco |
-| `GET` | `/api/motor/scores/{petNetApiAnimalId}` | 200 / 404 | Score mais recente |
-| `GET` | `/api/motor/scores/{petNetApiAnimalId}/historico` | 200 | Histórico paginado |
+| Enum | Valores |
+|------|---------|
+| `Especie` | `CACHORRO`, `GATO`, `PASSARO`, `COELHO`, `HAMSTER`, `OUTRO` |
+| `Porte` | `MINI`, `PEQUENO`, `MEDIO`, `GRANDE`, `GIGANTE` |
+| `Sexo` | `MACHO`, `FEMEA` |
+| `CategoriaProtocolo` | `PREVENTIVO`, `POS_CIRURGICO` |
+| `StatusPlano` | `ATIVO`, `CONCLUIDO`, `CANCELADO` |
+| `TipoEventoProtocolo` | `VACINACAO`, `VERMIFUGACAO`, `EXAME`, `RETORNO`, `CIRURGIA` |
+| `StatusEventoPlano` | `PENDENTE`, `REALIZADO`, `CANCELADO`, `ATRASADO` |
+| `TipoRisco` | `VACINA_ATRASADA`, `CONDICAO_CRONICA`, `TEMPO_SEM_CONSULTA`, `IDADE_AVANCADA` |
+| `ClassificacaoRisco` | `BAIXO`, `MEDIO`, `ALTO` |
+| `Intencao` | `CADASTRO`, `AGENDAMENTO`, `CONSULTA_PLANO`, `TRIAGEM`, `GERAL` |
+| `ClassificacaoTriagem` | `PODE_ESPERAR`, `PRIORITARIO`, `EMERGENCIA` |
+| `TriagemStage` | `TRIAGEM_IDENTIFICANDO_ANIMAL`, `TRIAGEM_AGUARDANDO_P1`, `TRIAGEM_AGUARDANDO_P2`, `TRIAGEM_AGUARDANDO_P3`, `TRIAGEM_AGUARDANDO_P4`, `TRIAGEM_FINALIZADA`, `TRIAGEM_OFERECEU_AGENDAMENTO` |
+| `AcaoPendente` | `AGENDAMENTO_AGUARDANDO_ESCOLHA_ANIMAL`, `AGENDAMENTO_AGUARDANDO_TURNO`, `AGENDAMENTO_AGUARDANDO_ESCOLHA_JANELA`, `AGENDAMENTO_AGUARDANDO_CONFIRMACAO` |
+| `CadastroStage` | `CADASTRO_IDENTIFICANDO_TUTOR`, `CADASTRO_AGUARDANDO_NOME_TUTOR`, `CADASTRO_COLETANDO_ANIMAL`, `CADASTRO_AGUARDANDO_CONFIRMACAO`, `CADASTRO_FINALIZADO` |
 
-### Exemplos de Request/Response
-
-**POST `/api/motor/planos/instanciar`:**
-```json
-{ "petNetApiAnimalId": 1 }
-```
-
-**Response 201:**
-```json
-{
-  "id": 1,
-  "petNetApiAnimalId": 1,
-  "protocoloNome": "Preventivo Cão Adulto Grande",
-  "categoria": "PREVENTIVO",
-  "status": "ATIVO",
-  "instanciadoEm": "2026-05-19T14:30:00",
-  "scoreAtual": null,
-  "criado": true,
-  "eventos": [ ... ]
-}
-```
-
-**POST `/api/motor/scores/recalcular`:**
-```json
-{ "petNetApiAnimalId": 1 }
-```
-
-**Response 200:**
-```json
-{
-  "petNetApiAnimalId": 1,
-  "score": 65,
-  "classificacao": "MEDIO",
-  "calculadoEm": "2026-05-19T14:31:00",
-  "fatores": [
-    { "tipo": "IDADE", "peso": 0.3, "valor": 70.0, "contribuicao": 21.0 },
-    { "tipo": "CASTRADO", "peso": 0.2, "valor": 50.0, "contribuicao": 10.0 }
-  ]
-}
-```
 
 ---
 
@@ -310,31 +217,74 @@ ChatService                   ← roteia por intenção e comanda globais (ajuda
 
 ---
 
-## Diagramas
 
-- **DER Motor Core:** [`docs/diagramas/der-motor-core.md`](docs/diagramas/der-motor-core.md)
-- **Diagrama de Classes:** [`docs/diagramas/classes-motor-core.md`](docs/diagramas/classes-motor-core.md)
+## Como Executar
+
+### Pré-requisitos
+
+- Java 21+
+- Maven 3.9+
+- Acesso ao Oracle FIAP (VPN ou rede local)
+- Chave Gemini API (`GEMINI_API_KEY`)
+- Evolution API rodando (Docker) — opcional para testar endpoints REST isolados
+- `petbuddies-api` (.NET) rodando em `http://localhost:5297` — opcional para testar o bot
+
+## Configuração do Banco de Dados
+
+Oracle disponibilizado pela FIAP. Copie `.env.example` para `.env` e preencha as credenciais:
+
+```env
+ORACLE_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL
+ORACLE_USER=             # seu RM (ex: rm123456)
+ORACLE_PASSWORD=         # sua senha Oracle FIAP
+```
+
+> Preencha `ORACLE_USER` com seu RM e `ORACLE_PASSWORD` com a senha do Oracle FIAP.
+
+O Hibernate gerencia o schema automaticamente via `ddl-auto=update` — as tabelas são criadas ou atualizadas no startup sem necessidade de migrations manuais.
 
 ---
 
-## Testes — Postman
 
-Coleção disponível em:
 
+### Rodando localmente
+
+```bash
+# Clonar o repositório
+git clone https://github.com/3BugBuddies/PetBudies-AI
+cd petbuddies-ai
+
+# Configurar credenciais
+cp .env.example .env
+# preencher ORACLE_USER, ORACLE_PASSWORD, GEMINI_API_KEY e EVOLUTION_API_KEY no .env
+
+# Executar
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
-docs/postman/petbuddies-ai-java.postman_collection.json
+
+A aplicação sobe em:
+- **Swagger UI:** `http://localhost:8080/swagger-ui.html`
+
+### Variáveis de ambiente completas
+
+```env
+GEMINI_API_KEY=          # chave da Google AI Studio
+ORACLE_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL
+ORACLE_USER=             # usuário Oracle FIAP (RM)
+ORACLE_PASSWORD=         # senha Oracle FIAP
+EVOLUTION_API_URL=http://localhost:8081
+EVOLUTION_API_KEY=       # chave da instância Evolution
+EVOLUTION_API_INSTANCE=petbuddies
 ```
 
-Importar no Postman. A variável `baseUrl` já está configurada para `http://localhost:8080`. Os tests JS validam o status code esperado em cada request.
-
----
+> O profile `dev` aponta para `petbuddies-api` em `http://localhost:5297`. O profile `docker` usa `http://petbuddies-net:5000`.
 
 ## Tecnologias Utilizadas
 
 - **Java 21** / Spring Boot 3.4.5
 - **Spring AI 1.1.6** — tool calling + memória JDBC
 - **Gemini 2.5 Flash** via endpoint OpenAI-compatible
-- **Spring Data JPA + Hibernate** — 6 entidades Oracle
+- **Spring Data JPA + Hibernate** — 8 entidades Oracle
 - **Oracle Database** (FIAP)
 - **Springdoc OpenAPI 2.8.8** (Swagger UI)
 - **Bean Validation** (Jakarta)

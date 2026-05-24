@@ -29,12 +29,12 @@ public class EventoProtocoloController {
     @Operation(
         summary = "Lista eventos do protocolo",
         description = "Retorna eventos ordenados por diasAposInicio. "
-            + "Parâmetro opcional ?tipo= filtra por tipo (ex: VACINA, CONSULTA)."
+            + "Parâmetro opcional ?tipo= filtra por tipo (ex: VACINACAO, RETORNO, EXAME)."
     )
     @ApiResponse(responseCode = "200", description = "Lista de eventos")
     public List<EventoProtocoloResponse> listar(
             @PathVariable Long protocoloId,
-            @Parameter(description = "Tipo do evento (ex: VACINA, CONSULTA, EXAME)")
+            @Parameter(description = "Tipo do evento (ex: VACINACAO, RETORNO, EXAME)")
             @RequestParam(required = false) TipoEventoProtocolo tipo) {
         return service.listarPorProtocolo(protocoloId, tipo);
     }
