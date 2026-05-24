@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.flow;
 
 import br.com.fiap.petbuddies.dto.client.AnimalDto;
-import br.com.fiap.petbuddies.flow.model.AnimalResumo;
-import br.com.fiap.petbuddies.service.RespostaParserService;
+import br.com.fiap.petbuddies.flow.dto.AnimalResumo;
+import br.com.fiap.petbuddies.service.bot.RespostaParserService;
 
 import java.util.LinkedHashMap;
 import java.util.List;

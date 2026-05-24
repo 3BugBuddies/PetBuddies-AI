@@ -11,12 +11,12 @@ import br.com.fiap.petbuddies.domain.repository.TriagemSessaoRepository;
 import br.com.fiap.petbuddies.dto.bot.AtoComunicativo;
 import br.com.fiap.petbuddies.dto.bot.ConversationContext;
 import br.com.fiap.petbuddies.dto.client.AnimalDto;
-import br.com.fiap.petbuddies.flow.model.FlowResponse;
-import br.com.fiap.petbuddies.flow.model.TriagemScoreResultado;
-import br.com.fiap.petbuddies.service.RespostaParserService;
-import br.com.fiap.petbuddies.service.RespostaParserService.RespostaBinaria;
-import br.com.fiap.petbuddies.service.RespostaParserService.TempoRelatado;
-import br.com.fiap.petbuddies.service.TriagemScoreService;
+import br.com.fiap.petbuddies.flow.dto.FlowResponse;
+import br.com.fiap.petbuddies.flow.dto.TriagemScoreResultado;
+import br.com.fiap.petbuddies.service.bot.RespostaParserService;
+import br.com.fiap.petbuddies.service.bot.RespostaParserService.RespostaBinaria;
+import br.com.fiap.petbuddies.service.bot.RespostaParserService.TempoRelatado;
+import br.com.fiap.petbuddies.service.motor.TriagemScoreService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

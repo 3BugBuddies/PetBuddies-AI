@@ -6,6 +6,39 @@ O serviço recebe mensagens via Evolution API, classifica a intenção do tutor 
 
 ---
 
+## Avaliação isolada — endpoints do catálogo
+
+> Estes endpoints são **autocontidos** (sem dependência de outro serviço). O avaliador pode testá-los apenas com Oracle FIAP configurado.
+
+### Setup rápido para o avaliador
+
+```bash
+# 1. Clone e configure credenciais Oracle em src/main/resources/application-dev.yml
+# 2. Execute
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# 3. Swagger: http://localhost:8080/swagger-ui.html → grupo "catalogo"
+# 4. Postman: importar docs/postman/petbuddies-ai-java.postman_collection.json
+```
+
+### Endpoints disponíveis para avaliação
+
+| Método | Rota | Descrição | Critério |
+|---|---|---|---|
+| GET | `/api/protocolos` | Lista todos ativos | JPQL/Query Method |
+| GET | `/api/protocolos/buscar?categoria=&especie=` | Filtro combinado | Busca customizada com parâmetros |
+| GET | `/api/protocolos/{id}` | Por id — 404 se ausente | Tratamento de erro |
+| POST | `/api/protocolos` | Cria — Bean Validation — 201 | Bean Validation |
+| PUT | `/api/protocolos/{id}` | Atualiza — 200 | CRUD |
+| DELETE | `/api/protocolos/{id}` | Remove — 204 | CRUD |
+| GET | `/api/protocolos/{id}/eventos` | Lista eventos (sort por diasAposInicio) | Query Method |
+| GET | `/api/protocolos/{id}/eventos?tipo=VACINA` | Filtra por tipo | Busca customizada com parâmetros |
+| GET | `/api/eventos-protocolo/{id}` | Por id — 404 se ausente | Tratamento de erro |
+| POST | `/api/protocolos/{id}/eventos` | Cria evento — Bean Validation — 201 | Bean Validation |
+| PUT | `/api/eventos-protocolo/{id}` | Atualiza — 200 | CRUD |
+| DELETE | `/api/eventos-protocolo/{id}` | Remove — 204 | CRUD |
+
+---
+
 ## Integrantes do Grupo
 
 | Nome | RM |
@@ -29,7 +62,7 @@ O serviço recebe mensagens via Evolution API, classifica a intenção do tutor 
 | Spring AI OpenAI | AI | Gemini via endpoint OpenAI-compatible |
 | Spring AI JDBC Memory | AI | Memória de conversa persistida |
 | Bean Validation | I/O | Validação de DTOs |
-| Springdoc OpenAPI | Dev | Swagger UI — grupos `bot` e `motor` |
+| Springdoc OpenAPI | Dev | Swagger UI — grupos `bot`, `motor` e `catalogo` |
 
 ---
 
@@ -39,28 +72,44 @@ O serviço recebe mensagens via Evolution API, classifica a intenção do tutor 
 br.com.fiap.petbuddies/
   client/        — PetNetApiClient (6 métodos HTTP reais para a API .NET)
   config/        — ChatClientConfig, PetNetApiClientConfig, OpenApiConfig
-  controller/    — WebhookController (/webhook/whatsapp),
-                   SimulationController (/simulate-message),
-                   MotorPlanoController, MotorScoreController
+  controller/
+    bot/         — WebhookController (/webhook/whatsapp),
+                   SimulationController (/simulate-message)
+    motor/       — MotorPlanoController, MotorScoreController
+    protocolo/   — ProtocoloController, EventoProtocoloController
   domain/
-    entity/      — 6 entidades JPA do motor core
-    enums/       — 10 enums (Especie, Porte, Sexo, StatusPlano, Intencao, ...)
-    repository/  — 6 repositórios Spring Data com buscas customizadas (@Query)
+    entity/      — 8 entidades JPA (motor core + sessões bot + triagem)
+    enums/       — 11 enums (Especie, Porte, Sexo, StatusPlano, Intencao,
+                   ClassificacaoTriagem, TipoEventoProtocolo, ...)
+    repository/  — 8 repositórios Spring Data com buscas customizadas (@Query)
   dto/
-    bot/         — IntentResult, ConversationContext,
+    bot/         — IntentResult, ConversationContext, AtoComunicativo,
                    SimulateMessageRequest, SimulateMessageResponse
     client/      — ResponsavelDto, AnimalDto, AnimalMotorDto, UltimaConsultaDto,
-                   CadastrarResponsavelRequest, CadastrarAnimalRequest
+                   CadastrarResponsavelRequest, CadastrarAnimalRequest,
+                   AgendarConsultaRequest, CancelarConsultaRequest
     motor/       — PlanoPreventivoRequest, PlanoPosCirurgicoRequest,
                    RecalcularScoreRequest, PlanoResponse, ScoreResponse,
                    EventoPlanoDto, FatorRiscoDto
+    protocolo/   — ProtocoloRequest, ProtocoloResponse,
+                   EventoProtocoloRequest, EventoProtocoloResponse
     ErrorDto     — raiz, usado por todos os handlers
   exception/     — PetNetApiNotFoundException, PetNetApiUnavailableException,
-                   PetNetApiConflictException, PlanoNaoEncontradoException
+                   PetNetApiConflictException, PlanoNaoEncontradoException,
+                   ProtocoloNaoEncontradoException, EventoProtocoloNaoEncontradoException
+  flow/          — orquestração determinística dos fluxos conversacionais
+    dto/         — FlowResponse, DadosCadastroPendente, DadosAgendamentoPendente,
+                   DadosConsultaPlanoPendente, AnimalResumo, JanelaOfertada,
+                   TriagemScoreResultado
+    AgendamentoFlowService, CadastroFlowService, ConsultaPlanoFlowService,
+    TriagemFlowService, FlowSessaoHelper, FlowSupport
   handler/       — GlobalExceptionHandler (@RestControllerAdvice)
-  service/       — ChatService, ClassificadorService, PromptFactory, ToolsFactory,
-                   EvolutionService, ProtocoloMatchService, MotorPlanoService, MotorScoreService
-  tools/         — CadastroTools, AgendamentoTools, PlanoTools, TriagemTools
+  service/
+    bot/         — ChatService, ClassificadorService, RedatorService,
+                   RespostaParserService, EvolutionService
+    motor/       — MotorPlanoService, MotorScoreService,
+                   ProtocoloMatchService, TriagemScoreService
+    protocolo/   — ProtocoloService, EventoProtocoloService
 ```
 
 ---
@@ -235,25 +284,29 @@ Sem o seed, `POST /api/motor/planos/instanciar` retorna `{ "criado": false, "mot
 Mensagem WhatsApp
       │
       ▼
-ClassificadorService     ← Gemini sem memória, retorna Intencao + confiança
+ClassificadorService          ← Gemini sem memória, retorna Intencao + confiança
       │
       ▼
-PromptFactory            ← monta system prompt (BASE + complemento por intenção + contexto)
+ChatService                   ← roteia por intenção e comanda globais (ajuda, cancelar)
       │
-      ▼
-ToolsFactory             ← seleciona tools por intenção
-      │
-      ▼
-ChatClient (Spring AI)   ← Gemini com memória JDBC + tools selecionadas
-      │
-      ▼
-Tools (CadastroTools, AgendamentoTools, PlanoTools, TriagemTools)
-      │
-      ▼
-PetNetApiClient          ← chamadas HTTP reais para petbuddies-api (.NET)
+      ├── TriagemFlowService       (fluxo determinístico — 4 perguntas + score)
+      ├── AgendamentoFlowService   (fluxo determinístico — janelas + confirmação)
+      ├── CadastroFlowService      (fluxo determinístico — coleta dados tutor/pet)
+      └── ConsultaPlanoFlowService (consulta plano ativo + eventos do pet)
+            │
+            ▼
+      PetNetApiClient          ← chamadas HTTP reais para petbuddies-api (.NET)
+            │
+            ▼
+      RedatorService           ← Gemini formata resposta em linguagem natural
+            │
+            ▼
+      EvolutionService         ← envia resposta para o WhatsApp
 ```
 
 **Intenções suportadas:** `CADASTRO`, `AGENDAMENTO`, `CONSULTA_PLANO`, `TRIAGEM`, `GERAL`
+
+**FlowSessaoHelper** serializa e recupera o estado do fluxo (Dados*Pendente) na `SessaoBotEntity` entre mensagens, usando Jackson.
 
 ---
 
@@ -269,10 +322,10 @@ PetNetApiClient          ← chamadas HTTP reais para petbuddies-api (.NET)
 Coleção disponível em:
 
 ```
-postman/petbuddies-ai.postman_collection.json
+docs/postman/petbuddies-ai-java.postman_collection.json
 ```
 
-Importar no Postman e configurar `base_url` para `http://localhost:8080`.
+Importar no Postman. A variável `baseUrl` já está configurada para `http://localhost:8080`. Os tests JS validam o status code esperado em cada request.
 
 ---
 
