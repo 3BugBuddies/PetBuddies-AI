@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.dto.motor;
+package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.EventoPlanoEntity;
 import io.swagger.v3.oas.annotations.media.Schema;

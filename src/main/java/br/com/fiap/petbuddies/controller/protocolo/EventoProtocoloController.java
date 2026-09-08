@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller.protocolo;
 
 import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
-import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloRequest;
-import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloResponse;
+import br.com.fiap.petbuddies.dto.EventoProtocoloRequest;
+import br.com.fiap.petbuddies.dto.EventoProtocoloResponse;
 import br.com.fiap.petbuddies.assembler.EventoProtocoloModelAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;

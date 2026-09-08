@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.assembler;
 
 import br.com.fiap.petbuddies.controller.motor.MotorPlanoController;
-import br.com.fiap.petbuddies.dto.motor.PlanoResponse;
+import br.com.fiap.petbuddies.dto.PlanoResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

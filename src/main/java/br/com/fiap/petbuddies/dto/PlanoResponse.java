@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.dto.motor;
+package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoAnimalEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusEventoPlano;

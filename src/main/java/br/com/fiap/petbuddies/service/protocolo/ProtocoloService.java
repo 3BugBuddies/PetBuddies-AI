@@ -4,8 +4,8 @@ import br.com.fiap.petbuddies.domain.entity.ProtocoloEntity;
 import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.Especie;
 import br.com.fiap.petbuddies.domain.repository.ProtocoloRepository;
-import br.com.fiap.petbuddies.dto.protocolo.ProtocoloRequest;
-import br.com.fiap.petbuddies.dto.protocolo.ProtocoloResponse;
+import br.com.fiap.petbuddies.dto.ProtocoloRequest;
+import br.com.fiap.petbuddies.dto.ProtocoloResponse;
 import br.com.fiap.petbuddies.exception.ProtocoloNaoEncontradoException;
 import org.springframework.stereotype.Service;
 

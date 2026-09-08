@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.dto.protocolo;
+package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.Especie;
