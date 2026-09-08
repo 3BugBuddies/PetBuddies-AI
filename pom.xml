@@ -28,6 +28,18 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- ===== HATEOAS ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
+        </dependency>
+
+        <!-- ===== THYMELEAF ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
         <!-- ===== PERSISTÊNCIA JPA ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -59,6 +71,12 @@
             <groupId>me.paulschwarz</groupId>
             <artifactId>spring-dotenv</artifactId>
             <version>4.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- ===== TESTES ===== -->
