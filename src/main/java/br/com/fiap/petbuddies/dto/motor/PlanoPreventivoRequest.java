@@ -14,7 +14,7 @@ public class PlanoPreventivoRequest {
 
     @Schema(description = "ID do animal no PetBuddies-API (.NET)", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull @Positive
-    private Long petNetApiAnimalId;
+    private Long animalId;
 
     @Schema(description = "Espécie do animal", example = "CACHORRO", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
@@ -33,8 +33,8 @@ public class PlanoPreventivoRequest {
     @NotNull @Past
     private LocalDate dataNascimento;
 
-    public Long getPetNetApiAnimalId() { return petNetApiAnimalId; }
-    public void setPetNetApiAnimalId(Long petNetApiAnimalId) { this.petNetApiAnimalId = petNetApiAnimalId; }
+    public Long getAnimalId() { return animalId; }
+    public void setAnimalId(Long animalId) { this.animalId = animalId; }
 
     public Especie getEspecie() { return especie; }
     public void setEspecie(Especie especie) { this.especie = especie; }

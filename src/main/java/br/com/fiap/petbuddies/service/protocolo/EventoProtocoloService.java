@@ -27,7 +27,7 @@ public class EventoProtocoloService {
     public List<EventoProtocoloResponse> listarPorProtocolo(Long protocoloId, TipoEventoProtocolo tipo) {
         List<EventoProtocoloEntity> eventos = tipo != null
                 ? repository.findByProtocoloIdAndTipo(protocoloId, tipo)
-                : repository.findByProtocoloIdOrderByDiasAposInicioAsc(protocoloId);
+                : repository.findByProtocoloId(protocoloId);
         return eventos.stream().map(EventoProtocoloResponse::from).toList();
     }
 
@@ -62,11 +62,12 @@ public class EventoProtocoloService {
     private void aplicar(EventoProtocoloRequest request, EventoProtocoloEntity entity) {
         entity.setTipo(request.getTipo());
         entity.setNome(request.getNome());
-        entity.setDiasAposInicio(request.getDiasAposInicio());
-        entity.setMesAplicacao(request.getMesAplicacao());
-        entity.setRecorrenciaMeses(request.getRecorrenciaMeses());
-        entity.setPrioridade(request.getPrioridade());
-        entity.setUrgencia(request.getUrgencia());
+        entity.setOffset(request.getOffset());
+        entity.setUnidadeOffset(request.getUnidadeOffset());
+        entity.setAncora(request.getAncora());
+        entity.setIntervalo(request.getIntervalo());
+        entity.setUnidadeIntervalo(request.getUnidadeIntervalo());
+        entity.setRepeticoes(request.getRepeticoes());
         entity.setDescricao(request.getDescricao());
     }
 }

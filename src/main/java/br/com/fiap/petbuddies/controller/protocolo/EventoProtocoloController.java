@@ -28,7 +28,7 @@ public class EventoProtocoloController {
     @GetMapping("/api/protocolos/{protocoloId}/eventos")
     @Operation(
         summary = "Lista eventos do protocolo",
-        description = "Retorna eventos ordenados por diasAposInicio. "
+        description = "Retorna os moldes de item do protocolo. "
             + "Parâmetro opcional ?tipo= filtra por tipo (ex: VACINACAO, RETORNO, EXAME)."
     )
     @ApiResponse(responseCode = "200", description = "Lista de eventos")

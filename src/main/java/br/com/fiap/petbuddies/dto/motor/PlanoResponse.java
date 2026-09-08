@@ -15,7 +15,7 @@ public class PlanoResponse {
     private Long id;
 
     @Schema(description = "ID do animal no PetBuddies-API (.NET)")
-    private Long petNetApiAnimalId;
+    private Long animalId;
 
     @Schema(description = "Nome do protocolo aplicado")
     private String protocoloNome;
@@ -29,9 +29,6 @@ public class PlanoResponse {
     @Schema(description = "Data/hora de instanciação do plano")
     private LocalDateTime instanciadoEm;
 
-    @Schema(description = "Score de risco atual do animal")
-    private Integer scoreAtual;
-
     @Schema(description = "Eventos do plano (excluindo cancelados)")
     private List<EventoPlanoDto> eventos;
 
@@ -44,12 +41,12 @@ public class PlanoResponse {
     public static PlanoResponse from(PlanoCuidadoAnimalEntity plano, Boolean criado, String motivo) {
         PlanoResponse r = new PlanoResponse();
         r.id = plano.getId();
-        r.petNetApiAnimalId = plano.getPetNetApiAnimalId();
-        r.protocoloNome = plano.getProtocolo().getNome();
-        r.categoria = plano.getProtocolo().getCategoria().name();
+        r.animalId = plano.getAnimalId();
+        // protocolo e nulavel: plano formado so por itens de prescricao nao tem molde
+        r.protocoloNome = plano.getProtocolo() != null ? plano.getProtocolo().getNome() : null;
+        r.categoria = plano.getProtocolo() != null ? plano.getProtocolo().getCategoria().name() : null;
         r.status = plano.getStatus().name();
         r.instanciadoEm = plano.getCreatedAt();
-        r.scoreAtual = plano.getScoreAtual();
         r.eventos = plano.getEventos().stream()
                 .filter(e -> e.getStatus() != StatusEventoPlano.CANCELADO)
                 .map(EventoPlanoDto::from)
@@ -73,8 +70,8 @@ public class PlanoResponse {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public Long getPetNetApiAnimalId() { return petNetApiAnimalId; }
-    public void setPetNetApiAnimalId(Long v) { this.petNetApiAnimalId = v; }
+    public Long getAnimalId() { return animalId; }
+    public void setAnimalId(Long v) { this.animalId = v; }
 
     public String getProtocoloNome() { return protocoloNome; }
     public void setProtocoloNome(String v) { this.protocoloNome = v; }
@@ -88,8 +85,6 @@ public class PlanoResponse {
     public LocalDateTime getInstanciadoEm() { return instanciadoEm; }
     public void setInstanciadoEm(LocalDateTime v) { this.instanciadoEm = v; }
 
-    public Integer getScoreAtual() { return scoreAtual; }
-    public void setScoreAtual(Integer scoreAtual) { this.scoreAtual = scoreAtual; }
 
     public List<EventoPlanoDto> getEventos() { return eventos; }
     public void setEventos(List<EventoPlanoDto> eventos) { this.eventos = eventos; }
