@@ -56,7 +56,7 @@ Base local: `http://localhost:8080` · Swagger: `http://localhost:8080/swagger-u
 | `POST` | `/api/motor/planos/instanciar-preventivo` | escolhe o protocolo preventivo compatível com o animal e instancia o plano |
 | `POST` | `/api/motor/planos/instanciar-pos-cirurgico` | instancia o plano pós-cirúrgico a partir da cirurgia registrada |
 | `GET` | `/api/motor/planos/{animalId}` | devolve o plano ativo do animal |
-| `GET` | `/api/motor/planos/{animalId}/eventos` | devolve os itens do plano |
+| `GET` | `/api/motor/planos/{animalId}/eventos` | devolve os itens do plano, paginados (`?page=0&size=10`) |
 
 Os dois `POST` são **idempotentes**: com um plano `ATIVO` já existente, a resposta é o plano que
 existe, não um segundo plano.
