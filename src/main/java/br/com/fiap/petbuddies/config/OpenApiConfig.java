@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
     info = @Info(
         title = "PetBuddies AI",
         version = "1.0.0",
-        description = "Motor de cuidado contínuo e bot WhatsApp para tutores de pets.",
+        description = "Motor de cuidado contínuo: catálogo de protocolos e planos por animal.",
         contact = @Contact(name = "FIAP 2TDS 2026 — PetBuddies", email = "spbiel18@gmail.com")
     )
 )
@@ -29,16 +29,7 @@ public class OpenApiConfig {
                         .description("CRUD de eventos vinculados a protocolos de cuidado"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("motor — planos")
-                        .description("Instanciação e consulta de planos de cuidado preventivo e pós-cirúrgico"),
-                new io.swagger.v3.oas.models.tags.Tag()
-                        .name("motor — scores")
-                        .description("Cálculo e histórico de scores de risco por animal"),
-                new io.swagger.v3.oas.models.tags.Tag()
-                        .name("bot — simulação")
-                        .description("Simulação de mensagens WhatsApp para testes sem Evolution API"),
-                new io.swagger.v3.oas.models.tags.Tag()
-                        .name("bot — webhook")
-                        .description("Recebe eventos da Evolution API (WhatsApp gateway)")
+                        .description("Instanciação e consulta de planos de cuidado preventivo e pós-cirúrgico")
         ));
     }
 }
