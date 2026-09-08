@@ -4,6 +4,8 @@ import br.com.fiap.petbuddies.dto.motor.EventoPlanoDto;
 import br.com.fiap.petbuddies.dto.motor.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.motor.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.motor.PlanoResponse;
+import br.com.fiap.petbuddies.hateoas.PlanoAssembler;
+import org.springframework.hateoas.EntityModel;
 import br.com.fiap.petbuddies.service.motor.MotorPlanoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,9 +25,11 @@ import org.springframework.web.bind.annotation.*;
 public class MotorPlanoController {
 
     private final MotorPlanoService motorPlanoService;
+    private final PlanoAssembler assembler;
 
-    public MotorPlanoController(MotorPlanoService motorPlanoService) {
+    public MotorPlanoController(MotorPlanoService motorPlanoService, PlanoAssembler assembler) {
         this.motorPlanoService = motorPlanoService;
+        this.assembler = assembler;
     }
 
     @PostMapping("/instanciar-preventivo")
@@ -70,10 +74,10 @@ public class MotorPlanoController {
         @ApiResponse(responseCode = "200", description = "Plano encontrado"),
         @ApiResponse(responseCode = "404", description = "Nenhum plano ativo para este animal")
     })
-    public ResponseEntity<PlanoResponse> buscarPlano(
+    public ResponseEntity<EntityModel<PlanoResponse>> buscarPlano(
             @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId) {
         return motorPlanoService.buscarPlanoAtivo(animalId)
-                .map(ResponseEntity::ok)
+                .map(plano -> ResponseEntity.ok(assembler.toModel(animalId, plano)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
