@@ -20,36 +20,34 @@ public class ProtocoloService {
         this.repository = repository;
     }
 
-    public List<ProtocoloResponse> listarAtivos() {
-        return repository.findByAtivoTrue().stream().map(ProtocoloResponse::from).toList();
+    public List<ProtocoloEntity> listarAtivos() {
+        return repository.findByAtivoTrue();
     }
 
-    public List<ProtocoloResponse> buscar(CategoriaProtocolo categoria, Especie especie) {
+    public List<ProtocoloEntity> buscar(CategoriaProtocolo categoria, Especie especie) {
         if (categoria != null && especie != null) {
-            return repository.findByCategoriaAndEspecieAndAtivoTrue(categoria, especie)
-                    .stream().map(ProtocoloResponse::from).toList();
+            return repository.findByCategoriaAndEspecieAndAtivoTrue(categoria, especie);
         }
         if (categoria != null) {
-            return repository.findByCategoriaAndAtivoTrue(categoria)
-                    .stream().map(ProtocoloResponse::from).toList();
+            return repository.findByCategoriaAndAtivoTrue(categoria);
         }
         return listarAtivos();
     }
 
-    public ProtocoloResponse buscarPorId(Long id) {
-        return ProtocoloResponse.from(encontrarOuFalhar(id));
+    public ProtocoloEntity buscarPorId(Long id) {
+        return encontrarOuFalhar(id);
     }
 
-    public ProtocoloResponse criar(ProtocoloRequest request) {
+    public ProtocoloEntity criar(ProtocoloRequest request) {
         ProtocoloEntity entity = new ProtocoloEntity();
         aplicar(request, entity);
-        return ProtocoloResponse.from(repository.save(entity));
+        return repository.save(entity);
     }
 
-    public ProtocoloResponse atualizar(Long id, ProtocoloRequest request) {
+    public ProtocoloEntity atualizar(Long id, ProtocoloRequest request) {
         ProtocoloEntity entity = encontrarOuFalhar(id);
         aplicar(request, entity);
-        return ProtocoloResponse.from(repository.save(entity));
+        return repository.save(entity);
     }
 
     public void remover(Long id) {

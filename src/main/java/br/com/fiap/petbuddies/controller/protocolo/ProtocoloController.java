@@ -4,7 +4,7 @@ import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.Especie;
 import br.com.fiap.petbuddies.dto.protocolo.ProtocoloRequest;
 import br.com.fiap.petbuddies.dto.protocolo.ProtocoloResponse;
-import br.com.fiap.petbuddies.hateoas.ProtocoloAssembler;
+import br.com.fiap.petbuddies.assembler.ProtocoloModelAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import br.com.fiap.petbuddies.service.protocolo.ProtocoloService;
@@ -25,9 +25,9 @@ import java.util.List;
 public class ProtocoloController {
 
     private final ProtocoloService service;
-    private final ProtocoloAssembler assembler;
+    private final ProtocoloModelAssembler assembler;
 
-    public ProtocoloController(ProtocoloService service, ProtocoloAssembler assembler) {
+    public ProtocoloController(ProtocoloService service, ProtocoloModelAssembler assembler) {
         this.service = service;
         this.assembler = assembler;
     }
@@ -72,8 +72,9 @@ public class ProtocoloController {
         @ApiResponse(responseCode = "201", description = "Protocolo criado"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
-    public ResponseEntity<ProtocoloResponse> criar(@RequestBody @Valid ProtocoloRequest request) {
-        return ResponseEntity.status(201).body(service.criar(request));
+    public ResponseEntity<EntityModel<ProtocoloResponse>> criar(@RequestBody @Valid ProtocoloRequest request) {
+        EntityModel<ProtocoloResponse> model = assembler.toModel(service.criar(request));
+        return ResponseEntity.created(model.getRequiredLink("self").toUri()).body(model);
     }
 
     @PutMapping("/{id}")
@@ -83,8 +84,8 @@ public class ProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Protocolo não encontrado")
     })
-    public ProtocoloResponse atualizar(@PathVariable Long id, @RequestBody @Valid ProtocoloRequest request) {
-        return service.atualizar(id, request);
+    public EntityModel<ProtocoloResponse> atualizar(@PathVariable Long id, @RequestBody @Valid ProtocoloRequest request) {
+        return assembler.toModel(service.atualizar(id, request));
     }
 
     @DeleteMapping("/{id}")

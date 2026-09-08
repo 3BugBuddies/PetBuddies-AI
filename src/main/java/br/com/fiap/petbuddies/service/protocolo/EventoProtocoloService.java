@@ -24,30 +24,30 @@ public class EventoProtocoloService {
         this.protocoloRepository = protocoloRepository;
     }
 
-    public List<EventoProtocoloResponse> listarPorProtocolo(Long protocoloId, TipoEventoProtocolo tipo) {
+    public List<EventoProtocoloEntity> listarPorProtocolo(Long protocoloId, TipoEventoProtocolo tipo) {
         List<EventoProtocoloEntity> eventos = tipo != null
                 ? repository.findByProtocoloIdAndTipo(protocoloId, tipo)
                 : repository.findByProtocoloId(protocoloId);
-        return eventos.stream().map(EventoProtocoloResponse::from).toList();
+        return eventos;
     }
 
-    public EventoProtocoloResponse buscarPorId(Long id) {
-        return EventoProtocoloResponse.from(encontrarOuFalhar(id));
+    public EventoProtocoloEntity buscarPorId(Long id) {
+        return encontrarOuFalhar(id);
     }
 
-    public EventoProtocoloResponse criar(Long protocoloId, EventoProtocoloRequest request) {
+    public EventoProtocoloEntity criar(Long protocoloId, EventoProtocoloRequest request) {
         ProtocoloEntity protocolo = protocoloRepository.findById(protocoloId)
                 .orElseThrow(() -> new ProtocoloNaoEncontradoException(protocoloId));
         EventoProtocoloEntity entity = new EventoProtocoloEntity();
         entity.setProtocolo(protocolo);
         aplicar(request, entity);
-        return EventoProtocoloResponse.from(repository.save(entity));
+        return repository.save(entity);
     }
 
-    public EventoProtocoloResponse atualizar(Long id, EventoProtocoloRequest request) {
+    public EventoProtocoloEntity atualizar(Long id, EventoProtocoloRequest request) {
         EventoProtocoloEntity entity = encontrarOuFalhar(id);
         aplicar(request, entity);
-        return EventoProtocoloResponse.from(repository.save(entity));
+        return repository.save(entity);
     }
 
     public void remover(Long id) {

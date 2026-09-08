@@ -3,7 +3,7 @@ package br.com.fiap.petbuddies.controller.protocolo;
 import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
 import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloRequest;
 import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloResponse;
-import br.com.fiap.petbuddies.hateoas.EventoProtocoloAssembler;
+import br.com.fiap.petbuddies.assembler.EventoProtocoloModelAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import br.com.fiap.petbuddies.service.protocolo.EventoProtocoloService;
@@ -23,9 +23,9 @@ import java.util.List;
 public class EventoProtocoloController {
 
     private final EventoProtocoloService service;
-    private final EventoProtocoloAssembler assembler;
+    private final EventoProtocoloModelAssembler assembler;
 
-    public EventoProtocoloController(EventoProtocoloService service, EventoProtocoloAssembler assembler) {
+    public EventoProtocoloController(EventoProtocoloService service, EventoProtocoloModelAssembler assembler) {
         this.service = service;
         this.assembler = assembler;
     }
@@ -41,7 +41,7 @@ public class EventoProtocoloController {
             @PathVariable Long protocoloId,
             @Parameter(description = "Tipo do evento (ex: VACINACAO, RETORNO, EXAME)")
             @RequestParam(required = false) TipoEventoProtocolo tipo) {
-        return assembler.toCollectionModel(protocoloId, service.listarPorProtocolo(protocoloId, tipo));
+        return assembler.toCollectionModel(service.listarPorProtocolo(protocoloId, tipo));
     }
 
     @GetMapping("/api/eventos-protocolo/{id}")
@@ -61,10 +61,11 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Protocolo não encontrado")
     })
-    public ResponseEntity<EventoProtocoloResponse> criar(
+    public ResponseEntity<EntityModel<EventoProtocoloResponse>> criar(
             @PathVariable Long protocoloId,
             @RequestBody @Valid EventoProtocoloRequest request) {
-        return ResponseEntity.status(201).body(service.criar(protocoloId, request));
+        EntityModel<EventoProtocoloResponse> model = assembler.toModel(service.criar(protocoloId, request));
+        return ResponseEntity.created(model.getRequiredLink("self").toUri()).body(model);
     }
 
     @PutMapping("/api/eventos-protocolo/{id}")
@@ -74,10 +75,10 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Evento não encontrado")
     })
-    public EventoProtocoloResponse atualizar(
+    public EntityModel<EventoProtocoloResponse> atualizar(
             @PathVariable Long id,
             @RequestBody @Valid EventoProtocoloRequest request) {
-        return service.atualizar(id, request);
+        return assembler.toModel(service.atualizar(id, request));
     }
 
     @DeleteMapping("/api/eventos-protocolo/{id}")
