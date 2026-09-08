@@ -3,6 +3,9 @@ package br.com.fiap.petbuddies.controller.protocolo;
 import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
 import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloRequest;
 import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloResponse;
+import br.com.fiap.petbuddies.assembler.EventoProtocoloModelAssembler;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import br.com.fiap.petbuddies.service.protocolo.EventoProtocoloService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,9 +23,11 @@ import java.util.List;
 public class EventoProtocoloController {
 
     private final EventoProtocoloService service;
+    private final EventoProtocoloModelAssembler assembler;
 
-    public EventoProtocoloController(EventoProtocoloService service) {
+    public EventoProtocoloController(EventoProtocoloService service, EventoProtocoloModelAssembler assembler) {
         this.service = service;
+        this.assembler = assembler;
     }
 
     @GetMapping("/api/protocolos/{protocoloId}/eventos")
@@ -32,11 +37,11 @@ public class EventoProtocoloController {
             + "Parâmetro opcional ?tipo= filtra por tipo (ex: VACINACAO, RETORNO, EXAME)."
     )
     @ApiResponse(responseCode = "200", description = "Lista de eventos")
-    public List<EventoProtocoloResponse> listar(
+    public CollectionModel<EntityModel<EventoProtocoloResponse>> listar(
             @PathVariable Long protocoloId,
             @Parameter(description = "Tipo do evento (ex: VACINACAO, RETORNO, EXAME)")
             @RequestParam(required = false) TipoEventoProtocolo tipo) {
-        return service.listarPorProtocolo(protocoloId, tipo);
+        return assembler.toCollectionModel(service.listarPorProtocolo(protocoloId, tipo));
     }
 
     @GetMapping("/api/eventos-protocolo/{id}")
@@ -45,8 +50,8 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "200", description = "Evento encontrado"),
         @ApiResponse(responseCode = "404", description = "Evento não encontrado")
     })
-    public EventoProtocoloResponse buscarPorId(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public EntityModel<EventoProtocoloResponse> buscarPorId(@PathVariable Long id) {
+        return assembler.toModel(service.buscarPorId(id));
     }
 
     @PostMapping("/api/protocolos/{protocoloId}/eventos")
@@ -56,10 +61,11 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Protocolo não encontrado")
     })
-    public ResponseEntity<EventoProtocoloResponse> criar(
+    public ResponseEntity<EntityModel<EventoProtocoloResponse>> criar(
             @PathVariable Long protocoloId,
             @RequestBody @Valid EventoProtocoloRequest request) {
-        return ResponseEntity.status(201).body(service.criar(protocoloId, request));
+        EntityModel<EventoProtocoloResponse> model = assembler.toModel(service.criar(protocoloId, request));
+        return ResponseEntity.created(model.getRequiredLink("self").toUri()).body(model);
     }
 
     @PutMapping("/api/eventos-protocolo/{id}")
@@ -69,10 +75,10 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Evento não encontrado")
     })
-    public EventoProtocoloResponse atualizar(
+    public EntityModel<EventoProtocoloResponse> atualizar(
             @PathVariable Long id,
             @RequestBody @Valid EventoProtocoloRequest request) {
-        return service.atualizar(id, request);
+        return assembler.toModel(service.atualizar(id, request));
     }
 
     @DeleteMapping("/api/eventos-protocolo/{id}")

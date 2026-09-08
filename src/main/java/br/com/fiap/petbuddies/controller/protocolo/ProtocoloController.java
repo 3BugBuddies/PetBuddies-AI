@@ -4,6 +4,9 @@ import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.Especie;
 import br.com.fiap.petbuddies.dto.protocolo.ProtocoloRequest;
 import br.com.fiap.petbuddies.dto.protocolo.ProtocoloResponse;
+import br.com.fiap.petbuddies.assembler.ProtocoloModelAssembler;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import br.com.fiap.petbuddies.service.protocolo.ProtocoloService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,16 +25,18 @@ import java.util.List;
 public class ProtocoloController {
 
     private final ProtocoloService service;
+    private final ProtocoloModelAssembler assembler;
 
-    public ProtocoloController(ProtocoloService service) {
+    public ProtocoloController(ProtocoloService service, ProtocoloModelAssembler assembler) {
         this.service = service;
+        this.assembler = assembler;
     }
 
     @GetMapping
     @Operation(summary = "Lista protocolos ativos", description = "Retorna todos os protocolos com ativo=true.")
     @ApiResponse(responseCode = "200", description = "Lista de protocolos")
-    public List<ProtocoloResponse> listar() {
-        return service.listarAtivos();
+    public CollectionModel<EntityModel<ProtocoloResponse>> listar() {
+        return assembler.toCollectionModel(service.listarAtivos());
     }
 
     @GetMapping("/buscar")
@@ -43,12 +48,12 @@ public class ProtocoloController {
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Protocolos encontrados")
     })
-    public List<ProtocoloResponse> buscar(
+    public CollectionModel<EntityModel<ProtocoloResponse>> buscar(
             @Parameter(description = "Categoria do protocolo (ex: PREVENTIVO, POS_CIRURGICO)")
             @RequestParam(required = false) CategoriaProtocolo categoria,
             @Parameter(description = "Espécie do animal (ex: CACHORRO, GATO)")
             @RequestParam(required = false) Especie especie) {
-        return service.buscar(categoria, especie);
+        return assembler.toCollectionModel(service.buscar(categoria, especie));
     }
 
     @GetMapping("/{id}")
@@ -57,8 +62,8 @@ public class ProtocoloController {
         @ApiResponse(responseCode = "200", description = "Protocolo encontrado"),
         @ApiResponse(responseCode = "404", description = "Protocolo não encontrado")
     })
-    public ProtocoloResponse buscarPorId(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public EntityModel<ProtocoloResponse> buscarPorId(@PathVariable Long id) {
+        return assembler.toModel(service.buscarPorId(id));
     }
 
     @PostMapping
@@ -67,8 +72,9 @@ public class ProtocoloController {
         @ApiResponse(responseCode = "201", description = "Protocolo criado"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
-    public ResponseEntity<ProtocoloResponse> criar(@RequestBody @Valid ProtocoloRequest request) {
-        return ResponseEntity.status(201).body(service.criar(request));
+    public ResponseEntity<EntityModel<ProtocoloResponse>> criar(@RequestBody @Valid ProtocoloRequest request) {
+        EntityModel<ProtocoloResponse> model = assembler.toModel(service.criar(request));
+        return ResponseEntity.created(model.getRequiredLink("self").toUri()).body(model);
     }
 
     @PutMapping("/{id}")
@@ -78,8 +84,8 @@ public class ProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Protocolo não encontrado")
     })
-    public ProtocoloResponse atualizar(@PathVariable Long id, @RequestBody @Valid ProtocoloRequest request) {
-        return service.atualizar(id, request);
+    public EntityModel<ProtocoloResponse> atualizar(@PathVariable Long id, @RequestBody @Valid ProtocoloRequest request) {
+        return assembler.toModel(service.atualizar(id, request));
     }
 
     @DeleteMapping("/{id}")

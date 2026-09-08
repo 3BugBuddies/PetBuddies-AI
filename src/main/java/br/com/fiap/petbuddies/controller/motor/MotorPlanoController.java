@@ -4,6 +4,8 @@ import br.com.fiap.petbuddies.dto.motor.EventoPlanoDto;
 import br.com.fiap.petbuddies.dto.motor.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.motor.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.motor.PlanoResponse;
+import br.com.fiap.petbuddies.assembler.PlanoModelAssembler;
+import org.springframework.hateoas.EntityModel;
 import br.com.fiap.petbuddies.service.motor.MotorPlanoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,9 +25,11 @@ import org.springframework.web.bind.annotation.*;
 public class MotorPlanoController {
 
     private final MotorPlanoService motorPlanoService;
+    private final PlanoModelAssembler assembler;
 
-    public MotorPlanoController(MotorPlanoService motorPlanoService) {
+    public MotorPlanoController(MotorPlanoService motorPlanoService, PlanoModelAssembler assembler) {
         this.motorPlanoService = motorPlanoService;
+        this.assembler = assembler;
     }
 
     @PostMapping("/instanciar-preventivo")
@@ -41,10 +45,10 @@ public class MotorPlanoController {
         @ApiResponse(responseCode = "200", description = "Plano já existia (idempotência) ou nenhum protocolo compatível"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos — animalId, especie ou dataNascimento ausentes")
     })
-    public ResponseEntity<PlanoResponse> instanciarPlanoPreventivo(@RequestBody @Valid PlanoPreventivoRequest req) {
+    public ResponseEntity<EntityModel<PlanoResponse>> instanciarPlanoPreventivo(@RequestBody @Valid PlanoPreventivoRequest req) {
         PlanoResponse response = motorPlanoService.instanciarPreventivo(req);
         int status = Boolean.TRUE.equals(response.getCriado()) ? 201 : 200;
-        return ResponseEntity.status(status).body(response);
+        return ResponseEntity.status(status).body(assembler.toModel(response));
     }
 
     @PostMapping("/instanciar-pos-cirurgico")
@@ -58,10 +62,10 @@ public class MotorPlanoController {
         @ApiResponse(responseCode = "200", description = "Plano já existia para esta consulta (idempotência)"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
-    public ResponseEntity<PlanoResponse> instanciarPlanoPosCirurgico(@RequestBody @Valid PlanoPosCirurgicoRequest req) {
+    public ResponseEntity<EntityModel<PlanoResponse>> instanciarPlanoPosCirurgico(@RequestBody @Valid PlanoPosCirurgicoRequest req) {
         PlanoResponse response = motorPlanoService.instanciarPosCirurgico(req);
         int status = Boolean.TRUE.equals(response.getCriado()) ? 201 : 200;
-        return ResponseEntity.status(status).body(response);
+        return ResponseEntity.status(status).body(assembler.toModel(response));
     }
 
     @GetMapping("/{animalId}")
@@ -70,10 +74,10 @@ public class MotorPlanoController {
         @ApiResponse(responseCode = "200", description = "Plano encontrado"),
         @ApiResponse(responseCode = "404", description = "Nenhum plano ativo para este animal")
     })
-    public ResponseEntity<PlanoResponse> buscarPlano(
+    public ResponseEntity<EntityModel<PlanoResponse>> buscarPlano(
             @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId) {
         return motorPlanoService.buscarPlanoAtivo(animalId)
-                .map(ResponseEntity::ok)
+                .map(plano -> ResponseEntity.ok(assembler.toModel(plano)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
