@@ -11,17 +11,17 @@ import java.util.Optional;
 
 public interface PlanoCuidadoAnimalRepository extends JpaRepository<PlanoCuidadoAnimalEntity, Long> {
 
-    List<PlanoCuidadoAnimalEntity> findByPetNetApiAnimalId(Long petNetApiAnimalId);
+    List<PlanoCuidadoAnimalEntity> findByAnimalId(Long animalId);
 
-    @Query("SELECT p FROM PlanoCuidadoAnimalEntity p WHERE p.petNetApiAnimalId = :animalId AND p.status = :status")
+    @Query("SELECT p FROM PlanoCuidadoAnimalEntity p WHERE p.animalId = :animalId AND p.status = :status")
     Optional<PlanoCuidadoAnimalEntity> findPlanoPorAnimalEStatus(
             @Param("animalId") Long animalId, @Param("status") StatusPlano status);
 
-    @Query("SELECT p FROM PlanoCuidadoAnimalEntity p WHERE p.petNetApiAnimalId = :animalId AND p.status = :status AND p.protocolo.categoria = :categoria")
+    @Query("SELECT p FROM PlanoCuidadoAnimalEntity p WHERE p.animalId = :animalId AND p.status = :status AND p.protocolo.categoria = :categoria")
     Optional<PlanoCuidadoAnimalEntity> findPlanoAtivoPorCategoria(
             @Param("animalId") Long animalId, @Param("status") StatusPlano status, @Param("categoria") CategoriaProtocolo categoria);
 
-    @Query("SELECT p FROM PlanoCuidadoAnimalEntity p WHERE p.petNetApiAnimalId = :animalId AND p.petNetApiConsultaId = :consultaId")
+    @Query("SELECT p FROM PlanoCuidadoAnimalEntity p WHERE p.animalId = :animalId AND p.consultaId = :consultaId")
     Optional<PlanoCuidadoAnimalEntity> findPlanoPorAnimalEConsulta(
             @Param("animalId") Long animalId, @Param("consultaId") Long consultaId);
 

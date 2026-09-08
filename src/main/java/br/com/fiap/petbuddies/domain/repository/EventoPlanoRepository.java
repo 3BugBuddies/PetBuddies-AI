@@ -19,10 +19,10 @@ public interface EventoPlanoRepository extends JpaRepository<EventoPlanoEntity, 
 
     List<EventoPlanoEntity> findByDataAlvoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusEventoPlano status);
 
-    @Query("SELECT e FROM EventoPlanoEntity e WHERE e.plano.petNetApiAnimalId = :animalId")
+    @Query("SELECT e FROM EventoPlanoEntity e WHERE e.plano.animalId = :animalId")
     Page<EventoPlanoEntity> findEventosPorAnimal(@Param("animalId") Long animalId, Pageable pageable);
 
-    @Query("SELECT e FROM EventoPlanoEntity e WHERE e.plano.petNetApiAnimalId = :animalId AND e.tipo = :tipo AND e.status = :status AND e.dataAlvo < :data")
+    @Query("SELECT e FROM EventoPlanoEntity e WHERE e.plano.animalId = :animalId AND e.tipo = :tipo AND e.status = :status AND e.dataAlvo < :data")
     List<EventoPlanoEntity> findEventosVencidosPorAnimal(
             @Param("animalId") Long animalId, @Param("tipo") TipoEventoProtocolo tipo,
             @Param("status") StatusEventoPlano status, @Param("data") LocalDate data);

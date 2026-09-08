@@ -12,11 +12,11 @@ public class PlanoPosCirurgicoRequest {
 
     @Schema(description = "ID do animal no PetBuddies-API (.NET)", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull @Positive
-    private Long petNetApiAnimalId;
+    private Long animalId;
 
     @Schema(description = "ID da consulta cirúrgica no PetBuddies-API (.NET)", example = "10", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull @Positive
-    private Long petNetApiConsultaId;
+    private Long consultaId;
 
     @Schema(description = "Espécie do animal", example = "GATO", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
@@ -26,11 +26,11 @@ public class PlanoPosCirurgicoRequest {
     @NotNull @PastOrPresent
     private LocalDateTime dataRealizacao;
 
-    public Long getPetNetApiAnimalId() { return petNetApiAnimalId; }
-    public void setPetNetApiAnimalId(Long petNetApiAnimalId) { this.petNetApiAnimalId = petNetApiAnimalId; }
+    public Long getAnimalId() { return animalId; }
+    public void setAnimalId(Long animalId) { this.animalId = animalId; }
 
-    public Long getPetNetApiConsultaId() { return petNetApiConsultaId; }
-    public void setPetNetApiConsultaId(Long petNetApiConsultaId) { this.petNetApiConsultaId = petNetApiConsultaId; }
+    public Long getConsultaId() { return consultaId; }
+    public void setConsultaId(Long consultaId) { this.consultaId = consultaId; }
 
     public Especie getEspecie() { return especie; }
     public void setEspecie(Especie especie) { this.especie = especie; }

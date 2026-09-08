@@ -7,6 +7,9 @@ import br.com.fiap.petbuddies.domain.entity.ProtocoloEntity;
 import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.StatusEventoPlano;
 import br.com.fiap.petbuddies.domain.enums.StatusPlano;
+import br.com.fiap.petbuddies.domain.enums.TipoAncora;
+import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
+import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
 import br.com.fiap.petbuddies.domain.repository.EventoPlanoRepository;
 import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoAnimalRepository;
 import br.com.fiap.petbuddies.dto.motor.EventoPlanoDto;
@@ -20,13 +23,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 @Service
 public class MotorPlanoService {
+
+    /** Ate onde a recorrencia e materializada. O plano nao tem fim; a tabela precisa ter. */
+    private static final int HORIZONTE_MESES = 12;
 
     private final PlanoCuidadoAnimalRepository planoRepository;
     private final EventoPlanoRepository eventoPlanoRepository;
@@ -44,7 +51,7 @@ public class MotorPlanoService {
     public PlanoResponse instanciarPreventivo(PlanoPreventivoRequest req) {
         Optional<PlanoCuidadoAnimalEntity> existente = planoRepository
                 .findPlanoAtivoPorCategoria(
-                        req.getPetNetApiAnimalId(), StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO);
+                        req.getAnimalId(), StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO);
 
         if (existente.isPresent()) {
             return PlanoResponse.from(existente.get(), false, "PLANO_JA_EXISTENTE");
@@ -60,9 +67,9 @@ public class MotorPlanoService {
             return PlanoResponse.semProtocolo();
         }
 
-        PlanoCuidadoAnimalEntity plano = criarPlano(req.getPetNetApiAnimalId(), null, protocolo.get());
+        PlanoCuidadoAnimalEntity plano = criarPlano(req.getAnimalId(), null, protocolo.get());
         instanciarEventos(plano, protocolo.get(),
-                ep -> LocalDate.now().plusMonths(ep.getMesAplicacao() != null ? ep.getMesAplicacao() : 0));
+                new Ancoragem(LocalDate.now(), req.getDataNascimento(), null));
         planoRepository.save(plano);
 
         return PlanoResponse.from(plano, true, null);
@@ -72,7 +79,7 @@ public class MotorPlanoService {
     public PlanoResponse instanciarPosCirurgico(PlanoPosCirurgicoRequest req) {
         Optional<PlanoCuidadoAnimalEntity> existente = planoRepository
                 .findPlanoPorAnimalEConsulta(
-                        req.getPetNetApiAnimalId(), req.getPetNetApiConsultaId());
+                        req.getAnimalId(), req.getConsultaId());
 
         if (existente.isPresent()) {
             return PlanoResponse.from(existente.get(), false, "PLANO_JA_EXISTENTE");
@@ -87,25 +94,25 @@ public class MotorPlanoService {
 
         LocalDate dataBase = req.getDataRealizacao().toLocalDate();
         PlanoCuidadoAnimalEntity plano = criarPlano(
-                req.getPetNetApiAnimalId(), req.getPetNetApiConsultaId(), protocolo.get());
-        instanciarEventos(plano, protocolo.get(), ep -> dataBase.plusDays(ep.getDiasAposInicio()));
+                req.getAnimalId(), req.getConsultaId(), protocolo.get());
+        instanciarEventos(plano, protocolo.get(), new Ancoragem(LocalDate.now(), null, dataBase));
         planoRepository.save(plano);
 
         return PlanoResponse.from(plano, true, null);
     }
 
     @Transactional(readOnly = true)
-    public Optional<PlanoResponse> buscarPlanoAtivo(Long petNetApiAnimalId) {
+    public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
         return planoRepository
                 .findPlanoAtivoPorCategoria(
-                        petNetApiAnimalId, StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO)
+                        animalId, StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO)
                 .map(PlanoResponse::from);
     }
 
     @Transactional(readOnly = true)
-    public Page<EventoPlanoDto> listarEventos(Long petNetApiAnimalId, Pageable pageable) {
+    public Page<EventoPlanoDto> listarEventos(Long animalId, Pageable pageable) {
         return eventoPlanoRepository
-                .findEventosPorAnimal(petNetApiAnimalId, pageable)
+                .findEventosPorAnimal(animalId, pageable)
                 .map(EventoPlanoDto::from);
     }
 
@@ -113,37 +120,107 @@ public class MotorPlanoService {
     public void cancelarPlano(Long planoId, String motivo) {
         PlanoCuidadoAnimalEntity plano = planoRepository.findById(planoId)
                 .orElseThrow(() -> new PlanoNaoEncontradoException(planoId));
+        // decisao I: DT_CANCELADO_EM e MT_MOTIVO_CANCELAMENTO sairam do schema da S3.
+        // O motivo continua no contrato do endpoint, mas nao e persistido.
         plano.setStatus(StatusPlano.CANCELADO);
-        plano.setCanceladoEm(LocalDateTime.now());
-        plano.setMotivoCancelamento(motivo);
         plano.getEventos().stream()
                 .filter(e -> e.getStatus() == StatusEventoPlano.PENDENTE)
                 .forEach(e -> e.setStatus(StatusEventoPlano.CANCELADO));
         planoRepository.save(plano);
     }
 
-    private PlanoCuidadoAnimalEntity criarPlano(Long petNetApiAnimalId, Long petNetApiConsultaId,
+    private PlanoCuidadoAnimalEntity criarPlano(Long animalId, Long consultaId,
                                                  ProtocoloEntity protocolo) {
         PlanoCuidadoAnimalEntity plano = new PlanoCuidadoAnimalEntity();
-        plano.setPetNetApiAnimalId(petNetApiAnimalId);
-        plano.setPetNetApiConsultaId(petNetApiConsultaId);
+        plano.setAnimalId(animalId);
+        plano.setConsultaId(consultaId);
         plano.setProtocolo(protocolo);
         plano.setStatus(StatusPlano.ATIVO);
         return plano;
     }
 
+    /**
+     * Expande cada molde do protocolo nos itens concretos do plano.
+     *
+     * <p>Para cada evento: resolve a ancora, soma o deslocamento na unidade
+     * declarada, e repete o item conforme intervalo e numero de repeticoes. Itens
+     * alem do horizonte de {@value #HORIZONTE_MESES} meses sao descartados — a
+     * recorrencia declara "para sempre" com um numero, mas o plano nao tem fim, e
+     * materializar tudo encheria a tabela sem ninguem ler.</p>
+     *
+     * <p>A ordenacao e feita aqui, sobre a data ja resolvida: deslocamento 2 em
+     * MESES e 10 em DIAS nao sao comparaveis antes disso.</p>
+     */
     private void instanciarEventos(PlanoCuidadoAnimalEntity plano, ProtocoloEntity protocolo,
-                                    Function<EventoProtocoloEntity, LocalDate> dataAlvoFn) {
+                                    Ancoragem ancoragem) {
+        LocalDate limite = ancoragem.instanciacao().plusMonths(HORIZONTE_MESES);
+        List<EventoPlanoEntity> itens = new ArrayList<>();
+
         for (EventoProtocoloEntity ep : protocolo.getEventos()) {
-            EventoPlanoEntity evento = new EventoPlanoEntity();
-            evento.setPlano(plano);
-            evento.setEventoProtocolo(ep);
-            evento.setTipo(ep.getTipo());
-            evento.setNome(ep.getNome());
-            evento.setDataAlvo(dataAlvoFn.apply(ep));
-            evento.setStatus(StatusEventoPlano.PENDENTE);
-            evento.setTentativas(0);
-            plano.getEventos().add(evento);
+            LocalDate base = ancoragem.resolver(ep.getAncora());
+            if (base == null) {
+                // ancora sem data disponivel neste fluxo: o molde nao se aplica
+                continue;
+            }
+
+            LocalDate primeira = somar(base, ep.getOffset(), ep.getUnidadeOffset());
+            int repeticoes = ep.getRepeticoes() != null ? Math.max(ep.getRepeticoes(), 1) : 1;
+
+            for (int i = 0; i < repeticoes; i++) {
+                LocalDate alvo = primeira;
+                if (i > 0) {
+                    if (ep.getIntervalo() == null || ep.getUnidadeIntervalo() == null) {
+                        break; // sem recorrencia declarada: ocorrencia unica
+                    }
+                    alvo = somar(primeira, ep.getIntervalo() * i, ep.getUnidadeIntervalo());
+                }
+                if (alvo.isAfter(limite)) {
+                    break;
+                }
+                itens.add(novoItem(plano, ep, alvo));
+            }
+        }
+
+        itens.sort(Comparator.comparing(EventoPlanoEntity::getDataAlvo));
+        plano.getEventos().addAll(itens);
+    }
+
+    private EventoPlanoEntity novoItem(PlanoCuidadoAnimalEntity plano, EventoProtocoloEntity ep,
+                                        LocalDate dataAlvo) {
+        EventoPlanoEntity evento = new EventoPlanoEntity();
+        evento.setPlano(plano);
+        evento.setEventoProtocolo(ep);
+        evento.setOrigem(TipoOrigemItem.PROTOCOLO);
+        evento.setTipo(ep.getTipo());
+        evento.setNome(ep.getNome());
+        evento.setDataAlvo(dataAlvo);
+        evento.setStatus(StatusEventoPlano.PENDENTE);
+        return evento;
+    }
+
+    private static LocalDate somar(LocalDate base, int quantidade, UnidadeTempo unidade) {
+        return switch (unidade) {
+            case DIAS -> base.plusDays(quantidade);
+            case SEMANAS -> base.plusWeeks(quantidade);
+            case MESES -> base.plusMonths(quantidade);
+        };
+    }
+
+    /**
+     * As datas-base disponiveis no fluxo que esta instanciando o plano. Uma ancora
+     * sem data correspondente faz o molde ser ignorado, em vez de gerar item numa
+     * data inventada.
+     */
+    private record Ancoragem(LocalDate instanciacao, LocalDate nascimento, LocalDate dataCirurgia) {
+        LocalDate resolver(TipoAncora ancora) {
+            if (ancora == null) {
+                return instanciacao;
+            }
+            return switch (ancora) {
+                case INSTANCIACAO -> instanciacao;
+                case NASCIMENTO -> nascimento;
+                case DATA_CIRURGIA -> dataCirurgia;
+            };
         }
     }
 }

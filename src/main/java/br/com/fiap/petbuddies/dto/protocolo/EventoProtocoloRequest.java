@@ -1,24 +1,53 @@
 package br.com.fiap.petbuddies.dto.protocolo;
 
+import br.com.fiap.petbuddies.domain.enums.TipoAncora;
 import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
+import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+@Schema(description = "Molde de um item de cuidado dentro de um protocolo")
 public class EventoProtocoloRequest {
 
-    @NotNull(message = "Tipo é obrigatório.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "VACINACAO")
+    @NotNull
     private TipoEventoProtocolo tipo;
 
-    @NotBlank(message = "Nome é obrigatório.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Vacina múltipla V10")
+    @NotBlank
     private String nome;
 
-    @NotNull(message = "Dias após início é obrigatório.")
-    private Integer diasAposInicio;
+    @Schema(description = "Quanto somar à âncora para chegar na data do item", example = "1",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    private Integer offset;
 
-    private Integer mesAplicacao;
-    private Integer recorrenciaMeses;
-    private String prioridade;
-    private String urgencia;
+    @Schema(description = "Unidade do deslocamento", example = "MESES",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    private UnidadeTempo unidadeOffset;
+
+    @Schema(description = "Data-base do deslocamento", example = "NASCIMENTO",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    private TipoAncora ancora;
+
+    @Schema(description = "Intervalo entre repetições. Nulo significa ocorrência única", example = "1")
+    @Min(1)
+    private Integer intervalo;
+
+    @Schema(description = "Unidade do intervalo. Obrigatória quando há intervalo", example = "MESES")
+    private UnidadeTempo unidadeIntervalo;
+
+    @Schema(description = "Quantas vezes o item ocorre, contando a primeira", example = "6",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Min(1)
+    private Integer repeticoes;
+
+    @Schema(example = "Reforço anual obrigatório")
     private String descricao;
 
     public TipoEventoProtocolo getTipo() { return tipo; }
@@ -27,20 +56,23 @@ public class EventoProtocoloRequest {
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
 
-    public Integer getDiasAposInicio() { return diasAposInicio; }
-    public void setDiasAposInicio(Integer diasAposInicio) { this.diasAposInicio = diasAposInicio; }
+    public Integer getOffset() { return offset; }
+    public void setOffset(Integer offset) { this.offset = offset; }
 
-    public Integer getMesAplicacao() { return mesAplicacao; }
-    public void setMesAplicacao(Integer mesAplicacao) { this.mesAplicacao = mesAplicacao; }
+    public UnidadeTempo getUnidadeOffset() { return unidadeOffset; }
+    public void setUnidadeOffset(UnidadeTempo unidadeOffset) { this.unidadeOffset = unidadeOffset; }
 
-    public Integer getRecorrenciaMeses() { return recorrenciaMeses; }
-    public void setRecorrenciaMeses(Integer recorrenciaMeses) { this.recorrenciaMeses = recorrenciaMeses; }
+    public TipoAncora getAncora() { return ancora; }
+    public void setAncora(TipoAncora ancora) { this.ancora = ancora; }
 
-    public String getPrioridade() { return prioridade; }
-    public void setPrioridade(String prioridade) { this.prioridade = prioridade; }
+    public Integer getIntervalo() { return intervalo; }
+    public void setIntervalo(Integer intervalo) { this.intervalo = intervalo; }
 
-    public String getUrgencia() { return urgencia; }
-    public void setUrgencia(String urgencia) { this.urgencia = urgencia; }
+    public UnidadeTempo getUnidadeIntervalo() { return unidadeIntervalo; }
+    public void setUnidadeIntervalo(UnidadeTempo unidadeIntervalo) { this.unidadeIntervalo = unidadeIntervalo; }
+
+    public Integer getRepeticoes() { return repeticoes; }
+    public void setRepeticoes(Integer repeticoes) { this.repeticoes = repeticoes; }
 
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }

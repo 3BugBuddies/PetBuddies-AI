@@ -39,7 +39,7 @@ public class MotorPlanoController {
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Plano criado com sucesso"),
         @ApiResponse(responseCode = "200", description = "Plano já existia (idempotência) ou nenhum protocolo compatível"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos — petNetApiAnimalId, especie ou dataNascimento ausentes")
+        @ApiResponse(responseCode = "400", description = "Dados inválidos — animalId, especie ou dataNascimento ausentes")
     })
     public ResponseEntity<PlanoResponse> instanciarPlanoPreventivo(@RequestBody @Valid PlanoPreventivoRequest req) {
         PlanoResponse response = motorPlanoService.instanciarPreventivo(req);
@@ -64,25 +64,25 @@ public class MotorPlanoController {
         return ResponseEntity.status(status).body(response);
     }
 
-    @GetMapping("/{petNetApiAnimalId}")
+    @GetMapping("/{animalId}")
     @Operation(summary = "Buscar plano ativo", description = "Retorna o plano de cuidado ATIVO do animal com seus eventos pendentes.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Plano encontrado"),
         @ApiResponse(responseCode = "404", description = "Nenhum plano ativo para este animal")
     })
     public ResponseEntity<PlanoResponse> buscarPlano(
-            @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long petNetApiAnimalId) {
-        return motorPlanoService.buscarPlanoAtivo(petNetApiAnimalId)
+            @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId) {
+        return motorPlanoService.buscarPlanoAtivo(animalId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{petNetApiAnimalId}/eventos")
+    @GetMapping("/{animalId}/eventos")
     @Operation(summary = "Listar eventos do plano", description = "Lista paginada dos eventos do plano ativo do animal. Use ?page=0&size=10.")
     @ApiResponse(responseCode = "200", description = "Lista de eventos")
     public Page<EventoPlanoDto> listarEventos(
-            @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long petNetApiAnimalId,
+            @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId,
             @ParameterObject Pageable pageable) {
-        return motorPlanoService.listarEventos(petNetApiAnimalId, pageable);
+        return motorPlanoService.listarEventos(animalId, pageable);
     }
 }
