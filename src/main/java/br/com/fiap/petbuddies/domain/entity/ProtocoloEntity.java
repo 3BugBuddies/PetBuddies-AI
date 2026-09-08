@@ -14,8 +14,7 @@ import java.util.List;
 public class ProtocoloEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pb_protocolo")
-    @SequenceGenerator(name = "seq_pb_protocolo", sequenceName = "SEQ_T_PB_PROTOCOLO", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_PROTOCOLO")
     private Long id;
 
@@ -23,19 +22,19 @@ public class ProtocoloEntity {
     private String nome;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "TP_CATEGORIA", nullable = false)
+    @Column(name = "TP_CATEGORIA", nullable = false, length = 50)
     private CategoriaProtocolo categoria;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "ES_ESPECIE", nullable = false)
+    @Column(name = "ES_ESPECIE", nullable = false, length = 50)
     private Especie especie;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "PT_PORTE")
+    @Column(name = "PT_PORTE", length = 50)
     private Porte porte;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "SX_SEXO")
+    @Column(name = "SX_SEXO", length = 50)
     private Sexo sexo;
 
     @Column(name = "CT_CASTRADO")
@@ -50,7 +49,7 @@ public class ProtocoloEntity {
     @Column(name = "NR_IDADE_MAX_MESES")
     private Integer idadeMaxMeses;
 
-    @Column(name = "DS_DESCRICAO")
+    @Column(name = "DS_DESCRICAO", length = 2000)
     private String descricao;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)

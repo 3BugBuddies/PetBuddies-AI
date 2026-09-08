@@ -9,7 +9,5 @@ public interface EventoProtocoloRepository extends JpaRepository<EventoProtocolo
 
     List<EventoProtocoloEntity> findByProtocoloId(Long protocoloId);
 
-    List<EventoProtocoloEntity> findByProtocoloIdOrderByDiasAposInicioAsc(Long protocoloId);
-
     List<EventoProtocoloEntity> findByProtocoloIdAndTipo(Long protocoloId, TipoEventoProtocolo tipo);
 }
