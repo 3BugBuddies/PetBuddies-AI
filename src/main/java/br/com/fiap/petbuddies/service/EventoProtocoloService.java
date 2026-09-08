@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.service.protocolo;
+package br.com.fiap.petbuddies.service;
 
 import br.com.fiap.petbuddies.domain.entity.EventoProtocoloEntity;
 import br.com.fiap.petbuddies.domain.entity.ProtocoloEntity;

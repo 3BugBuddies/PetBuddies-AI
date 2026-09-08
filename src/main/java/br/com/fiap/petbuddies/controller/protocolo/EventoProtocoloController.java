@@ -6,7 +6,7 @@ import br.com.fiap.petbuddies.dto.EventoProtocoloResponse;
 import br.com.fiap.petbuddies.assembler.EventoProtocoloModelAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import br.com.fiap.petbuddies.service.protocolo.EventoProtocoloService;
+import br.com.fiap.petbuddies.service.EventoProtocoloService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
