@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.service.motor;
+package br.com.fiap.petbuddies.service;
 
 import br.com.fiap.petbuddies.domain.entity.EventoPlanoEntity;
 import br.com.fiap.petbuddies.domain.entity.EventoProtocoloEntity;
@@ -12,10 +12,10 @@ import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
 import br.com.fiap.petbuddies.domain.repository.EventoPlanoRepository;
 import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoAnimalRepository;
-import br.com.fiap.petbuddies.dto.motor.EventoPlanoDto;
-import br.com.fiap.petbuddies.dto.motor.PlanoPreventivoRequest;
-import br.com.fiap.petbuddies.dto.motor.PlanoPosCirurgicoRequest;
-import br.com.fiap.petbuddies.dto.motor.PlanoResponse;
+import br.com.fiap.petbuddies.dto.EventoPlanoDto;
+import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
+import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
+import br.com.fiap.petbuddies.dto.PlanoResponse;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

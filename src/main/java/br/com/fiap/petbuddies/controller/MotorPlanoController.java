@@ -1,12 +1,12 @@
-package br.com.fiap.petbuddies.controller.motor;
+package br.com.fiap.petbuddies.controller;
 
-import br.com.fiap.petbuddies.dto.motor.EventoPlanoDto;
-import br.com.fiap.petbuddies.dto.motor.PlanoPreventivoRequest;
-import br.com.fiap.petbuddies.dto.motor.PlanoPosCirurgicoRequest;
-import br.com.fiap.petbuddies.dto.motor.PlanoResponse;
+import br.com.fiap.petbuddies.dto.EventoPlanoDto;
+import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
+import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
+import br.com.fiap.petbuddies.dto.PlanoResponse;
 import br.com.fiap.petbuddies.assembler.PlanoModelAssembler;
 import org.springframework.hateoas.EntityModel;
-import br.com.fiap.petbuddies.service.motor.MotorPlanoService;
+import br.com.fiap.petbuddies.service.MotorPlanoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

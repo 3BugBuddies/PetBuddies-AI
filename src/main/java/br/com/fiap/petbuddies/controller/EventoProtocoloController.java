@@ -1,12 +1,12 @@
-package br.com.fiap.petbuddies.controller.protocolo;
+package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
-import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloRequest;
-import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloResponse;
+import br.com.fiap.petbuddies.dto.EventoProtocoloRequest;
+import br.com.fiap.petbuddies.dto.EventoProtocoloResponse;
 import br.com.fiap.petbuddies.assembler.EventoProtocoloModelAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import br.com.fiap.petbuddies.service.protocolo.EventoProtocoloService;
+import br.com.fiap.petbuddies.service.EventoProtocoloService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

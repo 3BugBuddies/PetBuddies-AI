@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.protocolo.EventoProtocoloController;
-import br.com.fiap.petbuddies.controller.protocolo.ProtocoloController;
+import br.com.fiap.petbuddies.controller.EventoProtocoloController;
+import br.com.fiap.petbuddies.controller.ProtocoloController;
 import br.com.fiap.petbuddies.domain.entity.EventoProtocoloEntity;
-import br.com.fiap.petbuddies.dto.protocolo.EventoProtocoloResponse;
+import br.com.fiap.petbuddies.dto.EventoProtocoloResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
