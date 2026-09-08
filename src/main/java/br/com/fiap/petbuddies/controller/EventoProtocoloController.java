@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller.protocolo;
+package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
 import br.com.fiap.petbuddies.dto.EventoProtocoloRequest;

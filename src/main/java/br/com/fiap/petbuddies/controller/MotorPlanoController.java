@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller.motor;
+package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.dto.EventoPlanoDto;
 import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
