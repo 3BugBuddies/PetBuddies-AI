@@ -1,10 +1,23 @@
 # petbuddies-ai — Challenge FIAP 2026 | Java Advanced
 
-Bot WhatsApp + Motor de cuidado contínuo para pets desenvolvido com Spring Boot e Spring AI, como parte do Challenge da disciplina de **Java Advanced (2TDS)** — FIAP 2026.
+Serviço Java do **PetBuddies**, o app de cuidado contínuo para pets do time BugBuddies.
+Este serviço é o lado do **cuidado — o que deve acontecer**: catálogo de protocolos, plano vivo por
+animal, itens com data alvo, autenticação com dois perfis e o motor de regras do check-in.
 
-O serviço recebe mensagens via Evolution API, classifica a intenção do tutor (cadastro, agendamento, triagem, consulta ao plano preventivo), executa chamadas ao Gemini 2.5 Flash e responde pelo WhatsApp. O motor de personalização de cuidado para cada pet mantém planos preventivos, eventos e scores de risco por animal.
+O par dele é o `PetBuddies-API` (.NET), que guarda o **registro — o que aconteceu**: consulta,
+atendimento, procedimento, prescrição e check-in. Os dois serviços apontam para o **mesmo Oracle**, e
+este aqui lê as tabelas do outro **por projeção, não por HTTP**.
+
+> **O que mudou desde a 2ª Sprint.** O produto era um bot de WhatsApp com o motor atrás. O WhatsApp
+> saiu como interface e o score de risco saiu do produto; o motor ficou, e ganhou agendamento por
+> âncora e recorrência, login e a derivação de itens a partir de prescrição. O código do bot, da
+> triagem e do score foi **removido**, não comentado.
+
+**A IA interpreta a narrativa do tutor. Ela não decide dose em momento nenhum** — quem decide é o
+motor determinístico, aplicando a regra que a veterinária escreveu e assinou.
 
 ---
+
 ## Integrantes do Grupo
 
 | Nome | RM |
@@ -16,238 +29,185 @@ O serviço recebe mensagens via Evolution API, classifica a intenção do tutor 
 
 ---
 
-## Configuração — Spring Initializr
+## O que o serviço entrega
 
-### Dependências
+| Capacidade | Estado |
+|---|---|
+| **Catálogo de protocolos** — o molde de cuidado e as ações previstas nele | no ar |
+| **Motor de planos** — instancia o plano de um animal a partir do protocolo compatível e devolve os itens | no ar |
+| **Autenticação com dois perfis** (vet e tutor), com token para o app e formulário para a web | em implementação |
+| **Superfície web** — catálogo de protocolos e painel de acompanhamento, em Thymeleaf | em implementação |
+| **Saúde consultável** — endereço aberto que diz se o serviço e o banco estão de pé | em implementação |
+| **Check-in do tutor** — extração da narrativa por IA e motor de regras determinístico sobre as prescrições ativas | em implementação |
 
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring Web | WEB | API REST + Webhook |
-| Spring Data JPA | SQL | 8 entidades JPA (motor + conversação bot) |
-| Oracle Driver | SQL | Oracle FIAP |
-| Spring AI OpenAI | AI | Gemini via endpoint OpenAI-compatible |
-| Spring AI JDBC Memory | AI | Memória de conversa persistida |
-| Bean Validation | I/O | Validação de DTOs |
-| Springdoc OpenAPI | Dev | Swagger UI único com tags ordenadas por domínio |
-
+As quatro últimas linhas ainda **não existem no código**. Elas estão especificadas e são a entrega
+desta sprint; nada neste README descreve endpoint que não esteja no ar.
 
 ---
 
-### Setup rápido para avaliação
+## Endpoints no ar hoje
 
-```bash
-# 1. Configure as credenciais Oracle via .env ou variáveis de ambiente
-# 2. Execute
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-# 3. Swagger: http://localhost:8080/swagger-ui.html → tags de catálogo no topo
-# 4. Postman: importar docs/postman/petbuddies-ai-java.postman_collection.json
-```
+Base local: `http://localhost:8080` · Swagger: `http://localhost:8080/swagger-ui.html`
 
-## Avaliação Java — roteiro de endpoints de Protocolo
+### Motor de cuidado
 
-> Estes endpoints são **autocontidos**: não dependem da API .NET nem do WhatsApp. O avaliador precisa apenas do `petbuddies-ai` rodando com Oracle FIAP configurado.
+| Método | Rota | O que faz |
+|---|---|---|
+| `POST` | `/api/motor/planos/instanciar-preventivo` | escolhe o protocolo preventivo compatível com o animal e instancia o plano |
+| `POST` | `/api/motor/planos/instanciar-pos-cirurgico` | instancia o plano pós-cirúrgico a partir da cirurgia registrada |
+| `GET` | `/api/motor/planos/{animalId}` | devolve o plano ativo do animal |
+| `GET` | `/api/motor/planos/{animalId}/eventos` | devolve os itens do plano |
 
-### Contexto dos recursos testados
+Os dois `POST` são **idempotentes**: com um plano `ATIVO` já existente, a resposta é o plano que
+existe, não um segundo plano.
 
-O catálogo de protocolos é a parte administrativa do motor de cuidado. Ele guarda as regras que dizem qual plano o sistema deve gerar para cada animal e quais ações esse plano deve conter.
+### Catálogo de protocolos
 
-- **Protocolo** é um modelo de cuidado. Exemplo: um protocolo preventivo para cachorro filhote ou um protocolo pós-cirúrgico para gato. Ele define a categoria (`PREVENTIVO` ou `POS_CIRURGICO`) e os critérios de aplicação, como espécie, porte, sexo, castração e faixa de idade.
+| Método | Rota |
+|---|---|
+| `GET` `POST` | `/api/protocolos` |
+| `GET` | `/api/protocolos/buscar?categoria=&especie=&porte=&sexo=` |
+| `GET` `PUT` `DELETE` | `/api/protocolos/{id}` |
+| `GET` `POST` | `/api/protocolos/{protocoloId}/eventos` |
+| `GET` `PUT` `DELETE` | `/api/eventos-protocolo/{id}` |
 
+O evento é filho do protocolo, então nasce em `POST /api/protocolos/{protocoloId}/eventos` — nunca em
+`POST /api/eventos-protocolo`.
 
-- **Evento de protocolo** é uma ação prevista dentro desse modelo. Exemplo: vacinação, vermifugação, exame ou retorno. Cada evento informa quando deve acontecer em relação ao início do plano (`diasAposInicio`).
+---
 
+## Roteiro de avaliação — catálogo de protocolos
 
-- Quando um animal é cadastrado na API .NET, o .NET chama o motor Java. O motor escolhe um protocolo compatível e transforma os eventos de protocolo em eventos reais do plano daquele animal.
+> Estes endpoints são **autocontidos**: não dependem da API .NET. O avaliador precisa apenas deste
+> serviço rodando com o Oracle configurado.
 
+**Protocolo** é um modelo de cuidado — por exemplo, o preventivo de cachorro filhote ou o
+pós-cirúrgico de gato. Ele define a categoria (`PREVENTIVO` ou `POS_CIRURGICO`) e os critérios de
+aplicação: espécie, porte, sexo, castração e faixa de idade.
 
-- O bot usa esse motor indiretamente: o tutor conversa pelo WhatsApp, cadastra o animal, consulta o plano e recebe respostas baseadas nesses protocolos e eventos.
+**Evento de protocolo** é uma ação prevista dentro do modelo — vacinação, vermifugação, exame,
+retorno, medicação, higiene. Ele descreve **quando** a ação acontece por três peças:
 
+| Peça | Campos | Exemplo |
+|---|---|---|
+| A data-base | `ancora` — `INSTANCIACAO`, `NASCIMENTO` ou `DATA_CIRURGIA` | a partir do nascimento |
+| O deslocamento | `offset` + `unidadeOffset` | 1 mês depois |
+| A recorrência | `intervalo` + `unidadeIntervalo` + `repeticoes` | de mês em mês, seis vezes |
 
-- Por isso esta seção pode ser testada isoladamente: ela valida a base de regras do motor sem depender do WhatsApp, da Evolution API ou da API .NET.
+`repeticoes` é obrigatório: "para sempre" precisa virar um número, senão a expansão do plano não tem
+onde parar. Sem `intervalo`, a ocorrência é única.
 
 ### Fluxo sugerido
 
 | Ordem | No projeto | Método | Rota | Retorno esperado |
 |---|---|---|---|---|
-| 1 | Cadastra um novo modelo de cuidado | `POST` | `/api/protocolos` | `201` com o protocolo criado |
-| 2 | Mostra os modelos de cuidado disponíveis para o motor | `GET` | `/api/protocolos` | `200` com lista de protocolos ativos |
-| 3 | Localiza protocolos usados em planos preventivos | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO` | `200` com protocolos da categoria |
-| 4 | Simula a seleção de regra para um perfil de animal | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO&especie=CACHORRO` | `200` com filtro combinado |
+| 1 | Cadastra um modelo de cuidado | `POST` | `/api/protocolos` | `201` com o protocolo criado |
+| 2 | Mostra os modelos disponíveis para o motor | `GET` | `/api/protocolos` | `200` com a lista de protocolos ativos |
+| 3 | Localiza os modelos de uma categoria | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO` | `200` com os protocolos da categoria |
+| 4 | Simula a seleção de regra para um perfil de animal | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO&especie=CACHORRO` | `200` com o filtro combinado |
 | 5 | Consulta um modelo específico | `GET` | `/api/protocolos/{id}` | `200` com o protocolo |
-| 6 | Ajusta uma regra de cuidado já cadastrada | `PUT` | `/api/protocolos/{id}` | `200` com dados atualizados |
-| 7 | Adiciona uma ação planejada ao modelo | `POST` | `/api/protocolos/{protocoloId}/eventos` | `201` com o evento criado |
-| 8 | Mostra a sequência de cuidado do protocolo | `GET` | `/api/protocolos/{protocoloId}/eventos` | `200` com eventos ordenados por `diasAposInicio` |
-| 9 | Isola ações de um tipo dentro do plano | `GET` | `/api/protocolos/{protocoloId}/eventos?tipo=VACINACAO` | `200` com eventos filtrados |
-| 10 | Consulta uma ação planejada específica | `GET` | `/api/eventos-protocolo/{id}` | `200` com o evento |
-| 11 | Ajusta prazo ou descrição de uma ação planejada | `PUT` | `/api/eventos-protocolo/{id}` | `200` com evento atualizado |
+| 6 | Ajusta uma regra já cadastrada | `PUT` | `/api/protocolos/{id}` | `200` com os dados atualizados |
+| 7 | Acrescenta uma ação ao modelo | `POST` | `/api/protocolos/{protocoloId}/eventos` | `201` com o evento criado |
+| 8 | Mostra a sequência de cuidado do protocolo | `GET` | `/api/protocolos/{protocoloId}/eventos` | `200` com os eventos do protocolo |
+| 9 | Isola as ações de um tipo | `GET` | `/api/protocolos/{protocoloId}/eventos?tipo=VACINACAO` | `200` com os eventos filtrados |
+| 10 | Consulta uma ação específica | `GET` | `/api/eventos-protocolo/{id}` | `200` com o evento |
+| 11 | Ajusta prazo ou descrição da ação | `PUT` | `/api/eventos-protocolo/{id}` | `200` com o evento atualizado |
 | 12 | Remove uma ação do modelo | `DELETE` | `/api/eventos-protocolo/{id}` | `204` sem corpo |
-| 13 | Remove um modelo de cuidado de teste | `DELETE` | `/api/protocolos/{id}` | `204` sem corpo |
-
-O `POST` de evento de protocolo é `POST /api/protocolos/{protocoloId}/eventos`, e não `POST /api/eventos-protocolo`, porque o evento é filho de um protocolo. Ele só faz sentido vinculado ao modelo de cuidado que depois será usado pelo motor para gerar eventos reais no plano de um animal.
+| 13 | Remove o modelo de teste | `DELETE` | `/api/protocolos/{id}` | `204` sem corpo |
 
 ### Validações e respostas de erro
 
 | Situação | Método | Rota | Retorno esperado |
 |---|---|---|---|
-| Tenta criar protocolo sem campos obrigatórios | `POST` | `/api/protocolos` com `{}` | `400` com `ErrorDto` |
-| Busca protocolo inexistente | `GET` | `/api/protocolos/999999` | `404` com `ErrorDto` |
-| Tenta criar evento sem tipo, nome ou prazo | `POST` | `/api/protocolos/{protocoloId}/eventos` com `{}` | `400` com `ErrorDto` |
-| Tenta criar evento com enum inválido | `POST` | `/api/protocolos/{protocoloId}/eventos` com `"tipo": "VACINA"` | `400` com valores aceitos |
-| Busca evento inexistente | `GET` | `/api/eventos-protocolo/999999` | `404` com `ErrorDto` |
+| Protocolo sem campos obrigatórios | `POST` | `/api/protocolos` com `{}` | `400` com `ErrorDto` |
+| Protocolo inexistente | `GET` | `/api/protocolos/999999` | `404` com `ErrorDto` |
+| Evento sem tipo, nome, deslocamento, âncora ou repetições | `POST` | `/api/protocolos/{protocoloId}/eventos` com `{}` | `400` com `ErrorDto` |
+| Evento com enum inválido | `POST` | `/api/protocolos/{protocoloId}/eventos` com `"tipo": "VACINA"` | `400` com os valores aceitos |
+| Evento inexistente | `GET` | `/api/eventos-protocolo/999999` | `404` com `ErrorDto` |
+
+O corpo de erro é sempre `ErrorDto{ code, message }`, montado por um `@RestControllerAdvice` global.
 
 ---
 
-## Estrutura do Projeto
+## Modelo de dados — cinco entidades
 
-```
-petbuddies-ai/
-├── assets/
-├── docs/
-│   └── postman/
-│       └── petbuddies-ai-java.postman_collection.json
-├── src/main/java/br/com/fiap/petbuddies/
-│   ├── client/        # PetNetApiClient
-│   ├── config/        # ChatClientConfig, PetNetApiClientConfig, OpenApiConfig
-│   ├── controller/
-│   │   ├── bot/       # WebhookController, SimulationController
-│   │   ├── motor/     # MotorPlanoController, MotorScoreController
-│   │   └── protocolo/ # ProtocoloController, EventoProtocoloController
-│   ├── domain/
-│   │   ├── entity/    # 8 entidades JPA
-│   │   ├── enums/     # 14 enums de domínio
-│   │   └── repository/# 8 repositórios Spring Data
-│   ├── dto/
-│   │   ├── bot/       # DTOs conversação
-│   │   ├── client/    # DTOs integração .NET
-│   │   ├── evolution/ # EvolutionWebhookDTO
-│   │   ├── motor/     # DTOs motor de cuidado
-│   │   └── protocolo/ # DTOs catálogo
-│   ├── exception/     # Exceções de domínio
-│   ├── flow/          # Orquestração fluxos conversacionais
-│   │   └── dto/       # DTOs de estado dos fluxos
-│   ├── handler/       # GlobalExceptionHandler
-│   └── service/
-│       ├── bot/       # ChatService, ClassificadorService, RedatorService, ...
-│       ├── motor/     # MotorPlanoService, MotorScoreService, ...
-│       └── protocolo/ # ProtocoloService, EventoProtocoloService
-├── .env.example
-├── Dockerfile
-└── README.md
-```
+| Entidade | Tabela | Papel |
+|---|---|---|
+| `UsuarioEntity` | `T_PB_USUARIO` | credencial, perfil (`VET` / `TUTOR`) e o vínculo com a identidade do registro |
+| `ProtocoloEntity` | `T_PB_PROTOCOLO` | o molde de cuidado e seus critérios de aplicação |
+| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | a ação prevista no molde, com âncora, deslocamento e recorrência |
+| `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | o plano vivo de um animal |
+| `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | o item do plano, com data alvo, origem e status |
 
-
-## Por que Repository e não DAO?
-
-O Spring Data JPA já gerencia o `EntityManager` automaticamente — ciclo de vida, transações, thread-safety. O `JpaRepository` entrega o CRUD pronto via interface, sem precisar implementar nada na mão.
-
-DAO faria sentido se precisássemos de controle fino sobre o `EntityManager`. Aqui, o Spring cuida disso melhor do que faríamos manualmente.
-
----
-
-## Modelo de Dados
-
-### Motor Core — 6 entidades
-
-| Entidade | Tabela | Relacionamentos | Vínculo .NET |
-|----------|--------|-----------------|--------------|
-| `ProtocoloEntity` | `T_PB_PROTOCOLO` | 1:N → EventoProtocoloEntity | — |
-| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | N:1 → ProtocoloEntity | — |
-| `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | N:1 → ProtocoloEntity; 1:N → EventoPlanoEntity | `T_PB_ANIMAL`, `T_PB_CONSULTA` |
-| `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | N:1 → PlanoCuidadoAnimalEntity | `T_PB_PROCEDIMENTO` |
-| `ScoreRiscoAnimalEntity` | `T_PB_SCORE_RISCO_ANIMAL` | 1:N → FatorRiscoEntity | `T_PB_ANIMAL` |
-| `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | N:1 → ScoreRiscoAnimalEntity | — |
-
-**Diagrama 1 — Catálogo e Plano de Cuidado**
-Relacionamentos entre `ProtocoloEntity`, `EventoProtocoloEntity`, `PlanoCuidadoAnimalEntity` e `EventoPlanoEntity`, com os enums de domínio associados.
-
-![Diagrama de classes — Protocolo, Plano e Eventos](assets/diagrama-java-entidades-base.png)
-
-**Diagrama 2 — Score de Risco**
-Estrutura de cálculo de risco: `ScoreRiscoAnimalEntity` agrega múltiplos `FatorRiscoEntity`, cada um com tipo, peso e valor individual.
-
-![Diagrama de classes — Score e Fatores de Risco](assets/diagrama-java-score-motor.jpeg)
-
-### Conversação Bot — 2 entidades
-
-| Entidade | Tabela | Relacionamentos | Vínculo .NET |
-|----------|--------|-----------------|--------------|
-| `SessaoBotEntity` | `T_PB_SESSAO_BOT` | — | — |
-| `TriagemSessaoEntity` | `T_PB_TRIAGEM_SESSAO` | — | `T_PB_ANIMAL`, `T_PB_RESPONSAVEL` |
-
-**Diagrama 3 — Sessão Conversacional e Triagem**
-`SessaoBotEntity` gerencia o estado do fluxo ativo por telefone. `TriagemSessaoEntity` registra as respostas às 4 perguntas clínicas e o score calculado.
-
-![Diagrama de classes — Sessão Bot e Triagem](assets/diagrama-java-entidades-bot.jpeg)
+As colunas que apontam para o outro serviço — `ID_ANIMAL`, `ID_CONSULTA`, `ID_PROCEDIMENTO`,
+`ID_PRESCRICAO`, `ID_VETERINARIO`, `ID_RESPONSAVEL` — são **ids soltos, sem relação JPA**: as tabelas
+de destino são escritas pelo .NET.
 
 ### Enums
 
 | Enum | Valores |
-|------|---------|
+|---|---|
+| `CategoriaProtocolo` | `PREVENTIVO`, `POS_CIRURGICO` |
+| `TipoEventoProtocolo` | `VACINACAO`, `VERMIFUGACAO`, `EXAME`, `RETORNO`, `CIRURGIA`, `MEDICACAO`, `HIGIENE` |
+| `TipoAncora` | `INSTANCIACAO`, `NASCIMENTO`, `DATA_CIRURGIA` |
+| `UnidadeTempo` | `DIAS`, `SEMANAS`, `MESES` |
+| `TipoOrigemItem` | `PROTOCOLO`, `PRESCRICAO` |
+| `StatusPlano` | `ATIVO`, `CONCLUIDO`, `CANCELADO` |
+| `StatusEventoPlano` | `PENDENTE`, `REALIZADO`, `CANCELADO`, `ATRASADO` |
+| `PerfilUsuario` | `VET`, `TUTOR` |
 | `Especie` | `CACHORRO`, `GATO`, `PASSARO`, `COELHO`, `HAMSTER`, `OUTRO` |
 | `Porte` | `MINI`, `PEQUENO`, `MEDIO`, `GRANDE`, `GIGANTE` |
 | `Sexo` | `MACHO`, `FEMEA` |
-| `CategoriaProtocolo` | `PREVENTIVO`, `POS_CIRURGICO` |
-| `StatusPlano` | `ATIVO`, `CONCLUIDO`, `CANCELADO` |
-| `TipoEventoProtocolo` | `VACINACAO`, `VERMIFUGACAO`, `EXAME`, `RETORNO`, `CIRURGIA` |
-| `StatusEventoPlano` | `PENDENTE`, `REALIZADO`, `CANCELADO`, `ATRASADO` |
-| `TipoRisco` | `VACINA_ATRASADA`, `CONDICAO_CRONICA`, `TEMPO_SEM_CONSULTA`, `IDADE_AVANCADA` |
-| `ClassificacaoRisco` | `BAIXO`, `MEDIO`, `ALTO` |
-| `Intencao` | `CADASTRO`, `AGENDAMENTO`, `CONSULTA_PLANO`, `TRIAGEM`, `GERAL` |
-| `ClassificacaoTriagem` | `PODE_ESPERAR`, `PRIORITARIO`, `EMERGENCIA` |
-| `TriagemStage` | `TRIAGEM_IDENTIFICANDO_ANIMAL`, `TRIAGEM_AGUARDANDO_P1`, `TRIAGEM_AGUARDANDO_P2`, `TRIAGEM_AGUARDANDO_P3`, `TRIAGEM_AGUARDANDO_P4`, `TRIAGEM_FINALIZADA`, `TRIAGEM_OFERECEU_AGENDAMENTO` |
-| `AcaoPendente` | `AGENDAMENTO_AGUARDANDO_ESCOLHA_ANIMAL`, `AGENDAMENTO_AGUARDANDO_TURNO`, `AGENDAMENTO_AGUARDANDO_ESCOLHA_JANELA`, `AGENDAMENTO_AGUARDANDO_CONFIRMACAO` |
-| `CadastroStage` | `CADASTRO_IDENTIFICANDO_TUTOR`, `CADASTRO_AGUARDANDO_NOME_TUTOR`, `CADASTRO_COLETANDO_ANIMAL`, `CADASTRO_AGUARDANDO_CONFIRMACAO`, `CADASTRO_FINALIZADO` |
 
+Todo enum é persistido como texto (`@Enumerated(EnumType.STRING)`) — `ORDINAL` corromperia os dados
+na primeira reordenação.
 
 ---
 
-## Arquitetura Conversacional
+## Como o .NET aciona este serviço
 
-```
-Mensagem WhatsApp
-      │
-      ▼
-ClassificadorService          ← Gemini sem memória, retorna Intencao + confiança
-      │
-      ▼
-ChatService                   ← roteia por intenção e comanda globais (ajuda, cancelar)
-      │
-      ├── TriagemFlowService       (fluxo determinístico — 4 perguntas + score)
-      ├── AgendamentoFlowService   (fluxo determinístico — janelas + confirmação)
-      ├── CadastroFlowService      (fluxo determinístico — coleta dados tutor/pet)
-      └── ConsultaPlanoFlowService (consulta plano ativo + eventos do pet)
-            │
-            ▼
-      PetNetApiClient          ← chamadas HTTP reais para petbuddies-api (.NET)
-            │
-            ▼
-      RedatorService           ← Gemini formata resposta em linguagem natural
-            │
-            ▼
-      EvolutionService         ← envia resposta para o WhatsApp
-```
+O cadastro clínico é canônico no .NET. Quando um animal é cadastrado lá, o `MotorApiClient` chama
+`POST /api/motor/planos/instanciar-preventivo` aqui; quando uma cirurgia é registrada, chama o
+pós-cirúrgico. As duas chamadas são **best-effort**: falha deste lado não desfaz o cadastro clínico do
+outro, e a idempotência do motor evita plano duplicado numa nova tentativa.
 
-**Intenções suportadas:** `CADASTRO`, `AGENDAMENTO`, `CONSULTA_PLANO`, `TRIAGEM`, `GERAL`
-
-**FlowSessaoHelper** serializa e recupera o estado do fluxo (Dados*Pendente) na `SessaoBotEntity` entre mensagens, usando Jackson.
+**Este serviço não chama o .NET por HTTP.** A leitura dos dados de registro é feita direto no banco,
+por um contexto de persistência somente-leitura.
 
 ---
 
+## Por que Repository e não DAO?
 
-## Como Executar
+O Spring Data JPA já gerencia o `EntityManager` — ciclo de vida, transações, thread-safety. O
+`JpaRepository` entrega o CRUD pronto por interface, sem implementação. DAO faria sentido se
+precisássemos de controle fino sobre o `EntityManager`; aqui o Spring cuida disso melhor do que
+faríamos à mão.
+
+---
+
+## Como executar
 
 ### Pré-requisitos
 
 - Java 21+
 - Maven 3.9+
-- Acesso ao Oracle FIAP (VPN ou rede local)
-- Chave Gemini API (`GEMINI_API_KEY`)
-- Evolution API rodando (Docker) — opcional para testar endpoints REST isolados
-- `petbuddies-api` (.NET) rodando em `http://localhost:5297` — opcional para testar o bot
+- Acesso ao Oracle FIAP
 
-## Configuração do Banco de Dados
+### Passos
 
-Oracle disponibilizado pela FIAP. Copie `.env.example` para `.env` e preencha as credenciais:
+```bash
+git clone https://github.com/3BugBuddies/PetBudies-AI
+cd petbuddies-ai
+
+cp .env.example .env
+# preencher ORACLE_USER e ORACLE_PASSWORD
+
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+A aplicação sobe em `http://localhost:8080`, com o Swagger em `/swagger-ui.html`.
+
+### Variáveis de ambiente
 
 ```env
 ORACLE_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL
@@ -255,53 +215,21 @@ ORACLE_USER=             # seu RM (ex: rm123456)
 ORACLE_PASSWORD=         # sua senha Oracle FIAP
 ```
 
-> Preencha `ORACLE_USER` com seu RM e `ORACLE_PASSWORD` com a senha do Oracle FIAP.
+A chave da IA volta ao `.env.example` junto com o check-in, e o segredo do token junto com a
+autenticação. **Nenhum segredo é versionado**: o `.env` está no `.gitignore`.
 
-O Hibernate gerencia o schema automaticamente via `ddl-auto=update` — as tabelas são criadas ou atualizadas no startup sem necessidade de migrations manuais.
+### Banco
+
+O schema das cinco tabelas do cuidado é criado pelo próprio serviço — hoje pelo Hibernate
+(`ddl-auto=update`) e, ainda nesta sprint, por um baseline Flyway com validação de schema na subida.
+Este serviço **não** cria as tabelas do registro, que são do .NET: os dois conjuntos não se cruzam.
 
 ---
 
+## Tecnologias
 
-
-### Rodando localmente
-
-```bash
-# Clonar o repositório
-git clone https://github.com/3BugBuddies/PetBudies-AI
-cd petbuddies-ai
-
-# Configurar credenciais
-cp .env.example .env
-# preencher ORACLE_USER, ORACLE_PASSWORD, GEMINI_API_KEY e EVOLUTION_API_KEY no .env
-
-# Executar
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-A aplicação sobe em:
-- **Swagger UI:** `http://localhost:8080/swagger-ui.html`
-
-### Variáveis de ambiente completas
-
-```env
-GEMINI_API_KEY=          # chave da Google AI Studio
-ORACLE_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL
-ORACLE_USER=             # usuário Oracle FIAP (RM)
-ORACLE_PASSWORD=         # senha Oracle FIAP
-EVOLUTION_API_URL=http://localhost:8081
-EVOLUTION_API_KEY=       # chave da instância Evolution
-EVOLUTION_API_INSTANCE=petbuddies
-```
-
-> O profile `dev` aponta para `petbuddies-api` em `http://localhost:5297`. O profile `docker` usa `http://petbuddies-net:5000`.
-
-## Tecnologias Utilizadas
-
-- **Java 21** / Spring Boot 3.4.5
-- **Spring AI 1.1.6** — tool calling + memória JDBC
-- **Gemini 2.5 Flash** via endpoint OpenAI-compatible
-- **Spring Data JPA + Hibernate** — 8 entidades Oracle
-- **Oracle Database** (FIAP)
-- **Springdoc OpenAPI 2.8.8** (Swagger UI)
+- **Java 21** · Spring Boot 3.4.5
+- **Spring Data JPA + Hibernate** sobre **Oracle Database** (FIAP)
 - **Bean Validation** (Jakarta)
-- **Evolution API** — gateway WhatsApp
+- **Springdoc OpenAPI 2.8.8** — Swagger UI com tags por domínio
+- **Postman** — coleção em `docs/postman/petbuddies-ai-java.postman_collection.json`
