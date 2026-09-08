@@ -1,8 +1,6 @@
-# petbuddies-ai — Challenge FIAP 2026 | Java Advanced
+# PetBuddies AI — Challenge FIAP 2026 | Java Advanced
 
-Serviço Java do **PetBuddies**, o app de cuidado contínuo para pets do time BugBuddies.
-Este serviço é o lado do **cuidado — o que deve acontecer**: catálogo de protocolos, plano vivo por
-animal, itens com data alvo, autenticação com dois perfis e o motor de regras do check-in.
+Bot WhatsApp + Motor de cuidado contínuo para pets desenvolvido com Spring Boot e Spring AI, como parte do Challenge da disciplina de **Java Advanced (2TDSR)** — FIAP 2026.
 
 O par dele é o `PetBuddies-API` (.NET), que guarda o **registro — o que aconteceu**: consulta,
 atendimento, procedimento, prescrição e check-in. Os dois serviços apontam para o **mesmo Oracle**, e
@@ -45,18 +43,9 @@ desta sprint; nada neste README descreve endpoint que não esteja no ar.
 
 ---
 
-## Endpoints no ar hoje
+## Avaliação Java — roteiro de endpoints de Protocolo
 
-Base local: `http://localhost:8080` · Swagger: `http://localhost:8080/swagger-ui.html`
-
-### Motor de cuidado
-
-| Método | Rota | O que faz |
-|---|---|---|
-| `POST` | `/api/motor/planos/instanciar-preventivo` | escolhe o protocolo preventivo compatível com o animal e instancia o plano |
-| `POST` | `/api/motor/planos/instanciar-pos-cirurgico` | instancia o plano pós-cirúrgico a partir da cirurgia registrada |
-| `GET` | `/api/motor/planos/{animalId}` | devolve o plano ativo do animal |
-| `GET` | `/api/motor/planos/{animalId}/eventos` | devolve os itens do plano, paginados (`?page=0&size=10`) |
+> Estes endpoints são **autocontidos**: As Entidades Protocolo e EventoProtocolo não dependem da API .NET nem do WhatsApp. O avaliador precisa apenas do `Petbuddies-AI` rodando com Oracle FIAP configurado.
 
 Os dois `POST` são **idempotentes**: com um plano `ATIVO` já existente, a resposta é o plano que
 existe, não um segundo plano.
@@ -129,7 +118,35 @@ O corpo de erro é sempre `ErrorDto{ code, message }`, montado por um `@RestCont
 
 ---
 
-## Modelo de dados — cinco entidades
+## Modelo de Dados
+
+### Motor Core — 6 entidades
+
+Tabelas Independentes - Sem vinculo com .NET
+
+| Entidade | Tabela | Relacionamentos |
+|----------|--------|-----------------|
+| `ProtocoloEntity` | `T_PB_PROTOCOLO` | 1:N → EventoProtocoloEntity |
+| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | N:1 → ProtocoloEntity |
+
+Tabelas Dependentes - Com vinculo com .NET
+
+| Entidade | Tabela | Relacionamentos | Vínculo .NET |
+|----------|--------|-----------------|--------------|
+| `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | N:1 → ProtocoloEntity; 1:N → EventoPlanoEntity | `T_PB_ANIMAL`, `T_PB_CONSULTA` |
+| `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | N:1 → PlanoCuidadoAnimalEntity | `T_PB_PROCEDIMENTO` |
+| `ScoreRiscoAnimalEntity` | `T_PB_SCORE_RISCO_ANIMAL` | 1:N → FatorRiscoEntity | `T_PB_ANIMAL` |
+
+Tabelas Dependentes de tabelas relacionadas ao .NET
+
+| Entidade | Tabela | Relacionamentos |
+|----------|--------|-----------------|
+| `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | N:1 → ScoreRiscoAnimalEntity |
+
+**Diagrama 1 — Catálogo e Plano de Cuidado**
+Relacionamentos entre `ProtocoloEntity`, `EventoProtocoloEntity`, `PlanoCuidadoAnimalEntity` e `EventoPlanoEntity`, com os enums de domínio associados.
+
+![Diagrama de classes — Protocolo, Plano e Eventos](assets/diagrama-java-entidades-base.png)
 
 | Entidade | Tabela | Papel |
 |---|---|---|
@@ -196,7 +213,8 @@ faríamos à mão.
 ### Passos
 
 ```bash
-git clone https://github.com/3BugBuddies/PetBudies-AI
+# Clonar o repositório
+git clone https://github.com/3BugBuddies/PetBuddies-AI
 cd petbuddies-ai
 
 cp .env.example .env
