@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.handler;
 
 import br.com.fiap.petbuddies.dto.ErrorDto;
+import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.RegraProtocoloNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ProtocoloNaoEncontradoException;
@@ -48,6 +49,16 @@ public class GlobalExceptionHandler {
             return enumInvalido(ex.getName(), ex.getValue(), type);
         }
         return ResponseEntity.status(400).body(new ErrorDto("PARAMETRO_INVALIDO", "Parâmetro inválido: " + ex.getName() + "."));
+    }
+
+    /**
+     * Sem este mapeamento a recusa de login cairia no tratador generico e
+     * viraria 500. Uma mensagem so para os tres casos — login inexistente,
+     * senha errada e usuario inativo.
+     */
+    @ExceptionHandler(CredenciaisInvalidasException.class)
+    public ResponseEntity<ErrorDto> handleCredenciaisInvalidas(CredenciaisInvalidasException ex) {
+        return ResponseEntity.status(401).body(new ErrorDto("CREDENCIAIS_INVALIDAS", ex.getMessage()));
     }
 
     @ExceptionHandler(PlanoNaoEncontradoException.class)
