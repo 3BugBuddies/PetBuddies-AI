@@ -18,6 +18,9 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- jjwt nao vem do BOM do Spring Boot: a versao e fixada aqui de
+             proposito, porque o .NET valida o mesmo token (ADR s3-20). -->
+        <jjwt.version>0.12.6</jjwt.version>
     </properties>
 
     <dependencies>
@@ -64,6 +67,34 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-oracle</artifactId>
+        </dependency>
+
+        <!-- ===== SEGURANÇA ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- ===== JWT (ADR s3-20) =====
+             jjwt-api e a unica dependencia de compilacao: impl e jackson entram
+             em runtime, e sem as duas a emissao falha so quando o endpoint e
+             chamado. O token e HS256 com segredo compartilhado com o .NET. -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- ===== VALIDAÇÃO ===== -->
