@@ -59,7 +59,13 @@ public class OpenApiConfig {
                         .description("CRUD da equipe clínica, quem assina o ato"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("registro — animais")
-                        .description("CRUD de pacientes, o animal do registro clínico")
+                        .description("CRUD de pacientes, o animal do registro clínico"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — consultas")
+                        .description("Agendamento e comparecimento do animal na clínica"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — condições clínicas")
+                        .description("Catálogo de condições que o check-in avalia, por clínica")
         ));
     }
 }

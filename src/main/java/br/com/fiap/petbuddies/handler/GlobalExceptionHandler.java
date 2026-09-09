@@ -4,6 +4,9 @@ import br.com.fiap.petbuddies.dto.ErrorDto;
 import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CnpjDuplicadoException;
+import br.com.fiap.petbuddies.exception.CodigoCondicaoDuplicadoException;
+import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.CrmvDuplicadoException;
 import br.com.fiap.petbuddies.exception.RegraProtocoloNaoEncontradoException;
@@ -110,6 +113,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(new ErrorDto("ANIMAL_NAO_ENCONTRADO", ex.getMessage()));
     }
 
+    @ExceptionHandler(ConsultaNaoEncontradaException.class)
+    public ResponseEntity<ErrorDto> handleConsultaNaoEncontrada(ConsultaNaoEncontradaException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("CONSULTA_NAO_ENCONTRADA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CondicaoClinicaNaoEncontradaException.class)
+    public ResponseEntity<ErrorDto> handleCondicaoClinicaNaoEncontrada(CondicaoClinicaNaoEncontradaException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("CONDICAO_CLINICA_NAO_ENCONTRADA", ex.getMessage()));
+    }
+
     @ExceptionHandler(CnpjDuplicadoException.class)
     public ResponseEntity<ErrorDto> handleCnpjDuplicado(CnpjDuplicadoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CNPJ_DUPLICADO", ex.getMessage()));
@@ -118,6 +131,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CrmvDuplicadoException.class)
     public ResponseEntity<ErrorDto> handleCrmvDuplicado(CrmvDuplicadoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CRMV_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CodigoCondicaoDuplicadoException.class)
+    public ResponseEntity<ErrorDto> handleCodigoCondicaoDuplicado(CodigoCondicaoDuplicadoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("CODIGO_CONDICAO_DUPLICADO", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
