@@ -15,20 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Emite e valida o token do ADR {@code s3-20}. <b>Nada aqui e escolha deste
- * servico:</b> o .NET valida o mesmo token com o mesmo segredo, e qualquer
- * divergencia de emissor, claim ou algoritmo aparece do outro lado como um 401
- * generico que nao diz qual campo mudou.
- *
- * <p>Formato fixado: HS256, emissor {@code petbuddies-ai}, sujeito com o id do
- * usuario como texto, e as claims {@code perfil}, {@code usuarioId} e
- * <b>exatamente um</b> de {@code veterinarioId} / {@code responsavelId} — o
- * vinculo que nao existe fica ausente, nao nulo. Validade de oito horas, sem
- * refresh.</p>
- *
- * <p>A chave e montada no construtor de proposito: com segredo abaixo de 32
- * bytes a biblioteca recusa a chave e a aplicacao nao sobe, em vez de emitir
- * token fraco em silencio.</p>
+ * Formato fixado com o .NET, que valida este mesmo token: HS256, emissor
+ * {@code petbuddies-ai}, sujeito com o id do usuario como texto, e as claims
+ * {@code perfil}, {@code usuarioId}, <b>exatamente um</b> de
+ * {@code veterinarioId} / {@code responsavelId}, e {@code clinicaId} so no
+ * perfil VET. Claim que nao se aplica fica <b>ausente</b>, nunca nula.
+ * Mudanca aqui aparece do outro lado como 401 generico.
  */
 @Service
 public class TokenService {
@@ -40,6 +32,7 @@ public class TokenService {
     public static final String CLAIM_USUARIO_ID = "usuarioId";
     public static final String CLAIM_VETERINARIO_ID = "veterinarioId";
     public static final String CLAIM_RESPONSAVEL_ID = "responsavelId";
+    public static final String CLAIM_CLINICA_ID = "clinicaId";
 
     /** Tolerancia de relogio combinada com o N4 (README da onda 2). */
     private static final long TOLERANCIA_RELOGIO_SEGUNDOS = 30L;
@@ -54,8 +47,13 @@ public class TokenService {
         this.expiracaoHoras = expiracaoHoras;
     }
 
-    /** Emite o token de um usuario ja autenticado. */
-    public String emitir(UsuarioEntity usuario) {
+    /**
+     * Emite o token de um usuario ja autenticado.
+     *
+     * @param clinicaId clinica do veterinario, ou {@code null} no perfil TUTOR.
+     *                  Resolvido pelo chamador: este servico nao le repositorio.
+     */
+    public String emitir(UsuarioEntity usuario, Long clinicaId) {
         Instant agora = Instant.now();
         JwtBuilder builder = Jwts.builder()
                 .issuer(EMISSOR)
@@ -72,6 +70,10 @@ public class TokenService {
         }
         if (usuario.getResponsavelId() != null) {
             builder.claim(CLAIM_RESPONSAVEL_ID, usuario.getResponsavelId());
+        }
+        // Ausente no perfil TUTOR: responsavel nao pertence a clinica no schema.
+        if (clinicaId != null) {
+            builder.claim(CLAIM_CLINICA_ID, clinicaId);
         }
         return builder.signWith(chave).compact();
     }

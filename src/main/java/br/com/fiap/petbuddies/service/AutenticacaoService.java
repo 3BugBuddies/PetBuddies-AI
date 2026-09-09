@@ -2,6 +2,7 @@ package br.com.fiap.petbuddies.service;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
 import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
+import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.LoginRequest;
 import br.com.fiap.petbuddies.dto.LoginResponse;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
@@ -25,14 +26,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class AutenticacaoService {
 
     private final UsuarioRepository usuarioRepository;
+    private final VeterinarioRepository veterinarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
 
     public AutenticacaoService(
             UsuarioRepository usuarioRepository,
+            VeterinarioRepository veterinarioRepository,
             PasswordEncoder passwordEncoder,
             TokenService tokenService) {
         this.usuarioRepository = usuarioRepository;
+        this.veterinarioRepository = veterinarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
     }
@@ -45,6 +49,15 @@ public class AutenticacaoService {
         if (!passwordEncoder.matches(request.getSenha(), usuario.getSenhaHash())) {
             throw new CredenciaisInvalidasException();
         }
-        return LoginResponse.from(usuario, tokenService.emitir(usuario));
+        return LoginResponse.from(usuario, tokenService.emitir(usuario, resolverClinica(usuario)));
+    }
+
+    // Fica aqui e nao no TokenService, que nao le repositorio. TUTOR devolve
+    // null, e a claim sai ausente.
+    private Long resolverClinica(UsuarioEntity usuario) {
+        if (usuario.getVeterinarioId() == null) {
+            return null;
+        }
+        return veterinarioRepository.findClinicaIdById(usuario.getVeterinarioId()).orElse(null);
     }
 }
