@@ -13,8 +13,8 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
- * O contexto primario: as tabelas de que o Java e dono, e as unicas que ele
- * valida.
+ * O unico contexto de persistencia: as tabelas de que o Java e dono — que a
+ * partir do PR-J11 (ADR s3-25) sao TODAS as que ele enxerga.
  *
  * <p>Nao define {@code hibernate.hbm2ddl.auto} em codigo — herda o
  * {@code spring.jpa.hibernate.ddl-auto=validate} do
@@ -22,10 +22,13 @@ import org.springframework.transaction.PlatformTransactionManager;
  * propriedade quando nao ha banco (fumaca de contexto) sem editar esta
  * classe.</p>
  *
- * <p>Existir um segundo contexto desliga a configuracao automatica de
- * persistencia. A partir daqui todo repositorio precisa estar sob um dos dois
- * pacotes declarados — repositorio fora deles simplesmente nao e criado, e o
- * erro aparece como dependencia nao encontrada na subida.</p>
+ * <p>O segundo contexto, o do registro lido por projecao, deixou de existir
+ * junto com {@code domain/readonly}: o Java absorveu as onze tabelas do
+ * registro e nao le mais o schema de ninguem. Declarar um
+ * {@code EntityManagerFactory} proprio ja desliga a configuracao automatica de
+ * persistencia, entao todo repositorio precisa continuar sob o pacote declarado
+ * aqui — repositorio fora dele simplesmente nao e criado, e o erro aparece como
+ * dependencia nao encontrada na subida.</p>
  */
 @Configuration
 @EnableJpaRepositories(

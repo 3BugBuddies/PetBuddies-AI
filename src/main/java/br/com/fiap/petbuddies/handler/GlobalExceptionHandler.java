@@ -1,7 +1,10 @@
 package br.com.fiap.petbuddies.handler;
 
 import br.com.fiap.petbuddies.dto.ErrorDto;
+import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.CnpjDuplicadoException;
 import br.com.fiap.petbuddies.exception.RegraProtocoloNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.ResponsavelNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ProtocoloNaoEncontradoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -9,6 +12,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -41,6 +45,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(new ErrorDto("JSON_INVALIDO", "Corpo da requisição inválido."));
     }
 
+    // Sem este handler o parametro obrigatorio ausente cairia no handleGeneric
+    // abaixo e viraria 500: o @ExceptionHandler(Exception.class) roda ANTES do
+    // resolvedor padrao do Spring MVC, que devolveria 400 sozinho.
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorDto> handleParametroAusente(MissingServletRequestParameterException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("PARAMETRO_OBRIGATORIO",
+                "Parâmetro obrigatório ausente: " + ex.getParameterName() + "."));
+    }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorDto> handleParametroInvalido(MethodArgumentTypeMismatchException ex) {
         Class<?> type = ex.getRequiredType();
@@ -63,6 +76,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RegraProtocoloNaoEncontradoException.class)
     public ResponseEntity<ErrorDto> handleRegraProtocoloNaoEncontrada(RegraProtocoloNaoEncontradoException ex) {
         return ResponseEntity.status(404).body(new ErrorDto("EVENTO_PROTOCOLO_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ClinicaNaoEncontradaException.class)
+    public ResponseEntity<ErrorDto> handleClinicaNaoEncontrada(ClinicaNaoEncontradaException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("CLINICA_NAO_ENCONTRADA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResponsavelNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleResponsavelNaoEncontrado(ResponsavelNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("RESPONSAVEL_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
+    // 409, e nao 400: o corpo esta correto — quem esta ocupado e o CNPJ
+    // (UK_CLINICA_CNPJ). O servico confere antes de gravar, entao a violacao
+    // nunca chega como erro de driver.
+    @ExceptionHandler(CnpjDuplicadoException.class)
+    public ResponseEntity<ErrorDto> handleCnpjDuplicado(CnpjDuplicadoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("CNPJ_DUPLICADO", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

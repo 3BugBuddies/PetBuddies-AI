@@ -29,7 +29,13 @@ public class OpenApiConfig {
                         .description("CRUD de eventos vinculados a protocolos de cuidado"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("motor — planos")
-                        .description("Instanciação e consulta de planos de cuidado preventivo e pós-cirúrgico")
+                        .description("Instanciação e consulta de planos de cuidado preventivo e pós-cirúrgico"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — clínicas")
+                        .description("CRUD de clínicas, a raiz do registro clínico"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — responsáveis")
+                        .description("CRUD de tutores, o dono do animal no registro clínico")
         ));
     }
 }
