@@ -1,24 +1,24 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.entity.EventoProtocoloEntity;
-import br.com.fiap.petbuddies.domain.enums.TipoAncora;
-import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
+import br.com.fiap.petbuddies.domain.entity.RegraProtocoloEntity;
+import br.com.fiap.petbuddies.domain.enums.TipoDataBase;
+import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Molde de um item de cuidado dentro de um protocolo")
-public class EventoProtocoloResponse {
+public class RegraProtocoloResponse {
 
     private Long id;
     private Long protocoloId;
-    private TipoEventoProtocolo tipo;
+    private TipoCuidado tipo;
     private String nome;
 
     @Schema(description = "Quanto somar à âncora para chegar na data do item")
     private Integer offset;
 
     private UnidadeTempo unidadeOffset;
-    private TipoAncora ancora;
+    private TipoDataBase ancora;
 
     @Schema(description = "Intervalo entre repetições. Nulo significa ocorrência única")
     private Integer intervalo;
@@ -30,8 +30,8 @@ public class EventoProtocoloResponse {
 
     private String descricao;
 
-    public static EventoProtocoloResponse from(EventoProtocoloEntity entity) {
-        EventoProtocoloResponse dto = new EventoProtocoloResponse();
+    public static RegraProtocoloResponse from(RegraProtocoloEntity entity) {
+        RegraProtocoloResponse dto = new RegraProtocoloResponse();
         dto.id = entity.getId();
         dto.protocoloId = entity.getProtocolo() != null ? entity.getProtocolo().getId() : null;
         dto.tipo = entity.getTipo();
@@ -52,8 +52,8 @@ public class EventoProtocoloResponse {
     public Long getProtocoloId() { return protocoloId; }
     public void setProtocoloId(Long protocoloId) { this.protocoloId = protocoloId; }
 
-    public TipoEventoProtocolo getTipo() { return tipo; }
-    public void setTipo(TipoEventoProtocolo tipo) { this.tipo = tipo; }
+    public TipoCuidado getTipo() { return tipo; }
+    public void setTipo(TipoCuidado tipo) { this.tipo = tipo; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -64,8 +64,8 @@ public class EventoProtocoloResponse {
     public UnidadeTempo getUnidadeOffset() { return unidadeOffset; }
     public void setUnidadeOffset(UnidadeTempo unidadeOffset) { this.unidadeOffset = unidadeOffset; }
 
-    public TipoAncora getAncora() { return ancora; }
-    public void setAncora(TipoAncora ancora) { this.ancora = ancora; }
+    public TipoDataBase getAncora() { return ancora; }
+    public void setAncora(TipoDataBase ancora) { this.ancora = ancora; }
 
     public Integer getIntervalo() { return intervalo; }
     public void setIntervalo(Integer intervalo) { this.intervalo = intervalo; }

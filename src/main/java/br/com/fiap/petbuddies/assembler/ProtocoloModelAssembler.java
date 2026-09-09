@@ -1,6 +1,6 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.EventoProtocoloController;
+import br.com.fiap.petbuddies.controller.RegraProtocoloController;
 import br.com.fiap.petbuddies.controller.ProtocoloController;
 import br.com.fiap.petbuddies.domain.entity.ProtocoloEntity;
 import br.com.fiap.petbuddies.dto.ProtocoloResponse;
@@ -20,7 +20,7 @@ public class ProtocoloModelAssembler
         return EntityModel.of(
                 ProtocoloResponse.from(p),
                 linkTo(methodOn(ProtocoloController.class).buscarPorId(p.getId())).withSelfRel(),
-                linkTo(methodOn(EventoProtocoloController.class).listar(p.getId(), null)).withRel("eventos"),
+                linkTo(methodOn(RegraProtocoloController.class).listar(p.getId(), null)).withRel("eventos"),
                 linkTo(methodOn(ProtocoloController.class).listar()).withRel("protocolos"));
     }
 }

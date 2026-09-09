@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoAnimalEntity;
-import br.com.fiap.petbuddies.domain.enums.StatusEventoPlano;
+import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
+import br.com.fiap.petbuddies.domain.enums.StatusItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ public class PlanoResponse {
     private LocalDateTime instanciadoEm;
 
     @Schema(description = "Eventos do plano (excluindo cancelados)")
-    private List<EventoPlanoDto> eventos;
+    private List<ItemPlanoCuidadoDto> eventos;
 
     @Schema(description = "true se criado nesta chamada, false se já existia. null nos GETs")
     private Boolean criado;
@@ -38,7 +38,7 @@ public class PlanoResponse {
     @Schema(description = "Motivo quando criado=false (ex: SEM_PROTOCOLO_COMPATIVEL). null nos GETs")
     private String motivo;
 
-    public static PlanoResponse from(PlanoCuidadoAnimalEntity plano, Boolean criado, String motivo) {
+    public static PlanoResponse from(PlanoCuidadoEntity plano, Boolean criado, String motivo) {
         PlanoResponse r = new PlanoResponse();
         r.id = plano.getId();
         r.animalId = plano.getAnimalId();
@@ -47,16 +47,16 @@ public class PlanoResponse {
         r.categoria = plano.getProtocolo() != null ? plano.getProtocolo().getCategoria().name() : null;
         r.status = plano.getStatus().name();
         r.instanciadoEm = plano.getCreatedAt();
-        r.eventos = plano.getEventos().stream()
-                .filter(e -> e.getStatus() != StatusEventoPlano.CANCELADO)
-                .map(EventoPlanoDto::from)
+        r.eventos = plano.getItens().stream()
+                .filter(e -> e.getStatus() != StatusItem.CANCELADO)
+                .map(ItemPlanoCuidadoDto::from)
                 .collect(Collectors.toList());
         r.criado = criado;
         r.motivo = motivo;
         return r;
     }
 
-    public static PlanoResponse from(PlanoCuidadoAnimalEntity plano) {
+    public static PlanoResponse from(PlanoCuidadoEntity plano) {
         return from(plano, null, null);
     }
 
@@ -86,8 +86,8 @@ public class PlanoResponse {
     public void setInstanciadoEm(LocalDateTime v) { this.instanciadoEm = v; }
 
 
-    public List<EventoPlanoDto> getEventos() { return eventos; }
-    public void setEventos(List<EventoPlanoDto> eventos) { this.eventos = eventos; }
+    public List<ItemPlanoCuidadoDto> getEventos() { return eventos; }
+    public void setEventos(List<ItemPlanoCuidadoDto> eventos) { this.eventos = eventos; }
 
     public Boolean getCriado() { return criado; }
     public void setCriado(Boolean criado) { this.criado = criado; }

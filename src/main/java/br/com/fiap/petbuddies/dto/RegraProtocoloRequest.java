@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.enums.TipoAncora;
-import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
+import br.com.fiap.petbuddies.domain.enums.TipoDataBase;
+import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
@@ -9,11 +9,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Molde de um item de cuidado dentro de um protocolo")
-public class EventoProtocoloRequest {
+public class RegraProtocoloRequest {
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "VACINACAO")
     @NotNull
-    private TipoEventoProtocolo tipo;
+    private TipoCuidado tipo;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Vacina múltipla V10")
     @NotBlank
@@ -32,7 +32,7 @@ public class EventoProtocoloRequest {
     @Schema(description = "Data-base do deslocamento", example = "NASCIMENTO",
             requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
-    private TipoAncora ancora;
+    private TipoDataBase ancora;
 
     @Schema(description = "Intervalo entre repetições. Nulo significa ocorrência única", example = "1")
     @Min(1)
@@ -50,8 +50,8 @@ public class EventoProtocoloRequest {
     @Schema(example = "Reforço anual obrigatório")
     private String descricao;
 
-    public TipoEventoProtocolo getTipo() { return tipo; }
-    public void setTipo(TipoEventoProtocolo tipo) { this.tipo = tipo; }
+    public TipoCuidado getTipo() { return tipo; }
+    public void setTipo(TipoCuidado tipo) { this.tipo = tipo; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -62,8 +62,8 @@ public class EventoProtocoloRequest {
     public UnidadeTempo getUnidadeOffset() { return unidadeOffset; }
     public void setUnidadeOffset(UnidadeTempo unidadeOffset) { this.unidadeOffset = unidadeOffset; }
 
-    public TipoAncora getAncora() { return ancora; }
-    public void setAncora(TipoAncora ancora) { this.ancora = ancora; }
+    public TipoDataBase getAncora() { return ancora; }
+    public void setAncora(TipoDataBase ancora) { this.ancora = ancora; }
 
     public Integer getIntervalo() { return intervalo; }
     public void setIntervalo(Integer intervalo) { this.intervalo = intervalo; }

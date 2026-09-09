@@ -1,12 +1,12 @@
 package br.com.fiap.petbuddies.controller;
 
-import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
-import br.com.fiap.petbuddies.dto.EventoProtocoloRequest;
-import br.com.fiap.petbuddies.dto.EventoProtocoloResponse;
-import br.com.fiap.petbuddies.assembler.EventoProtocoloModelAssembler;
+import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
+import br.com.fiap.petbuddies.dto.RegraProtocoloRequest;
+import br.com.fiap.petbuddies.dto.RegraProtocoloResponse;
+import br.com.fiap.petbuddies.assembler.RegraProtocoloModelAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import br.com.fiap.petbuddies.service.EventoProtocoloService;
+import br.com.fiap.petbuddies.service.RegraProtocoloService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,12 +20,12 @@ import java.util.List;
 
 @RestController
 @Tag(name = "catalogo — eventos de protocolo", description = "CRUD de eventos vinculados a protocolos de cuidado")
-public class EventoProtocoloController {
+public class RegraProtocoloController {
 
-    private final EventoProtocoloService service;
-    private final EventoProtocoloModelAssembler assembler;
+    private final RegraProtocoloService service;
+    private final RegraProtocoloModelAssembler assembler;
 
-    public EventoProtocoloController(EventoProtocoloService service, EventoProtocoloModelAssembler assembler) {
+    public RegraProtocoloController(RegraProtocoloService service, RegraProtocoloModelAssembler assembler) {
         this.service = service;
         this.assembler = assembler;
     }
@@ -37,10 +37,10 @@ public class EventoProtocoloController {
             + "Parâmetro opcional ?tipo= filtra por tipo (ex: VACINACAO, RETORNO, EXAME)."
     )
     @ApiResponse(responseCode = "200", description = "Lista de eventos")
-    public CollectionModel<EntityModel<EventoProtocoloResponse>> listar(
+    public CollectionModel<EntityModel<RegraProtocoloResponse>> listar(
             @PathVariable Long protocoloId,
             @Parameter(description = "Tipo do evento (ex: VACINACAO, RETORNO, EXAME)")
-            @RequestParam(required = false) TipoEventoProtocolo tipo) {
+            @RequestParam(required = false) TipoCuidado tipo) {
         return assembler.toCollectionModel(service.listarPorProtocolo(protocoloId, tipo));
     }
 
@@ -50,7 +50,7 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "200", description = "Evento encontrado"),
         @ApiResponse(responseCode = "404", description = "Evento não encontrado")
     })
-    public EntityModel<EventoProtocoloResponse> buscarPorId(@PathVariable Long id) {
+    public EntityModel<RegraProtocoloResponse> buscarPorId(@PathVariable Long id) {
         return assembler.toModel(service.buscarPorId(id));
     }
 
@@ -61,10 +61,10 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Protocolo não encontrado")
     })
-    public ResponseEntity<EntityModel<EventoProtocoloResponse>> criar(
+    public ResponseEntity<EntityModel<RegraProtocoloResponse>> criar(
             @PathVariable Long protocoloId,
-            @RequestBody @Valid EventoProtocoloRequest request) {
-        EntityModel<EventoProtocoloResponse> model = assembler.toModel(service.criar(protocoloId, request));
+            @RequestBody @Valid RegraProtocoloRequest request) {
+        EntityModel<RegraProtocoloResponse> model = assembler.toModel(service.criar(protocoloId, request));
         return ResponseEntity.created(model.getRequiredLink("self").toUri()).body(model);
     }
 
@@ -75,9 +75,9 @@ public class EventoProtocoloController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Evento não encontrado")
     })
-    public EntityModel<EventoProtocoloResponse> atualizar(
+    public EntityModel<RegraProtocoloResponse> atualizar(
             @PathVariable Long id,
-            @RequestBody @Valid EventoProtocoloRequest request) {
+            @RequestBody @Valid RegraProtocoloRequest request) {
         return assembler.toModel(service.atualizar(id, request));
     }
 

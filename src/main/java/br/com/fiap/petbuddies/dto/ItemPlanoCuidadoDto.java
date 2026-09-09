@@ -1,11 +1,11 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.entity.EventoPlanoEntity;
+import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
 @Schema(description = "Evento de um plano de cuidado")
-public class EventoPlanoDto {
+public class ItemPlanoCuidadoDto {
 
     @Schema(description = "ID do evento")
     private Long id;
@@ -28,8 +28,8 @@ public class EventoPlanoDto {
     @Schema(description = "ID da prescrição no PetBuddies-API (.NET). Preenchido apenas quando origem = PRESCRICAO")
     private Long prescricaoId;
 
-    public static EventoPlanoDto from(EventoPlanoEntity e) {
-        EventoPlanoDto dto = new EventoPlanoDto();
+    public static ItemPlanoCuidadoDto from(ItemPlanoCuidadoEntity e) {
+        ItemPlanoCuidadoDto dto = new ItemPlanoCuidadoDto();
         dto.id = e.getId();
         dto.tipo = e.getTipo().name();
         dto.nome = e.getNome();

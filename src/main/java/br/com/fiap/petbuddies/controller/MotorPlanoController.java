@@ -1,6 +1,6 @@
 package br.com.fiap.petbuddies.controller;
 
-import br.com.fiap.petbuddies.dto.EventoPlanoDto;
+import br.com.fiap.petbuddies.dto.ItemPlanoCuidadoDto;
 import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.PlanoResponse;
@@ -84,7 +84,7 @@ public class MotorPlanoController {
     @GetMapping("/{animalId}/eventos")
     @Operation(summary = "Listar eventos do plano", description = "Lista paginada dos eventos do plano ativo do animal. Use ?page=0&size=10.")
     @ApiResponse(responseCode = "200", description = "Lista de eventos")
-    public Page<EventoPlanoDto> listarEventos(
+    public Page<ItemPlanoCuidadoDto> listarEventos(
             @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId,
             @ParameterObject Pageable pageable) {
         return motorPlanoService.listarEventos(animalId, pageable);

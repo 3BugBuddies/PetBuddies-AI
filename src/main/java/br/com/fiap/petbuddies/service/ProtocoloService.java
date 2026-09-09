@@ -63,12 +63,7 @@ public class ProtocoloService {
         entity.setNome(request.getNome());
         entity.setCategoria(request.getCategoria());
         entity.setEspecie(request.getEspecie());
-        entity.setPorte(request.getPorte());
-        entity.setSexo(request.getSexo());
-        entity.setCastrado(request.getCastrado());
         if (request.getAtivo() != null) entity.setAtivo(request.getAtivo());
-        entity.setIdadeMinMeses(request.getIdadeMinMeses());
-        entity.setIdadeMaxMeses(request.getIdadeMaxMeses());
         entity.setDescricao(request.getDescricao());
     }
 }

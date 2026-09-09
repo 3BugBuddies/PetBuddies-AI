@@ -1,9 +1,11 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.StatusEventoPlano;
-import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
+import br.com.fiap.petbuddies.domain.enums.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
+import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,22 +18,22 @@ import java.time.LocalDateTime;
  * executor.</p>
  */
 @Entity
-@Table(name = "T_PB_EVENTO_PLANO")
-public class EventoPlanoEntity {
+@Table(name = "T_PB_ITEM_PLANO_CUIDADO")
+public class ItemPlanoCuidadoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_EVENTO_PLANO")
+    @Column(name = "ID_ITEM_PLANO_CUIDADO")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_PLANO_CUIDADO_ANIMAL", nullable = false)
-    private PlanoCuidadoAnimalEntity plano;
+    @JoinColumn(name = "ID_PLANO_CUIDADO", nullable = false)
+    private PlanoCuidadoEntity plano;
 
     /** Preenchido quando a origem e PROTOCOLO: o molde que gerou este item. */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_EVENTO_PROTOCOLO")
-    private EventoProtocoloEntity eventoProtocolo;
+    @JoinColumn(name = "ID_REGRA_PROTOCOLO")
+    private RegraProtocoloEntity regraProtocolo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "TP_ORIGEM", nullable = false, length = 20)
@@ -42,8 +44,8 @@ public class EventoPlanoEntity {
     private Long prescricaoId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "TP_TIPO", nullable = false, length = 50)
-    private TipoEventoProtocolo tipo;
+    @Column(name = "TP_TIPO_CUIDADO", nullable = false, length = 50)
+    private TipoCuidado tipo;
 
     @Column(name = "NM_NOME", nullable = false)
     private String nome;
@@ -52,8 +54,8 @@ public class EventoPlanoEntity {
     private LocalDate dataAlvo;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "ST_STATUS", nullable = false, length = 50)
-    private StatusEventoPlano status = StatusEventoPlano.PENDENTE;
+    @Column(name = "ST_STATUS_ITEM", nullable = false, length = 50)
+    private StatusItem status = StatusItem.PENDENTE;
 
     @Column(name = "OB_OBSERVACAO", length = 2000)
     private String observacao;
@@ -65,6 +67,26 @@ public class EventoPlanoEntity {
     @Column(name = "DT_EXECUTADO_EM")
     private LocalDateTime executadoEm;
 
+    // --- A OUTRA METADE DO PADRAO DE BAIXA (ADR s3-24 §5) --------------------
+    // O item da clinica e baixado por um procedimento (ID_PROCEDIMENTO,
+    // DT_EXECUTADO_EM, acima). O item de casa e baixado por um check-in, e sao
+    // estas quatro colunas: elas eram T_PB_CHECKIN_RESULTADO, que deixou de
+    // existir. Nascem nulaveis porque item de origem PROTOCOLO nao tem dose, e
+    // NINGUEM AS ESCREVE NESTE PR — quem escreve e o PR-J6.
+
+    @Column(name = "ID_CHECKIN")
+    private Long checkinId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "TP_DESFECHO", length = 30)
+    private TipoDesfecho desfecho;
+
+    @Column(name = "NR_DOSE_APLICADA", precision = 8, scale = 3)
+    private BigDecimal doseAplicada;
+
+    @Column(name = "ID_REGRA_APLICADA")
+    private Long regraAplicadaId;
+
     @Column(name = "AT_UPDATED_AT")
     private LocalDateTime updatedAt;
 
@@ -74,11 +96,11 @@ public class EventoPlanoEntity {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public PlanoCuidadoAnimalEntity getPlano() { return plano; }
-    public void setPlano(PlanoCuidadoAnimalEntity plano) { this.plano = plano; }
+    public PlanoCuidadoEntity getPlano() { return plano; }
+    public void setPlano(PlanoCuidadoEntity plano) { this.plano = plano; }
 
-    public EventoProtocoloEntity getEventoProtocolo() { return eventoProtocolo; }
-    public void setEventoProtocolo(EventoProtocoloEntity ep) { this.eventoProtocolo = ep; }
+    public RegraProtocoloEntity getRegraProtocolo() { return regraProtocolo; }
+    public void setRegraProtocolo(RegraProtocoloEntity ep) { this.regraProtocolo = ep; }
 
     public TipoOrigemItem getOrigem() { return origem; }
     public void setOrigem(TipoOrigemItem origem) { this.origem = origem; }
@@ -86,8 +108,8 @@ public class EventoPlanoEntity {
     public Long getPrescricaoId() { return prescricaoId; }
     public void setPrescricaoId(Long prescricaoId) { this.prescricaoId = prescricaoId; }
 
-    public TipoEventoProtocolo getTipo() { return tipo; }
-    public void setTipo(TipoEventoProtocolo tipo) { this.tipo = tipo; }
+    public TipoCuidado getTipo() { return tipo; }
+    public void setTipo(TipoCuidado tipo) { this.tipo = tipo; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -95,8 +117,8 @@ public class EventoPlanoEntity {
     public LocalDate getDataAlvo() { return dataAlvo; }
     public void setDataAlvo(LocalDate dataAlvo) { this.dataAlvo = dataAlvo; }
 
-    public StatusEventoPlano getStatus() { return status; }
-    public void setStatus(StatusEventoPlano status) { this.status = status; }
+    public StatusItem getStatus() { return status; }
+    public void setStatus(StatusItem status) { this.status = status; }
 
     public String getObservacao() { return observacao; }
     public void setObservacao(String observacao) { this.observacao = observacao; }
@@ -106,6 +128,18 @@ public class EventoPlanoEntity {
 
     public LocalDateTime getExecutadoEm() { return executadoEm; }
     public void setExecutadoEm(LocalDateTime executadoEm) { this.executadoEm = executadoEm; }
+
+    public Long getCheckinId() { return checkinId; }
+    public void setCheckinId(Long checkinId) { this.checkinId = checkinId; }
+
+    public TipoDesfecho getDesfecho() { return desfecho; }
+    public void setDesfecho(TipoDesfecho desfecho) { this.desfecho = desfecho; }
+
+    public BigDecimal getDoseAplicada() { return doseAplicada; }
+    public void setDoseAplicada(BigDecimal doseAplicada) { this.doseAplicada = doseAplicada; }
+
+    public Long getRegraAplicadaId() { return regraAplicadaId; }
+    public void setRegraAplicadaId(Long regraAplicadaId) { this.regraAplicadaId = regraAplicadaId; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

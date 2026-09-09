@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.TipoAncora;
-import br.com.fiap.petbuddies.domain.enums.TipoEventoProtocolo;
+import br.com.fiap.petbuddies.domain.enums.TipoDataBase;
+import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
 import jakarta.persistence.*;
 
@@ -14,12 +14,12 @@ import jakarta.persistence.*;
  * nulo significa ocorrencia unica.</p>
  */
 @Entity
-@Table(name = "T_PB_EVENTO_PROTOCOLO")
-public class EventoProtocoloEntity {
+@Table(name = "T_PB_REGRA_PROTOCOLO")
+public class RegraProtocoloEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_EVENTO_PROTOCOLO")
+    @Column(name = "ID_REGRA_PROTOCOLO")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,8 +27,8 @@ public class EventoProtocoloEntity {
     private ProtocoloEntity protocolo;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "TP_TIPO", nullable = false, length = 50)
-    private TipoEventoProtocolo tipo;
+    @Column(name = "TP_TIPO_CUIDADO", nullable = false, length = 50)
+    private TipoCuidado tipo;
 
     @Column(name = "NM_NOME", nullable = false)
     private String nome;
@@ -41,8 +41,8 @@ public class EventoProtocoloEntity {
     private UnidadeTempo unidadeOffset;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "TP_ANCORA", nullable = false, length = 20)
-    private TipoAncora ancora;
+    @Column(name = "TP_DATA_BASE", nullable = false, length = 20)
+    private TipoDataBase ancora;
 
     /** Nulo significa ocorrencia unica. Preenchido, exige {@link #unidadeIntervalo}. */
     @Column(name = "NR_INTERVALO")
@@ -69,8 +69,8 @@ public class EventoProtocoloEntity {
     public ProtocoloEntity getProtocolo() { return protocolo; }
     public void setProtocolo(ProtocoloEntity protocolo) { this.protocolo = protocolo; }
 
-    public TipoEventoProtocolo getTipo() { return tipo; }
-    public void setTipo(TipoEventoProtocolo tipo) { this.tipo = tipo; }
+    public TipoCuidado getTipo() { return tipo; }
+    public void setTipo(TipoCuidado tipo) { this.tipo = tipo; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -81,8 +81,8 @@ public class EventoProtocoloEntity {
     public UnidadeTempo getUnidadeOffset() { return unidadeOffset; }
     public void setUnidadeOffset(UnidadeTempo unidadeOffset) { this.unidadeOffset = unidadeOffset; }
 
-    public TipoAncora getAncora() { return ancora; }
-    public void setAncora(TipoAncora ancora) { this.ancora = ancora; }
+    public TipoDataBase getAncora() { return ancora; }
+    public void setAncora(TipoDataBase ancora) { this.ancora = ancora; }
 
     public Integer getIntervalo() { return intervalo; }
     public void setIntervalo(Integer intervalo) { this.intervalo = intervalo; }

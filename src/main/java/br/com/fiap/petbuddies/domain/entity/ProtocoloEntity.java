@@ -2,8 +2,6 @@ package br.com.fiap.petbuddies.domain.entity;
 
 import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.Especie;
-import br.com.fiap.petbuddies.domain.enums.Porte;
-import br.com.fiap.petbuddies.domain.enums.Sexo;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,32 +20,15 @@ public class ProtocoloEntity {
     private String nome;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "TP_CATEGORIA", nullable = false, length = 50)
+    @Column(name = "TP_CATEGORIA_PROTOCOLO", nullable = false, length = 50)
     private CategoriaProtocolo categoria;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ES_ESPECIE", nullable = false, length = 50)
     private Especie especie;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "PT_PORTE", length = 50)
-    private Porte porte;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "SX_SEXO", length = 50)
-    private Sexo sexo;
-
-    @Column(name = "CT_CASTRADO")
-    private Boolean castrado;
-
     @Column(name = "AT_ATIVO", nullable = false)
     private boolean ativo = true;
-
-    @Column(name = "NR_IDADE_MIN_MESES")
-    private Integer idadeMinMeses;
-
-    @Column(name = "NR_IDADE_MAX_MESES")
-    private Integer idadeMaxMeses;
 
     @Column(name = "DS_DESCRICAO", length = 2000)
     private String descricao;
@@ -56,7 +37,7 @@ public class ProtocoloEntity {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<EventoProtocoloEntity> eventos = new ArrayList<>();
+    private List<RegraProtocoloEntity> regras = new ArrayList<>();
 
     @PrePersist
     private void prePersist() { createdAt = LocalDateTime.now(); }
@@ -73,29 +54,14 @@ public class ProtocoloEntity {
     public Especie getEspecie() { return especie; }
     public void setEspecie(Especie especie) { this.especie = especie; }
 
-    public Porte getPorte() { return porte; }
-    public void setPorte(Porte porte) { this.porte = porte; }
-
-    public Sexo getSexo() { return sexo; }
-    public void setSexo(Sexo sexo) { this.sexo = sexo; }
-
-    public Boolean getCastrado() { return castrado; }
-    public void setCastrado(Boolean castrado) { this.castrado = castrado; }
-
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
-
-    public Integer getIdadeMinMeses() { return idadeMinMeses; }
-    public void setIdadeMinMeses(Integer idadeMinMeses) { this.idadeMinMeses = idadeMinMeses; }
-
-    public Integer getIdadeMaxMeses() { return idadeMaxMeses; }
-    public void setIdadeMaxMeses(Integer idadeMaxMeses) { this.idadeMaxMeses = idadeMaxMeses; }
 
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 
-    public List<EventoProtocoloEntity> getEventos() { return eventos; }
-    public void setEventos(List<EventoProtocoloEntity> eventos) { this.eventos = eventos; }
+    public List<RegraProtocoloEntity> getRegras() { return regras; }
+    public void setRegras(List<RegraProtocoloEntity> regras) { this.regras = regras; }
 }
