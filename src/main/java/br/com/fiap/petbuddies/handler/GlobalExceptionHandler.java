@@ -9,6 +9,13 @@ import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.CrmvDuplicadoException;
+import br.com.fiap.petbuddies.exception.JanelaAtendimentoNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.JanelaConflitanteException;
+import br.com.fiap.petbuddies.exception.PrescricaoNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.ProcedimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.RegraPrescricaoIncoerenteException;
+import br.com.fiap.petbuddies.exception.RegraPrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.RegraProtocoloNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ResponsavelNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
@@ -136,6 +143,41 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CodigoCondicaoDuplicadoException.class)
     public ResponseEntity<ErrorDto> handleCodigoCondicaoDuplicado(CodigoCondicaoDuplicadoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CODIGO_CONDICAO_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(JanelaAtendimentoNaoEncontradaException.class)
+    public ResponseEntity<ErrorDto> handleJanelaAtendimentoNaoEncontrada(JanelaAtendimentoNaoEncontradaException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("JANELA_ATENDIMENTO_NAO_ENCONTRADA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RegistroAtendimentoNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleRegistroAtendimentoNaoEncontrado(RegistroAtendimentoNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("REGISTRO_ATENDIMENTO_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProcedimentoNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleProcedimentoNaoEncontrado(ProcedimentoNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("PROCEDIMENTO_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PrescricaoNaoEncontradaException.class)
+    public ResponseEntity<ErrorDto> handlePrescricaoNaoEncontrada(PrescricaoNaoEncontradaException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("PRESCRICAO_NAO_ENCONTRADA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RegraPrescricaoNaoEncontradaException.class)
+    public ResponseEntity<ErrorDto> handleRegraPrescricaoNaoEncontrada(RegraPrescricaoNaoEncontradaException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("REGRA_PRESCRICAO_NAO_ENCONTRADA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(JanelaConflitanteException.class)
+    public ResponseEntity<ErrorDto> handleJanelaConflitante(JanelaConflitanteException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("JANELA_CONFLITANTE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
+    public ResponseEntity<ErrorDto> handleRegraPrescricaoIncoerente(RegraPrescricaoIncoerenteException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("REGRA_PRESCRICAO_INCOERENTE", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
