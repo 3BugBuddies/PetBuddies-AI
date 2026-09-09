@@ -9,10 +9,8 @@ import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.CrmvDuplicadoException;
-import br.com.fiap.petbuddies.exception.RegraProtocoloNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ResponsavelNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.ProtocoloNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -81,16 +79,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PlanoNaoEncontradoException.class)
     public ResponseEntity<ErrorDto> handlePlanoNaoEncontrado(PlanoNaoEncontradoException ex) {
         return ResponseEntity.status(404).body(new ErrorDto("PLANO_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(ProtocoloNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleProtocoloNaoEncontrado(ProtocoloNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("PROTOCOLO_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(RegraProtocoloNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleRegraProtocoloNaoEncontrada(RegraProtocoloNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("EVENTO_PROTOCOLO_NAO_ENCONTRADO", ex.getMessage()));
     }
 
     @ExceptionHandler(ClinicaNaoEncontradaException.class)

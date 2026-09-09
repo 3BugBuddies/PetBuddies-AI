@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.security;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
+import br.com.fiap.petbuddies.domain.enums.PerfilUsuario;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtException;
@@ -33,6 +34,9 @@ public class TokenService {
     public static final String CLAIM_VETERINARIO_ID = "veterinarioId";
     public static final String CLAIM_RESPONSAVEL_ID = "responsavelId";
     public static final String CLAIM_CLINICA_ID = "clinicaId";
+
+    /** Sujeito do token de servico — nao corresponde a nenhuma linha de T_PB_USUARIO. */
+    private static final String SUJEITO_SERVICO = "motor-planos";
 
     /** Tolerancia de relogio combinada com o N4 (README da onda 2). */
     private static final long TOLERANCIA_RELOGIO_SEGUNDOS = 30L;
@@ -76,6 +80,24 @@ public class TokenService {
             builder.claim(CLAIM_CLINICA_ID, clinicaId);
         }
         return builder.signWith(chave).compact();
+    }
+
+    /**
+     * Token de servico a servico, sem usuario por tras — quem chama e o motor de
+     * planos lendo o catalogo do .NET (ADR s3-25), nao uma sessao de app.
+     * Claim {@code perfil=VET} porque e o unico papel que o endpoint exige;
+     * vida curta porque e emitido de novo a cada chamada, nunca guardado.
+     */
+    public String emitirServico() {
+        Instant agora = Instant.now();
+        return Jwts.builder()
+                .issuer(EMISSOR)
+                .subject(SUJEITO_SERVICO)
+                .claim(CLAIM_PERFIL, PerfilUsuario.VET.name())
+                .issuedAt(Date.from(agora))
+                .expiration(Date.from(agora.plus(5, ChronoUnit.MINUTES)))
+                .signWith(chave)
+                .compact();
     }
 
     /**
