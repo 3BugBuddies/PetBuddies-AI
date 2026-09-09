@@ -1,17 +1,15 @@
 -- =============================================================================
--- V3 — SEED DE DEMONSTRAÇÃO: SÓ AS LINHAS DE T_PB_USUARIO (decisão D-2.1)
+-- V2 — SEED DE DEMONSTRAÇÃO: SÓ AS LINHAS DE T_PB_USUARIO (decisão D-2.1)
 -- =============================================================================
 -- Um vet e um tutor, para a banca entrar. **Cada serviço semeia o que é dele:**
 -- clínica, veterinário e responsável são semeados por migration do Entity
 -- Framework, no .NET. Este arquivo não escreve em tabela de outro serviço.
 --
--- ORDEM ENTRE OS DOIS SERVIÇOS
---   O V2 já declara FK_USUARIO_VETERINARIO e FK_USUARIO_RESPONSAVEL, então
---   inserir usuário SEMPRE exigiu que as linhas do .NET existissem — este
---   arquivo não acrescenta dependência nenhuma, só herda a que o V2 criou.
---   Se o seed do .NET ainda não rodou, o INSERT falha por FK, e o modo de falha
---   é o mesmo do V2: a migration fica gravada como falha no histórico do
---   Flyway e trava as subidas seguintes até um `flyway repair`.
+-- DEPENDÊNCIA DE ORDEM
+--   O V1 declara FK_USUARIO_VETERINARIO e FK_USUARIO_RESPONSAVEL, então estes
+--   INSERTs exigem que o veterinário 1 e o responsável 1 já existam. Não há
+--   quem os semeie neste banco: falham por FK, e a migration fica gravada como
+--   falha no histórico do Flyway até um `flyway repair`.
 --
 -- AS SENHAS
 --   As duas são a mesma senha de demonstração, cifrada em BCrypt (cost 10, 60
