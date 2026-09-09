@@ -46,9 +46,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(new ErrorDto("JSON_INVALIDO", "Corpo da requisição inválido."));
     }
 
-    // Sem este handler o parametro obrigatorio ausente cairia no handleGeneric
-    // abaixo e viraria 500: o @ExceptionHandler(Exception.class) roda ANTES do
-    // resolvedor padrao do Spring MVC, que devolveria 400 sozinho.
+    // Sem este handler o @ExceptionHandler(Exception.class) abaixo captura antes do Spring MVC e o parametro ausente vira 500.
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorDto> handleParametroAusente(MissingServletRequestParameterException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("PARAMETRO_OBRIGATORIO",
@@ -99,9 +97,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(new ErrorDto("RESPONSAVEL_NAO_ENCONTRADO", ex.getMessage()));
     }
 
-    // 409, e nao 400: o corpo esta correto — quem esta ocupado e o CNPJ
-    // (UK_CLINICA_CNPJ). O servico confere antes de gravar, entao a violacao
-    // nunca chega como erro de driver.
     @ExceptionHandler(CnpjDuplicadoException.class)
     public ResponseEntity<ErrorDto> handleCnpjDuplicado(CnpjDuplicadoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CNPJ_DUPLICADO", ex.getMessage()));

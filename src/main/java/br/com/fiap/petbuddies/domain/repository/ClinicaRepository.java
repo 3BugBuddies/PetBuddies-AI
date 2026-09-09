@@ -11,9 +11,5 @@ public interface ClinicaRepository extends JpaRepository<ClinicaEntity, Long> {
 
     boolean existsByCnpj(String cnpj);
 
-    /**
-     * A unicidade vista de dentro da atualizacao: o CNPJ pode continuar sendo o
-     * da propria linha, e so colide se pertencer a outra.
-     */
     boolean existsByCnpjAndIdNot(String cnpj, Long id);
 }

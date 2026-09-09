@@ -3,17 +3,6 @@ package br.com.fiap.petbuddies.domain.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * O tutor. Sem CPF, sem data de nascimento e sem endereco: o cadastro do app nao
- * pede (decisao I).
- *
- * <p>NENHUM CAMPO E UNICO AQUI. O telefone e obrigatorio, mas repete — dois
- * tutores da mesma casa compartilham o numero, e o DDL nao declara restricao
- * alguma sobre ele. O e-mail e opcional pelo mesmo motivo: o cadastro nasce no
- * balcao da clinica, onde nem todo tutor tem e-mail a informar.</p>
- *
- * <p>Absorvido pelo Java no PR-J11 (ADR s3-25).</p>
- */
 @Entity
 @Table(name = "T_PB_RESPONSAVEL")
 public class ResponsavelEntity {

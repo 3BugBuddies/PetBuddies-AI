@@ -10,7 +10,6 @@ public class ResponsavelRequest {
     @Size(max = 150, message = "Nome deve ter no máximo 150 caracteres.")
     private String nome;
 
-    /** Obrigatório, e deliberadamente não único: dois tutores podem dividir o número. */
     @NotBlank(message = "Telefone é obrigatório.")
     @Size(max = 20, message = "Telefone deve ter no máximo 20 caracteres.")
     private String telefone;
