@@ -12,21 +12,8 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 
-/**
- * O contexto primario: as tabelas de que o Java e dono, e as unicas que ele
- * valida.
- *
- * <p>Nao define {@code hibernate.hbm2ddl.auto} em codigo — herda o
- * {@code spring.jpa.hibernate.ddl-auto=validate} do
- * {@code application.properties}. Assim a validacao pode ser desligada por
- * propriedade quando nao ha banco (fumaca de contexto) sem editar esta
- * classe.</p>
- *
- * <p>Existir um segundo contexto desliga a configuracao automatica de
- * persistencia. A partir daqui todo repositorio precisa estar sob um dos dois
- * pacotes declarados — repositorio fora deles simplesmente nao e criado, e o
- * erro aparece como dependencia nao encontrada na subida.</p>
- */
+// EntityManagerFactory proprio desliga a auto-config de persistencia: repositorio fora de
+// basePackages nao e criado, e o erro aparece como dependencia ausente na subida.
 @Configuration
 @EnableJpaRepositories(
         basePackages = "br.com.fiap.petbuddies.domain.repository",
@@ -36,6 +23,7 @@ public class CuidadoPersistenceConfig {
 
     static final String PACOTE_ENTIDADES = "br.com.fiap.petbuddies.domain.entity";
 
+    // Sem hibernate.hbm2ddl.auto aqui: herdado de application.properties, pode ser desligado por propriedade.
     @Primary
     @Bean
     public LocalContainerEntityManagerFactoryBean cuidadoEntityManagerFactory(
