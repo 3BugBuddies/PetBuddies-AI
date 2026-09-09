@@ -37,6 +37,7 @@ public class ClinicaService {
 
     @Transactional
     public ClinicaEntity criar(ClinicaRequest request) {
+        // Checagem previa para o duplicado virar 409 de dominio, e nao erro de driver em UK_CLINICA_CNPJ.
         if (repository.existsByCnpj(request.getCnpj())) {
             throw new CnpjDuplicadoException(request.getCnpj());
         }
@@ -48,7 +49,6 @@ public class ClinicaService {
     @Transactional
     public ClinicaEntity atualizar(Long id, ClinicaRequest request) {
         ClinicaEntity entity = encontrarOuFalhar(id);
-        // a propria linha pode manter o CNPJ; so colide se ele for de outra.
         if (repository.existsByCnpjAndIdNot(request.getCnpj(), id)) {
             throw new CnpjDuplicadoException(request.getCnpj());
         }
