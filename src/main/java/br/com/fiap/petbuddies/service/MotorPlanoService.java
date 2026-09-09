@@ -1,18 +1,21 @@
 package br.com.fiap.petbuddies.service;
 
-import br.com.fiap.petbuddies.domain.entity.EventoPlanoEntity;
-import br.com.fiap.petbuddies.domain.entity.EventoProtocoloEntity;
-import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoAnimalEntity;
+import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
+import br.com.fiap.petbuddies.domain.entity.RegraProtocoloEntity;
+import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.ProtocoloEntity;
+import br.com.fiap.petbuddies.domain.enums.CategoriaPlano;
 import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
-import br.com.fiap.petbuddies.domain.enums.StatusEventoPlano;
+import br.com.fiap.petbuddies.domain.enums.Especie;
+import br.com.fiap.petbuddies.domain.enums.StatusItem;
 import br.com.fiap.petbuddies.domain.enums.StatusPlano;
-import br.com.fiap.petbuddies.domain.enums.TipoAncora;
+import br.com.fiap.petbuddies.domain.enums.TipoDataBase;
 import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
-import br.com.fiap.petbuddies.domain.repository.EventoPlanoRepository;
-import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoAnimalRepository;
-import br.com.fiap.petbuddies.dto.EventoPlanoDto;
+import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
+import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
+import br.com.fiap.petbuddies.domain.repository.ProtocoloRepository;
+import br.com.fiap.petbuddies.dto.ItemPlanoCuidadoDto;
 import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.PlanoResponse;
@@ -23,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -35,39 +37,36 @@ public class MotorPlanoService {
     /** Ate onde a recorrencia e materializada. O plano nao tem fim; a tabela precisa ter. */
     private static final int HORIZONTE_MESES = 12;
 
-    private final PlanoCuidadoAnimalRepository planoRepository;
-    private final EventoPlanoRepository eventoPlanoRepository;
-    private final ProtocoloMatchService protocoloMatchService;
+    private final PlanoCuidadoRepository planoRepository;
+    private final ItemPlanoCuidadoRepository itemRepository;
+    private final ProtocoloRepository protocoloRepository;
 
-    public MotorPlanoService(PlanoCuidadoAnimalRepository planoRepository,
-                             EventoPlanoRepository eventoPlanoRepository,
-                             ProtocoloMatchService protocoloMatchService) {
+    public MotorPlanoService(PlanoCuidadoRepository planoRepository,
+                             ItemPlanoCuidadoRepository itemRepository,
+                             ProtocoloRepository protocoloRepository) {
         this.planoRepository = planoRepository;
-        this.eventoPlanoRepository = eventoPlanoRepository;
-        this.protocoloMatchService = protocoloMatchService;
+        this.itemRepository = itemRepository;
+        this.protocoloRepository = protocoloRepository;
     }
 
     @Transactional
     public PlanoResponse instanciarPreventivo(PlanoPreventivoRequest req) {
-        Optional<PlanoCuidadoAnimalEntity> existente = planoRepository
+        Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoAtivoPorCategoria(
-                        req.getAnimalId(), StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO);
+                        req.getAnimalId(), StatusPlano.ATIVO, CategoriaPlano.PREVENTIVO);
 
         if (existente.isPresent()) {
             return PlanoResponse.from(existente.get(), false, "PLANO_JA_EXISTENTE");
         }
 
-        int idadeEmMeses = (int) ChronoUnit.MONTHS.between(req.getDataNascimento(), LocalDate.now());
-
-        Optional<ProtocoloEntity> protocolo = protocoloMatchService.encontrarMelhorMatch(
-                CategoriaProtocolo.PREVENTIVO,
-                req.getEspecie(), req.getPorte(), req.getSexo(), req.getCastrado(), idadeEmMeses);
+        Optional<ProtocoloEntity> protocolo = protocoloAplicavel(
+                CategoriaProtocolo.PREVENTIVO, req.getEspecie());
 
         if (protocolo.isEmpty()) {
             return PlanoResponse.semProtocolo();
         }
 
-        PlanoCuidadoAnimalEntity plano = criarPlano(req.getAnimalId(), null, protocolo.get());
+        PlanoCuidadoEntity plano = criarPlano(req.getAnimalId(), null, protocolo.get());
         instanciarEventos(plano, protocolo.get(),
                 new Ancoragem(LocalDate.now(), req.getDataNascimento(), null));
         planoRepository.save(plano);
@@ -77,7 +76,7 @@ public class MotorPlanoService {
 
     @Transactional
     public PlanoResponse instanciarPosCirurgico(PlanoPosCirurgicoRequest req) {
-        Optional<PlanoCuidadoAnimalEntity> existente = planoRepository
+        Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoPorAnimalEConsulta(
                         req.getAnimalId(), req.getConsultaId());
 
@@ -85,15 +84,15 @@ public class MotorPlanoService {
             return PlanoResponse.from(existente.get(), false, "PLANO_JA_EXISTENTE");
         }
 
-        Optional<ProtocoloEntity> protocolo = protocoloMatchService.encontrarMelhorMatch(
-                CategoriaProtocolo.POS_CIRURGICO, req.getEspecie(), null, null, null, 0);
+        Optional<ProtocoloEntity> protocolo = protocoloAplicavel(
+                CategoriaProtocolo.POS_CIRURGICO, req.getEspecie());
 
         if (protocolo.isEmpty()) {
             return PlanoResponse.semProtocolo();
         }
 
         LocalDate dataBase = req.getDataRealizacao().toLocalDate();
-        PlanoCuidadoAnimalEntity plano = criarPlano(
+        PlanoCuidadoEntity plano = criarPlano(
                 req.getAnimalId(), req.getConsultaId(), protocolo.get());
         instanciarEventos(plano, protocolo.get(), new Ancoragem(LocalDate.now(), null, dataBase));
         planoRepository.save(plano);
@@ -105,36 +104,59 @@ public class MotorPlanoService {
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
         return planoRepository
                 .findPlanoAtivoPorCategoria(
-                        animalId, StatusPlano.ATIVO, CategoriaProtocolo.PREVENTIVO)
+                        animalId, StatusPlano.ATIVO, CategoriaPlano.PREVENTIVO)
                 .map(PlanoResponse::from);
     }
 
     @Transactional(readOnly = true)
-    public Page<EventoPlanoDto> listarEventos(Long animalId, Pageable pageable) {
-        return eventoPlanoRepository
+    public Page<ItemPlanoCuidadoDto> listarEventos(Long animalId, Pageable pageable) {
+        return itemRepository
                 .findEventosPorAnimal(animalId, pageable)
-                .map(EventoPlanoDto::from);
+                .map(ItemPlanoCuidadoDto::from);
     }
 
     @Transactional
     public void cancelarPlano(Long planoId, String motivo) {
-        PlanoCuidadoAnimalEntity plano = planoRepository.findById(planoId)
+        PlanoCuidadoEntity plano = planoRepository.findById(planoId)
                 .orElseThrow(() -> new PlanoNaoEncontradoException(planoId));
         // decisao I: DT_CANCELADO_EM e MT_MOTIVO_CANCELAMENTO sairam do schema da S3.
         // O motivo continua no contrato do endpoint, mas nao e persistido.
         plano.setStatus(StatusPlano.CANCELADO);
-        plano.getEventos().stream()
-                .filter(e -> e.getStatus() == StatusEventoPlano.PENDENTE)
-                .forEach(e -> e.setStatus(StatusEventoPlano.CANCELADO));
+        plano.getItens().stream()
+                .filter(e -> e.getStatus() == StatusItem.PENDENTE)
+                .forEach(e -> e.setStatus(StatusItem.CANCELADO));
         planoRepository.save(plano);
     }
 
-    private PlanoCuidadoAnimalEntity criarPlano(Long animalId, Long consultaId,
+    /**
+     * O protocolo ativo daquela categoria e especie.
+     *
+     * <p>Substitui o ProtocoloMatchService, removido no PR-J8. Ele escolhia o
+     * "melhor match" por porte, sexo, castracao e faixa de idade — um automatismo
+     * do tempo em que cadastrar o pet instanciava o plano sozinho (commit 295a543,
+     * 19/05). As cinco colunas sairam do schema no ADR s3-24; sobrou ES_ESPECIE.</p>
+     *
+     * <p>Havendo mais de um candidato, o de menor id vence — determinismo, nao
+     * criterio clinico. A escolha deliberada pelo veterinario e o PR-J9.</p>
+     */
+    private Optional<ProtocoloEntity> protocoloAplicavel(CategoriaProtocolo categoria,
+                                                         Especie especie) {
+        return protocoloRepository
+                .findByCategoriaAndEspecieAndAtivoTrue(categoria, especie)
+                .stream()
+                .min(Comparator.comparing(ProtocoloEntity::getId));
+    }
+
+    private PlanoCuidadoEntity criarPlano(Long animalId, Long consultaId,
                                                  ProtocoloEntity protocolo) {
-        PlanoCuidadoAnimalEntity plano = new PlanoCuidadoAnimalEntity();
+        PlanoCuidadoEntity plano = new PlanoCuidadoEntity();
         plano.setAnimalId(animalId);
         plano.setConsultaId(consultaId);
         plano.setProtocolo(protocolo);
+        // A categoria e COPIADA do protocolo (ADR s3-24 §4b). E ela, e nao o join
+        // com protocolo, que a consulta de idempotencia passa a ler — por isso um
+        // plano de tratamento, que nao tem molde, deixa de ser invisivel para ela.
+        plano.setCategoria(CategoriaPlano.valueOf(protocolo.getCategoria().name()));
         plano.setStatus(StatusPlano.ATIVO);
         return plano;
     }
@@ -151,12 +173,12 @@ public class MotorPlanoService {
      * <p>A ordenacao e feita aqui, sobre a data ja resolvida: deslocamento 2 em
      * MESES e 10 em DIAS nao sao comparaveis antes disso.</p>
      */
-    private void instanciarEventos(PlanoCuidadoAnimalEntity plano, ProtocoloEntity protocolo,
+    private void instanciarEventos(PlanoCuidadoEntity plano, ProtocoloEntity protocolo,
                                     Ancoragem ancoragem) {
         LocalDate limite = ancoragem.instanciacao().plusMonths(HORIZONTE_MESES);
-        List<EventoPlanoEntity> itens = new ArrayList<>();
+        List<ItemPlanoCuidadoEntity> itens = new ArrayList<>();
 
-        for (EventoProtocoloEntity ep : protocolo.getEventos()) {
+        for (RegraProtocoloEntity ep : protocolo.getRegras()) {
             LocalDate base = ancoragem.resolver(ep.getAncora());
             if (base == null) {
                 // ancora sem data disponivel neste fluxo: o molde nao se aplica
@@ -181,20 +203,20 @@ public class MotorPlanoService {
             }
         }
 
-        itens.sort(Comparator.comparing(EventoPlanoEntity::getDataAlvo));
-        plano.getEventos().addAll(itens);
+        itens.sort(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo));
+        plano.getItens().addAll(itens);
     }
 
-    private EventoPlanoEntity novoItem(PlanoCuidadoAnimalEntity plano, EventoProtocoloEntity ep,
+    private ItemPlanoCuidadoEntity novoItem(PlanoCuidadoEntity plano, RegraProtocoloEntity ep,
                                         LocalDate dataAlvo) {
-        EventoPlanoEntity evento = new EventoPlanoEntity();
+        ItemPlanoCuidadoEntity evento = new ItemPlanoCuidadoEntity();
         evento.setPlano(plano);
-        evento.setEventoProtocolo(ep);
+        evento.setRegraProtocolo(ep);
         evento.setOrigem(TipoOrigemItem.PROTOCOLO);
         evento.setTipo(ep.getTipo());
         evento.setNome(ep.getNome());
         evento.setDataAlvo(dataAlvo);
-        evento.setStatus(StatusEventoPlano.PENDENTE);
+        evento.setStatus(StatusItem.PENDENTE);
         return evento;
     }
 
@@ -207,19 +229,23 @@ public class MotorPlanoService {
     }
 
     /**
-     * As datas-base disponiveis no fluxo que esta instanciando o plano. Uma ancora
-     * sem data correspondente faz o molde ser ignorado, em vez de gerar item numa
-     * data inventada.
+     * As datas-base disponiveis no fluxo que esta instanciando o plano. Uma
+     * data-base sem valor correspondente faz a regra ser ignorada, em vez de gerar
+     * item numa data inventada.
+     *
+     * <p>ULTIMA_REALIZACAO devolve nulo aqui de proposito: resolve-la exige
+     * consultar o que o animal ja fez, e isso e o PR-J9. Ate la, uma regra
+     * ancorada nela simplesmente nao produz item — falha visivel, nao silenciosa.</p>
      */
     private record Ancoragem(LocalDate instanciacao, LocalDate nascimento, LocalDate dataCirurgia) {
-        LocalDate resolver(TipoAncora ancora) {
-            if (ancora == null) {
+        LocalDate resolver(TipoDataBase dataBase) {
+            if (dataBase == null) {
                 return instanciacao;
             }
-            return switch (ancora) {
-                case INSTANCIACAO -> instanciacao;
+            return switch (dataBase) {
                 case NASCIMENTO -> nascimento;
                 case DATA_CIRURGIA -> dataCirurgia;
+                case ULTIMA_REALIZACAO -> null;
             };
         }
     }

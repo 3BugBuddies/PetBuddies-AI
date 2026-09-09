@@ -2,7 +2,7 @@ package br.com.fiap.petbuddies.handler;
 
 import br.com.fiap.petbuddies.dto.ErrorDto;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
-import br.com.fiap.petbuddies.exception.EventoProtocoloNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.RegraProtocoloNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ProtocoloNaoEncontradoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -71,8 +71,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(new ErrorDto("PROTOCOLO_NAO_ENCONTRADO", ex.getMessage()));
     }
 
-    @ExceptionHandler(EventoProtocoloNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleEventoProtocoloNaoEncontrado(EventoProtocoloNaoEncontradoException ex) {
+    @ExceptionHandler(RegraProtocoloNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleRegraProtocoloNaoEncontrada(RegraProtocoloNaoEncontradoException ex) {
         return ResponseEntity.status(404).body(new ErrorDto("EVENTO_PROTOCOLO_NAO_ENCONTRADO", ex.getMessage()));
     }
 
