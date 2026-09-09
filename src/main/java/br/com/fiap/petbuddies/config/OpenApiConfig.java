@@ -65,7 +65,22 @@ public class OpenApiConfig {
                         .description("Agendamento e comparecimento do animal na clínica"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("registro — condições clínicas")
-                        .description("Catálogo de condições que o check-in avalia, por clínica")
+                        .description("Catálogo de condições que o check-in avalia, por clínica"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — janelas de atendimento")
+                        .description("Agenda do veterinário: slots de 30 minutos, livres ou reservados por uma consulta"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — registros de atendimento")
+                        .description("O que aconteceu na consulta: anamnese, diagnóstico e tratamento"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — procedimentos")
+                        .description("Vacina, exame ou cirurgia executados num atendimento"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — prescrições")
+                        .description("O ato assinado pelo veterinário — imutável depois de criado"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — regras de prescrição")
+                        .description("Condição → ação sobre a dose, com a condição congelada no momento da assinatura")
         ));
     }
 }
