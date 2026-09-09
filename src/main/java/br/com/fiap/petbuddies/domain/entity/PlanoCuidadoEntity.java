@@ -12,7 +12,9 @@ import java.util.List;
  *
  * <p>O protocolo e opcional: um plano formado apenas por itens de prescricao nao
  * nasce de nenhum molde do catalogo. Os ids de animal e consulta apontam para
- * tabelas do servico .NET e usam o mesmo nome que la e a chave primaria.</p>
+ * tabelas do servico .NET e usam o mesmo nome que la e a chave primaria.
+ * ID_PROTOCOLO segue a mesma forma: o catalogo passou ao .NET no ADR s3-25, e a
+ * FK virou referencia solta.</p>
  *
  * <p>A CATEGORIA E PROPRIA DO PLANO, e nao herdada do protocolo (ADR s3-24 §4b).
  * Ao aplicar um protocolo ela e copiada dele; um plano de tratamento tem
@@ -35,9 +37,8 @@ public class PlanoCuidadoEntity {
     @Column(name = "ID_CONSULTA")
     private Long consultaId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_PROTOCOLO")
-    private ProtocoloEntity protocolo;
+    @Column(name = "ID_PROTOCOLO")
+    private Long protocoloId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "TP_CATEGORIA_PLANO", nullable = false, length = 20)
@@ -71,8 +72,8 @@ public class PlanoCuidadoEntity {
     public Long getConsultaId() { return consultaId; }
     public void setConsultaId(Long consultaId) { this.consultaId = consultaId; }
 
-    public ProtocoloEntity getProtocolo() { return protocolo; }
-    public void setProtocolo(ProtocoloEntity protocolo) { this.protocolo = protocolo; }
+    public Long getProtocoloId() { return protocoloId; }
+    public void setProtocoloId(Long protocoloId) { this.protocoloId = protocoloId; }
 
     public CategoriaPlano getCategoria() { return categoria; }
     public void setCategoria(CategoriaPlano categoria) { this.categoria = categoria; }

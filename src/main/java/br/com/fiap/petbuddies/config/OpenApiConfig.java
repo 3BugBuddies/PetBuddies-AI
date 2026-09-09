@@ -40,12 +40,6 @@ public class OpenApiConfig {
                         .name("autenticação")
                         .description("Login dos dois perfis e emissão do token"),
                 new io.swagger.v3.oas.models.tags.Tag()
-                        .name("catalogo — protocolos")
-                        .description("CRUD e buscas customizadas de protocolos de cuidado"),
-                new io.swagger.v3.oas.models.tags.Tag()
-                        .name("catalogo — eventos de protocolo")
-                        .description("CRUD de eventos vinculados a protocolos de cuidado"),
-                new io.swagger.v3.oas.models.tags.Tag()
                         .name("motor — planos")
                         .description("Instanciação e consulta de planos de cuidado preventivo e pós-cirúrgico"),
                 new io.swagger.v3.oas.models.tags.Tag()
