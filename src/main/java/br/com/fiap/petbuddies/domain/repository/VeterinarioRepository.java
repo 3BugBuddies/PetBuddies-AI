@@ -19,7 +19,7 @@ public interface VeterinarioRepository extends JpaRepository<VeterinarioEntity, 
 
     List<VeterinarioEntity> findByClinicaId(Long clinicaId);
 
-    // Projeção, e não navegação por getClinica(): o chamador lê o id fora da transação do login.
+    // Projeção: só o id é lido, sem carregar a clínica.
     @Query("select v.clinica.id from VeterinarioEntity v where v.id = :id")
     Optional<Long> findClinicaIdById(@Param("id") Long id);
 }
