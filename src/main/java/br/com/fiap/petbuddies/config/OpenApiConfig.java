@@ -53,7 +53,13 @@ public class OpenApiConfig {
                         .description("CRUD de clínicas, a raiz do registro clínico"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("registro — responsáveis")
-                        .description("CRUD de tutores, o dono do animal no registro clínico")
+                        .description("CRUD de tutores, o dono do animal no registro clínico"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — veterinários")
+                        .description("CRUD da equipe clínica, quem assina o ato"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — animais")
+                        .description("CRUD de pacientes, o animal do registro clínico")
         ));
     }
 }

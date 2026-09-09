@@ -1,13 +1,16 @@
 package br.com.fiap.petbuddies.handler;
 
 import br.com.fiap.petbuddies.dto.ErrorDto;
+import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CnpjDuplicadoException;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
+import br.com.fiap.petbuddies.exception.CrmvDuplicadoException;
 import br.com.fiap.petbuddies.exception.RegraProtocoloNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ResponsavelNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ProtocoloNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.ResponseEntity;
@@ -97,9 +100,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(new ErrorDto("RESPONSAVEL_NAO_ENCONTRADO", ex.getMessage()));
     }
 
+    @ExceptionHandler(VeterinarioNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleVeterinarioNaoEncontrado(VeterinarioNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("VETERINARIO_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AnimalNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleAnimalNaoEncontrado(AnimalNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("ANIMAL_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
     @ExceptionHandler(CnpjDuplicadoException.class)
     public ResponseEntity<ErrorDto> handleCnpjDuplicado(CnpjDuplicadoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CNPJ_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CrmvDuplicadoException.class)
+    public ResponseEntity<ErrorDto> handleCrmvDuplicado(CrmvDuplicadoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("CRMV_DUPLICADO", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
