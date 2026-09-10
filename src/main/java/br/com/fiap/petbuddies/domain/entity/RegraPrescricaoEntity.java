@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.OperadorRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoAcaoRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Immutable;

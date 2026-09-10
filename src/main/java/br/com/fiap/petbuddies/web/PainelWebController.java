@@ -1,13 +1,13 @@
 package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
-import br.com.fiap.petbuddies.dto.ClinicaResponse;
-import br.com.fiap.petbuddies.dto.ConsultaResponse;
-import br.com.fiap.petbuddies.service.AnimalService;
-import br.com.fiap.petbuddies.service.ClinicaService;
-import br.com.fiap.petbuddies.service.ConsultaService;
-import br.com.fiap.petbuddies.service.ResponsavelService;
-import br.com.fiap.petbuddies.service.VeterinarioService;
+import br.com.fiap.petbuddies.dto.cadastro.ClinicaResponse;
+import br.com.fiap.petbuddies.dto.atendimento.ConsultaResponse;
+import br.com.fiap.petbuddies.service.cadastro.AnimalService;
+import br.com.fiap.petbuddies.service.cadastro.ClinicaService;
+import br.com.fiap.petbuddies.service.atendimento.ConsultaService;
+import br.com.fiap.petbuddies.service.cadastro.ResponsavelService;
+import br.com.fiap.petbuddies.service.cadastro.VeterinarioService;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Controller;

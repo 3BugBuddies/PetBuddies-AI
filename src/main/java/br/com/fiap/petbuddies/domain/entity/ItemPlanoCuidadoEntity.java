@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.StatusItem;
-import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
-import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
-import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.checkin.TipoDesfecho;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoCuidado;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;

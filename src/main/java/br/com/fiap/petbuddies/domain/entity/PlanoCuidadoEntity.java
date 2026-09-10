@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.CategoriaPlano;
-import br.com.fiap.petbuddies.domain.enums.StatusPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

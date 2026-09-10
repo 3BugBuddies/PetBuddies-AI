@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.Especie;
-import br.com.fiap.petbuddies.domain.enums.Porte;
-import br.com.fiap.petbuddies.domain.enums.Sexo;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Porte;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Sexo;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.type.NumericBooleanConverter;
