@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/registros-atendimento")
+@RequestMapping("/api/registro-atendimento")
 @Tag(name = "registro — registros de atendimento", description = "O que aconteceu na consulta: anamnese, diagnóstico e tratamento")
 public class RegistroAtendimentoController {
 

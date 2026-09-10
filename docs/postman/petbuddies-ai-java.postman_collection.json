@@ -177,13 +177,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/clinicas",
+              "raw": "{{baseUrl}}/api/clinica",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "clinicas"
+                "clinica"
               ]
             }
           }
@@ -194,13 +194,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/clinicas/buscar?cnpj=12345678000199",
+              "raw": "{{baseUrl}}/api/clinica/buscar?cnpj=12345678000199",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "clinicas",
+                "clinica",
                 "buscar"
               ],
               "query": [
@@ -219,13 +219,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/clinicas/1",
+              "raw": "{{baseUrl}}/api/clinica/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "clinicas",
+                "clinica",
                 "1"
               ]
             }
@@ -242,13 +242,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/clinicas",
+              "raw": "{{baseUrl}}/api/clinica",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "clinicas"
+                "clinica"
               ]
             },
             "body": {
@@ -273,13 +273,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/clinicas/1",
+              "raw": "{{baseUrl}}/api/clinica/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "clinicas",
+                "clinica",
                 "1"
               ]
             },
@@ -300,13 +300,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/clinicas/1",
+              "raw": "{{baseUrl}}/api/clinica/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "clinicas",
+                "clinica",
                 "1"
               ]
             }
@@ -323,13 +323,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/veterinarios?clinicaId=1",
+              "raw": "{{baseUrl}}/api/veterinario?clinicaId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "veterinarios"
+                "veterinario"
               ],
               "query": [
                 {
@@ -347,13 +347,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/veterinarios/buscar?crmv=SP-12345",
+              "raw": "{{baseUrl}}/api/veterinario/buscar?crmv=SP-12345",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "veterinarios",
+                "veterinario",
                 "buscar"
               ],
               "query": [
@@ -372,13 +372,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/veterinarios/1",
+              "raw": "{{baseUrl}}/api/veterinario/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "veterinarios",
+                "veterinario",
                 "1"
               ]
             }
@@ -395,13 +395,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/veterinarios",
+              "raw": "{{baseUrl}}/api/veterinario",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "veterinarios"
+                "veterinario"
               ]
             },
             "body": {
@@ -426,13 +426,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/veterinarios/1",
+              "raw": "{{baseUrl}}/api/veterinario/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "veterinarios",
+                "veterinario",
                 "1"
               ]
             },
@@ -453,13 +453,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/veterinarios/1",
+              "raw": "{{baseUrl}}/api/veterinario/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "veterinarios",
+                "veterinario",
                 "1"
               ]
             }
@@ -476,13 +476,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/responsaveis?nome=Maria",
+              "raw": "{{baseUrl}}/api/responsavel?nome=Maria",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "responsaveis"
+                "responsavel"
               ],
               "query": [
                 {
@@ -500,13 +500,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/responsaveis/1",
+              "raw": "{{baseUrl}}/api/responsavel/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "responsaveis",
+                "responsavel",
                 "1"
               ]
             }
@@ -523,13 +523,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/responsaveis",
+              "raw": "{{baseUrl}}/api/responsavel",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "responsaveis"
+                "responsavel"
               ]
             },
             "body": {
@@ -554,13 +554,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/responsaveis/1",
+              "raw": "{{baseUrl}}/api/responsavel/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "responsaveis",
+                "responsavel",
                 "1"
               ]
             },
@@ -581,13 +581,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/responsaveis/1",
+              "raw": "{{baseUrl}}/api/responsavel/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "responsaveis",
+                "responsavel",
                 "1"
               ]
             }
@@ -604,13 +604,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/animais?responsavelId=1&nome=Rex",
+              "raw": "{{baseUrl}}/api/animal?responsavelId=1&nome=Rex",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "animais"
+                "animal"
               ],
               "query": [
                 {
@@ -634,13 +634,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/animais/1",
+              "raw": "{{baseUrl}}/api/animal/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "animais",
+                "animal",
                 "1"
               ]
             }
@@ -657,13 +657,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/animais",
+              "raw": "{{baseUrl}}/api/animal",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "animais"
+                "animal"
               ]
             },
             "body": {
@@ -688,13 +688,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/animais/1",
+              "raw": "{{baseUrl}}/api/animal/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "animais",
+                "animal",
                 "1"
               ]
             },
@@ -715,13 +715,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/animais/1",
+              "raw": "{{baseUrl}}/api/animal/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "animais",
+                "animal",
                 "1"
               ]
             }
@@ -738,13 +738,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/consultas?animalId=1&veterinarioId=1",
+              "raw": "{{baseUrl}}/api/consulta?animalId=1&veterinarioId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "consultas"
+                "consulta"
               ],
               "query": [
                 {
@@ -767,13 +767,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/consultas/1",
+              "raw": "{{baseUrl}}/api/consulta/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "consultas",
+                "consulta",
                 "1"
               ]
             }
@@ -790,13 +790,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/consultas",
+              "raw": "{{baseUrl}}/api/consulta",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "consultas"
+                "consulta"
               ]
             },
             "body": {
@@ -821,13 +821,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/consultas/1",
+              "raw": "{{baseUrl}}/api/consulta/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "consultas",
+                "consulta",
                 "1"
               ]
             },
@@ -848,13 +848,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/consultas/1",
+              "raw": "{{baseUrl}}/api/consulta/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "consultas",
+                "consulta",
                 "1"
               ]
             }
@@ -872,13 +872,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/janelas-atendimento?veterinarioId=1",
+              "raw": "{{baseUrl}}/api/janela-atendimento?veterinarioId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "janelas-atendimento"
+                "janela-atendimento"
               ],
               "query": [
                 {
@@ -896,13 +896,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/janelas-atendimento/1",
+              "raw": "{{baseUrl}}/api/janela-atendimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "janelas-atendimento",
+                "janela-atendimento",
                 "1"
               ]
             }
@@ -919,13 +919,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/janelas-atendimento",
+              "raw": "{{baseUrl}}/api/janela-atendimento",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "janelas-atendimento"
+                "janela-atendimento"
               ]
             },
             "body": {
@@ -951,13 +951,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/janelas-atendimento/1",
+              "raw": "{{baseUrl}}/api/janela-atendimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "janelas-atendimento",
+                "janela-atendimento",
                 "1"
               ]
             },
@@ -978,13 +978,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/janelas-atendimento/1",
+              "raw": "{{baseUrl}}/api/janela-atendimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "janelas-atendimento",
+                "janela-atendimento",
                 "1"
               ]
             }
@@ -1001,13 +1001,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/registros-atendimento?animalId=1&consultaId=1",
+              "raw": "{{baseUrl}}/api/registro-atendimento?animalId=1&consultaId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "registros-atendimento"
+                "registro-atendimento"
               ],
               "query": [
                 {
@@ -1030,13 +1030,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/registros-atendimento/1",
+              "raw": "{{baseUrl}}/api/registro-atendimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "registros-atendimento",
+                "registro-atendimento",
                 "1"
               ]
             }
@@ -1053,13 +1053,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/registros-atendimento",
+              "raw": "{{baseUrl}}/api/registro-atendimento",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "registros-atendimento"
+                "registro-atendimento"
               ]
             },
             "body": {
@@ -1084,13 +1084,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/registros-atendimento/1",
+              "raw": "{{baseUrl}}/api/registro-atendimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "registros-atendimento",
+                "registro-atendimento",
                 "1"
               ]
             },
@@ -1111,13 +1111,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/registros-atendimento/1",
+              "raw": "{{baseUrl}}/api/registro-atendimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "registros-atendimento",
+                "registro-atendimento",
                 "1"
               ]
             }
@@ -1134,13 +1134,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/procedimentos?animalId=1&registroAtendimentoId=1",
+              "raw": "{{baseUrl}}/api/procedimento?animalId=1&registroAtendimentoId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "procedimentos"
+                "procedimento"
               ],
               "query": [
                 {
@@ -1163,13 +1163,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/procedimentos/1",
+              "raw": "{{baseUrl}}/api/procedimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "procedimentos",
+                "procedimento",
                 "1"
               ]
             }
@@ -1186,13 +1186,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/procedimentos",
+              "raw": "{{baseUrl}}/api/procedimento",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "procedimentos"
+                "procedimento"
               ]
             },
             "body": {
@@ -1217,13 +1217,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/procedimentos/1",
+              "raw": "{{baseUrl}}/api/procedimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "procedimentos",
+                "procedimento",
                 "1"
               ]
             },
@@ -1244,13 +1244,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/procedimentos/1",
+              "raw": "{{baseUrl}}/api/procedimento/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "procedimentos",
+                "procedimento",
                 "1"
               ]
             }
@@ -1267,13 +1267,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/prescricoes?animalId=1&registroAtendimentoId=1",
+              "raw": "{{baseUrl}}/api/prescricao?animalId=1&registroAtendimentoId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "prescricoes"
+                "prescricao"
               ],
               "query": [
                 {
@@ -1296,13 +1296,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/prescricoes/1",
+              "raw": "{{baseUrl}}/api/prescricao/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "prescricoes",
+                "prescricao",
                 "1"
               ]
             }
@@ -1319,13 +1319,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/prescricoes",
+              "raw": "{{baseUrl}}/api/prescricao",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "prescricoes"
+                "prescricao"
               ]
             },
             "body": {
@@ -1350,13 +1350,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/prescricoes",
+              "raw": "{{baseUrl}}/api/prescricao",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "prescricoes"
+                "prescricao"
               ]
             },
             "body": {
@@ -1382,13 +1382,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/regras-prescricao?prescricaoId=1",
+              "raw": "{{baseUrl}}/api/regra-prescricao?prescricaoId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "regras-prescricao"
+                "regra-prescricao"
               ],
               "query": [
                 {
@@ -1406,13 +1406,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/regras-prescricao/1",
+              "raw": "{{baseUrl}}/api/regra-prescricao/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "regras-prescricao",
+                "regra-prescricao",
                 "1"
               ]
             }
@@ -1429,13 +1429,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/regras-prescricao",
+              "raw": "{{baseUrl}}/api/regra-prescricao",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "regras-prescricao"
+                "regra-prescricao"
               ]
             },
             "body": {
@@ -1462,13 +1462,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/condicoes-clinicas?clinicaId=1",
+              "raw": "{{baseUrl}}/api/condicao-clinica?clinicaId=1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "condicoes-clinicas"
+                "condicao-clinica"
               ],
               "query": [
                 {
@@ -1486,13 +1486,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/condicoes-clinicas/buscar?clinicaId=1&codigo=FEBRE",
+              "raw": "{{baseUrl}}/api/condicao-clinica/buscar?clinicaId=1&codigo=FEBRE",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "condicoes-clinicas",
+                "condicao-clinica",
                 "buscar"
               ],
               "query": [
@@ -1516,13 +1516,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/condicoes-clinicas/1",
+              "raw": "{{baseUrl}}/api/condicao-clinica/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "condicoes-clinicas",
+                "condicao-clinica",
                 "1"
               ]
             }
@@ -1539,13 +1539,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/condicoes-clinicas",
+              "raw": "{{baseUrl}}/api/condicao-clinica",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "condicoes-clinicas"
+                "condicao-clinica"
               ]
             },
             "body": {
@@ -1570,13 +1570,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/condicoes-clinicas/1",
+              "raw": "{{baseUrl}}/api/condicao-clinica/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "condicoes-clinicas",
+                "condicao-clinica",
                 "1"
               ]
             },
@@ -1597,13 +1597,13 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/condicoes-clinicas/1",
+              "raw": "{{baseUrl}}/api/condicao-clinica/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "condicoes-clinicas",
+                "condicao-clinica",
                 "1"
               ]
             }
@@ -1626,14 +1626,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/motor/planos/instanciar-preventivo",
+              "raw": "{{baseUrl}}/api/motor/plano/instanciar-preventivo",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "motor",
-                "planos",
+                "plano",
                 "instanciar-preventivo"
               ]
             },
@@ -1660,14 +1660,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/motor/planos/instanciar-pos-cirurgico",
+              "raw": "{{baseUrl}}/api/motor/plano/instanciar-pos-cirurgico",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "motor",
-                "planos",
+                "plano",
                 "instanciar-pos-cirurgico"
               ]
             },
@@ -1688,14 +1688,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/motor/planos/1",
+              "raw": "{{baseUrl}}/api/motor/plano/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "motor",
-                "planos",
+                "plano",
                 "1"
               ]
             }
@@ -1707,14 +1707,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/motor/planos/1/eventos",
+              "raw": "{{baseUrl}}/api/motor/plano/1/eventos",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "motor",
-                "planos",
+                "plano",
                 "1",
                 "eventos"
               ]

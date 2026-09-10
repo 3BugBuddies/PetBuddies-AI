@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/veterinarios")
+@RequestMapping("/api/veterinario")
 @Tag(name = "registro — veterinários", description = "CRUD da equipe clínica, quem assina o ato")
 public class VeterinarioController {
 

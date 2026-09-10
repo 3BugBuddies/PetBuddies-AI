@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/condicoes-clinicas")
+@RequestMapping("/api/condicao-clinica")
 @Tag(name = "registro — condições clínicas", description = "Catálogo de condições que o check-in avalia, por clínica")
 public class CondicaoClinicaController {
 
