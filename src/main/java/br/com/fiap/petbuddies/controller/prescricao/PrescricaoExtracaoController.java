@@ -2,7 +2,7 @@ package br.com.fiap.petbuddies.controller.prescricao;
 
 import br.com.fiap.petbuddies.dto.prescricao.NarrativaPrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.RascunhoPrescricaoResponse;
-import br.com.fiap.petbuddies.service.prescricao.ExtracaoPrescricaoService;
+import br.com.fiap.petbuddies.service.prescricao.PrescricaoExtracaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/prescricao")
 @Tag(name = "ia — prescrição narrada", description = "Transcreve a narrativa do veterinário para um rascunho de prescrição. Perfil VET.")
-public class ExtracaoPrescricaoController {
+public class PrescricaoExtracaoController {
 
-    private final ExtracaoPrescricaoService service;
+    private final PrescricaoExtracaoService service;
 
-    public ExtracaoPrescricaoController(ExtracaoPrescricaoService service) {
+    public PrescricaoExtracaoController(PrescricaoExtracaoService service) {
         this.service = service;
     }
 

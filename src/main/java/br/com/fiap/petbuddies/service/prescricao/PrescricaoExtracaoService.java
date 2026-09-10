@@ -7,7 +7,7 @@ import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
-import br.com.fiap.petbuddies.dto.prescricao.ExtracaoPrescricaoIA;
+import br.com.fiap.petbuddies.dto.prescricao.PrescricaoExtracaoIA;
 import br.com.fiap.petbuddies.dto.prescricao.NarrativaPrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.PrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.RascunhoPrescricaoResponse;
@@ -16,7 +16,7 @@ import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoRequest;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.client.ChatClient;
+import br.com.fiap.petbuddies.infrastructure.ia.ExtratorIA;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,9 +38,9 @@ import java.util.stream.Collectors;
  * ao modelo (rede) roda depois, sem transação aberta.</p>
  */
 @Service
-public class ExtracaoPrescricaoService {
+public class PrescricaoExtracaoService {
 
-    private static final Logger log = LoggerFactory.getLogger(ExtracaoPrescricaoService.class);
+    private static final Logger log = LoggerFactory.getLogger(PrescricaoExtracaoService.class);
 
     /** Confiança de um valor que o veterinário disse literalmente. */
     private static final double CONFIANCA_LITERAL = 1.0;
@@ -48,15 +48,15 @@ public class ExtracaoPrescricaoService {
     /** Confiança de um valor que o modelo teve que inferir ou calcular (ex.: resolver "amanhã"). */
     private static final double CONFIANCA_INFERIDO = 0.6;
 
-    private final ChatClient chatClient;
+    private final ExtratorIA extratorIA;
     private final RegistroAtendimentoRepository registroAtendimentoRepository;
     private final CondicaoClinicaRepository condicaoClinicaRepository;
 
-    public ExtracaoPrescricaoService(
-            ChatClient.Builder builder,
+    public PrescricaoExtracaoService(
+            ExtratorIA extratorIA,
             RegistroAtendimentoRepository registroAtendimentoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository) {
-        this.chatClient = builder.build();
+        this.extratorIA = extratorIA;
         this.registroAtendimentoRepository = registroAtendimentoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
     }
@@ -74,7 +74,7 @@ public class ExtracaoPrescricaoService {
                 .filter(CondicaoClinicaEntity::isAtivo)
                 .toList();
 
-        ExtracaoPrescricaoIA extraido = chamarModelo(request.getNarrativa(), catalogo);
+        PrescricaoExtracaoIA extraido = chamarModelo(request.getNarrativa(), catalogo);
 
         if (extraido == null) {
             PrescricaoRequest vazia = prescricaoBase(animalId, veterinarioId, request.getRegistroAtendimentoId());
@@ -110,23 +110,10 @@ public class ExtracaoPrescricaoService {
         return prescricao;
     }
 
-    private ExtracaoPrescricaoIA chamarModelo(String narrativa, List<CondicaoClinicaEntity> catalogo) {
-        try {
-            ExtracaoPrescricaoIA resultado = chatClient.prompt()
-                    .system(montarPrompt(catalogo))
-                    .user(narrativa)
-                    .call()
-                    .entity(ExtracaoPrescricaoIA.class);
-            if (resultado == null) {
-                log.warn("[EXTRACAO_PRESCRICAO] modelo devolveu corpo vazio.");
-            }
-            return resultado;
-        } catch (Exception e) {
-            // Nunca deixa a falha de rede/modelo virar 500: o vet recebe um
-            // rascunho vazio com o motivo, nunca um erro (guardrail do PR).
-            log.warn("[EXTRACAO_PRESCRICAO] falha ao consultar o modelo: {}", e.getMessage());
-            return null;
-        }
+    private PrescricaoExtracaoIA chamarModelo(String narrativa, List<CondicaoClinicaEntity> catalogo) {
+        return extratorIA
+                .extrair(montarPrompt(catalogo), narrativa, PrescricaoExtracaoIA.class, "PRESCRICAO-IA")
+                .orElse(null);
     }
 
     private String montarPrompt(List<CondicaoClinicaEntity> catalogo) {
@@ -183,7 +170,7 @@ public class ExtracaoPrescricaoService {
     // para tudo em teste real) — é derivada de "trecho" presente + "literal", os dois fatos
     // verificáveis que o modelo reporta.
 
-    private void aplicarMedicamento(ExtracaoPrescricaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarMedicamento(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.medicamento();
         if (valor == null || valor.isBlank() || valor.length() > 150 || semTrecho(ia.trechoMedicamento())) {
             return;
@@ -192,7 +179,7 @@ public class ExtracaoPrescricaoService {
         confiancas.put("medicamento", confiancaDe(ia.literalMedicamento()));
     }
 
-    private void aplicarDoses(ExtracaoPrescricaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDoses(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         BigDecimal min = semTrecho(ia.trechoDoseMin()) ? null : doseValida(ia.doseMin());
         BigDecimal max = semTrecho(ia.trechoDoseMax()) ? null : doseValida(ia.doseMax());
         // CK_PRESCRICAO_FAIXA: se as duas vieram e a faixa é impossível, o par
@@ -222,7 +209,7 @@ public class ExtracaoPrescricaoService {
         return arredondado;
     }
 
-    private void aplicarUnidade(ExtracaoPrescricaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarUnidade(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.unidade();
         if (valor == null || valor.isBlank() || valor.length() > 20 || semTrecho(ia.trechoUnidade())) {
             return;
@@ -231,7 +218,7 @@ public class ExtracaoPrescricaoService {
         confiancas.put("unidade", confiancaDe(ia.literalUnidade()));
     }
 
-    private void aplicarFrequencia(ExtracaoPrescricaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarFrequencia(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         Integer valor = ia.frequenciaDia();
         if (valor == null || valor <= 0 || valor > 99 || semTrecho(ia.trechoFrequenciaDia())) {
             return;
@@ -240,7 +227,7 @@ public class ExtracaoPrescricaoService {
         confiancas.put("frequenciaDia", confiancaDe(ia.literalFrequenciaDia()));
     }
 
-    private void aplicarDuracao(ExtracaoPrescricaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDuracao(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         Integer valor = ia.duracaoDias();
         if (valor == null || valor <= 0 || valor > 9999 || semTrecho(ia.trechoDuracaoDias())) {
             return;
@@ -249,7 +236,7 @@ public class ExtracaoPrescricaoService {
         confiancas.put("duracaoDias", confiancaDe(ia.literalDuracaoDias()));
     }
 
-    private void aplicarDataInicio(ExtracaoPrescricaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDataInicio(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.dataInicio();
         if (valor == null || valor.isBlank() || semTrecho(ia.trechoDataInicio())) {
             return;
@@ -262,7 +249,7 @@ public class ExtracaoPrescricaoService {
         }
     }
 
-    private void aplicarOrientacao(ExtracaoPrescricaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarOrientacao(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.orientacao();
         if (valor == null || valor.isBlank() || semTrecho(ia.trechoOrientacao())) {
             return;

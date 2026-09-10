@@ -8,10 +8,10 @@ import java.util.List;
  * {@code .entity()} do Spring AI. Cada campo de valor vem acompanhado de
  * {@code trecho} (a citação da narrativa que sustenta o valor) e
  * {@code literal} (dito diretamente vs. inferido/calculado pelo modelo).
- * Sem validação nenhuma aqui — {@link ExtracaoPrescricaoService} decide o
+ * Sem validação nenhuma aqui — {@link PrescricaoExtracaoService} decide o
  * que dela vira {@code PrescricaoRequest}.
  */
-public record ExtracaoPrescricaoIA(
+public record PrescricaoExtracaoIA(
         String medicamento,
         String trechoMedicamento,
         Boolean literalMedicamento,
