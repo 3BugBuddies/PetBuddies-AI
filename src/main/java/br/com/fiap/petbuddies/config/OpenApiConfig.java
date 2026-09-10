@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * O esquema de autorizacao e <b>declarado</b>, e nao exigido globalmente: o
- * login e o motor sao zona aberta, e marcar toda a API como protegida
- * documentaria o contrato errado. Declarado assim, o botao de autorizar aparece
- * no Swagger e o token vale para as rotas que de fato o pedem.
+ * login e zona aberta, e marcar toda a API como protegida documentaria o
+ * contrato errado. Declarado assim, o botao de autorizar aparece no Swagger e
+ * o token vale para as rotas que de fato o pedem.
  */
 @OpenAPIDefinition(
     info = @Info(

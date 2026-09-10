@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *   <caption>As tres zonas</caption>
  *   <tr><th>Zona</th><th>Quem entra</th><th>Como</th></tr>
  *   <tr><td>aberta</td><td>qualquer um</td>
- *       <td>login, motor, Swagger, documentacao, saude, estaticos</td></tr>
+ *       <td>login, Swagger, documentacao, saude, estaticos</td></tr>
  *   <tr><td>token</td><td>o app</td><td>Bearer em {@code /api/**}</td></tr>
  *   <tr><td>sessao</td><td>o navegador</td><td>formulario, cookie, logout</td></tr>
  * </table>
@@ -37,10 +37,6 @@ public class SecurityConfig {
 
     /**
      * Cadeia da API — stateless, sem formulario e sem sessao.
-     *
-     * <p>{@code /api/motor/**} fica <b>aberto</b>: e a zona que o gatilho do
-     * .NET usa, e como as chamadas de la sao best-effort, fecha-lo por engano
-     * nao da erro visivel — o plano preventivo apenas para de nascer.</p>
      *
      * <p>O ponto de entrada e explicito porque, sem ele, uma cadeia sem
      * formulario nem basic recusa com 403. O contrato do app pede 401 para
@@ -58,7 +54,6 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(rota -> rota
                         .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/motor/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(erro -> erro
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
