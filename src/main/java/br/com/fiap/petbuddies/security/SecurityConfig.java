@@ -3,6 +3,7 @@ package br.com.fiap.petbuddies.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -54,6 +55,9 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(rota -> rota
                         .requestMatchers("/api/auth/login").permitAll()
+                        // Primeira restricao de papel em /api/**: o rascunho da prescricao
+                        // narrada (J22) e ato clinico, perfil TUTOR nao autora prescricao.
+                        .requestMatchers(HttpMethod.POST, "/api/prescricoes/rascunho").hasRole("VET")
                         .anyRequest().authenticated())
                 .exceptionHandling(erro -> erro
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
