@@ -27,10 +27,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * {@code SecurityConfig} e entra so na cadeia da API.</p>
  *
  * <p><b>Nunca lanca.</b> Token ausente, malformado ou expirado apenas deixa o
- * contexto vazio, e quem decide o desfecho e a regra da rota: em
- * {@code /api/motor/**} a requisicao segue aberta, e no resto de
- * {@code /api/**} o ponto de entrada devolve 401. Lancar aqui fecharia a zona
- * aberta por causa de um cabecalho velho.</p>
+ * contexto vazio, e quem decide o desfecho e o ponto de entrada da cadeia da
+ * API, com 401. Lancar aqui trocaria esse 401 por um 500 causado por um
+ * cabecalho velho.</p>
  */
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 

@@ -1,18 +1,21 @@
 # PetBuddies AI — Challenge FIAP 2026 | Java Advanced
 
-Bot WhatsApp + Motor de cuidado contínuo para pets desenvolvido com Spring Boot e Spring AI, como parte do Challenge da disciplina de **Java Advanced (2TDSR)** — FIAP 2026.
+API do produto **PetBuddies**, desenvolvida com Spring Boot como parte do Challenge da disciplina de
+**Java Advanced (2TDSR)** — FIAP 2026.
 
-O par dele é o `PetBuddies-API` (.NET), que guarda o **registro — o que aconteceu**: consulta,
-atendimento, procedimento, prescrição e check-in. Os dois serviços apontam para o **mesmo Oracle**, e
-este aqui lê as tabelas do outro **por projeção, não por HTTP**.
+> **O que mudou desde a Sprint 2.** O produto era um bot de WhatsApp com o motor de cuidado atrás. O
+> WhatsApp saiu como interface e o score de risco saiu do produto. Na onda 4 da Sprint 3 (ADR `s3-25`),
+> este serviço absorveu **todo o registro clínico que antes vivia no `PetBuddies-API` (.NET)** —
+> clínica, veterinário, responsável, animal, consulta, condição clínica, janela de atendimento,
+> registro de atendimento, procedimento, prescrição e regra de prescrição — e passou a ser **a API
+> única do produto**. O .NET virou o back-office da clínica: só o catálogo de protocolos e as regras
+> de pontuação continuam lá.
 
-> **O que mudou desde a 2ª Sprint.** O produto era um bot de WhatsApp com o motor atrás. O WhatsApp
-> saiu como interface e o score de risco saiu do produto; o motor ficou, e ganhou agendamento por
-> âncora e recorrência, login e a derivação de itens a partir de prescrição. O código do bot, da
-> triagem e do score foi **removido**, não comentado.
-
-**A IA interpreta a narrativa do tutor. Ela não decide dose em momento nenhum** — quem decide é o
-motor determinístico, aplicando a regra que a veterinária escreveu e assinou.
+**A IA interpreta a narrativa do tutor no check-in. Ela não decide dose em momento nenhum** — quem
+decide é o motor determinístico, aplicando a regra que a veterinária escreveu e assinou. O check-in em
+si (extração por IA + motor de regras sobre prescrições ativas) tem o schema pronto
+(`T_PB_CHECKIN`, `T_PB_CONDICAO_OBSERVADA`) mas ainda **não tem entidade, service nem controller** —
+é a próxima entrega, não o estado atual.
 
 ---
 
@@ -31,165 +34,135 @@ motor determinístico, aplicando a regra que a veterinária escreveu e assinou.
 
 | Capacidade | Estado |
 |---|---|
-| **Catálogo de protocolos** — o molde de cuidado e as ações previstas nele | no ar |
-| **Motor de planos** — instancia o plano de um animal a partir do protocolo compatível e devolve os itens | no ar |
-| **Autenticação com dois perfis** (vet e tutor), com token para o app e formulário para a web | em implementação |
-| **Superfície web** — catálogo de protocolos e painel de acompanhamento, em Thymeleaf | em implementação |
-| **Saúde consultável** — endereço aberto que diz se o serviço e o banco estão de pé | em implementação |
-| **Check-in do tutor** — extração da narrativa por IA e motor de regras determinístico sobre as prescrições ativas | em implementação |
+| **Registro clínico completo** — clínica, veterinário, responsável, animal, consulta, condição clínica, janela de atendimento, registro de atendimento, procedimento | no ar |
+| **Prescrição e regra de prescrição** — o ato clínico assinado, imutável, com a regra condicional sobre a dose | no ar |
+| **Motor de planos** — instancia o plano de um animal a partir do protocolo compatível (lido do .NET) e devolve os itens | no ar |
+| **Autenticação com dois perfis** (vet e tutor), com token Bearer para a API e formulário para a web | no ar |
+| **Superfície web em Thymeleaf** — a dependência está no `pom.xml`; nenhum template existe ainda | não implementado |
+| **Saúde consultável** — a rota é liberada no `SecurityConfig`, mas o Actuator não está no `pom.xml` | não implementado |
+| **Check-in do tutor** — extração da narrativa por IA e motor de regras sobre as prescrições ativas | schema pronto, sem código |
 
-As quatro últimas linhas ainda **não existem no código**. Elas estão especificadas e são a entrega
-desta sprint; nada neste README descreve endpoint que não esteja no ar.
+Nada abaixo descreve endpoint que não esteja no código hoje. O catálogo de protocolos
+(`/api/protocolos`, `/api/eventos-protocolo`) **saiu deste serviço na onda 4** — a clínica o cadastra
+no .NET, e este serviço só o lê via HTTP ao instanciar um plano.
 
 ---
 
-## Avaliação Java — roteiro de endpoints de Protocolo
+## Autenticação
 
-> Estes endpoints são **autocontidos**: As Entidades Protocolo e EventoProtocolo não dependem da API .NET nem do WhatsApp. O avaliador precisa apenas do `Petbuddies-AI` rodando com Oracle FIAP configurado.
+Login único para os dois perfis, em `POST /api/auth/login`:
 
-Os dois `POST` são **idempotentes**: com um plano `ATIVO` já existente, a resposta é o plano que
-existe, não um segundo plano.
+```json
+{ "login": "ana@clinica.com", "senha": "petbuddies123" }
+```
 
-### Catálogo de protocolos
+Devolve `200` com o token e o vínculo preenchido (o outro vem `null`):
+
+```json
+{
+  "token": "…",
+  "perfil": "VET",
+  "usuarioId": 1,
+  "responsavelId": null,
+  "veterinarioId": 1
+}
+```
+
+`401` para login inexistente, senha errada ou usuário inativo — sempre com a mesma mensagem, para não
+vazar qual dos três aconteceu.
+
+O token vai em `Authorization: Bearer <token>` em toda chamada a `/api/**`. **Hoje não há restrição de
+papel por endpoint**: qualquer usuário autenticado, `VET` ou `TUTOR`, acessa qualquer rota de
+`/api/**`. A única exceção é `/api/auth/login`, que é aberta.
+
+---
+
+## Endpoints
+
+Toda resposta de recurso único ou coleção vem em envelope HATEOAS (`EntityModel` /
+`CollectionModel`, com `_links` e `_embedded`) — ADR `s3-22`. Erros vêm como
+`ErrorDto{ code, message }`, montado por um `@RestControllerAdvice` global.
+
+### Autenticação
 
 | Método | Rota |
 |---|---|
-| `GET` `POST` | `/api/protocolos` |
-| `GET` | `/api/protocolos/buscar?categoria=&especie=&porte=&sexo=` |
-| `GET` `PUT` `DELETE` | `/api/protocolos/{id}` |
-| `GET` `POST` | `/api/protocolos/{protocoloId}/eventos` |
-| `GET` `PUT` `DELETE` | `/api/eventos-protocolo/{id}` |
+| `POST` | `/api/auth/login` |
 
-O evento é filho do protocolo, então nasce em `POST /api/protocolos/{protocoloId}/eventos` — nunca em
-`POST /api/eventos-protocolo`.
+### Motor de planos
 
----
-
-## Roteiro de avaliação — catálogo de protocolos
-
-> Estes endpoints são **autocontidos**: não dependem da API .NET. O avaliador precisa apenas deste
-> serviço rodando com o Oracle configurado.
-
-**Protocolo** é um modelo de cuidado — por exemplo, o preventivo de cachorro filhote ou o
-pós-cirúrgico de gato. Ele define a categoria (`PREVENTIVO` ou `POS_CIRURGICO`) e os critérios de
-aplicação: espécie, porte, sexo, castração e faixa de idade.
-
-**Evento de protocolo** é uma ação prevista dentro do modelo — vacinação, vermifugação, exame,
-retorno, medicação, higiene. Ele descreve **quando** a ação acontece por três peças:
-
-| Peça | Campos | Exemplo |
+| Método | Rota | O que faz |
 |---|---|---|
-| A data-base | `ancora` — `INSTANCIACAO`, `NASCIMENTO` ou `DATA_CIRURGIA` | a partir do nascimento |
-| O deslocamento | `offset` + `unidadeOffset` | 1 mês depois |
-| A recorrência | `intervalo` + `unidadeIntervalo` + `repeticoes` | de mês em mês, seis vezes |
+| `POST` | `/api/motor/planos/instanciar-preventivo` | cria (ou devolve o existente, idempotente) o plano preventivo do animal |
+| `POST` | `/api/motor/planos/instanciar-pos-cirurgico` | idem, para o plano pós-cirúrgico vinculado a uma consulta |
+| `GET` | `/api/motor/planos/{animalId}` | plano `ATIVO` do animal |
+| `GET` | `/api/motor/planos/{animalId}/eventos` | itens do plano, paginado (`?page=&size=`) |
 
-`repeticoes` é obrigatório: "para sempre" precisa virar um número, senão a expansão do plano não tem
-onde parar. Sem `intervalo`, a ocorrência é única.
+### Registro clínico
 
-### Fluxo sugerido
-
-| Ordem | No projeto | Método | Rota | Retorno esperado |
-|---|---|---|---|---|
-| 1 | Cadastra um modelo de cuidado | `POST` | `/api/protocolos` | `201` com o protocolo criado |
-| 2 | Mostra os modelos disponíveis para o motor | `GET` | `/api/protocolos` | `200` com a lista de protocolos ativos |
-| 3 | Localiza os modelos de uma categoria | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO` | `200` com os protocolos da categoria |
-| 4 | Simula a seleção de regra para um perfil de animal | `GET` | `/api/protocolos/buscar?categoria=PREVENTIVO&especie=CACHORRO` | `200` com o filtro combinado |
-| 5 | Consulta um modelo específico | `GET` | `/api/protocolos/{id}` | `200` com o protocolo |
-| 6 | Ajusta uma regra já cadastrada | `PUT` | `/api/protocolos/{id}` | `200` com os dados atualizados |
-| 7 | Acrescenta uma ação ao modelo | `POST` | `/api/protocolos/{protocoloId}/eventos` | `201` com o evento criado |
-| 8 | Mostra a sequência de cuidado do protocolo | `GET` | `/api/protocolos/{protocoloId}/eventos` | `200` com os eventos do protocolo |
-| 9 | Isola as ações de um tipo | `GET` | `/api/protocolos/{protocoloId}/eventos?tipo=VACINACAO` | `200` com os eventos filtrados |
-| 10 | Consulta uma ação específica | `GET` | `/api/eventos-protocolo/{id}` | `200` com o evento |
-| 11 | Ajusta prazo ou descrição da ação | `PUT` | `/api/eventos-protocolo/{id}` | `200` com o evento atualizado |
-| 12 | Remove uma ação do modelo | `DELETE` | `/api/eventos-protocolo/{id}` | `204` sem corpo |
-| 13 | Remove o modelo de teste | `DELETE` | `/api/protocolos/{id}` | `204` sem corpo |
-
-### Validações e respostas de erro
-
-| Situação | Método | Rota | Retorno esperado |
-|---|---|---|---|
-| Protocolo sem campos obrigatórios | `POST` | `/api/protocolos` com `{}` | `400` com `ErrorDto` |
-| Protocolo inexistente | `GET` | `/api/protocolos/999999` | `404` com `ErrorDto` |
-| Evento sem tipo, nome, deslocamento, âncora ou repetições | `POST` | `/api/protocolos/{protocoloId}/eventos` com `{}` | `400` com `ErrorDto` |
-| Evento com enum inválido | `POST` | `/api/protocolos/{protocoloId}/eventos` com `"tipo": "VACINA"` | `400` com os valores aceitos |
-| Evento inexistente | `GET` | `/api/eventos-protocolo/999999` | `404` com `ErrorDto` |
-
-O corpo de erro é sempre `ErrorDto{ code, message }`, montado por um `@RestControllerAdvice` global.
-
----
-
-## Modelo de Dados
-
-### Motor Core — 6 entidades
-
-Tabelas Independentes - Sem vinculo com .NET
-
-| Entidade | Tabela | Relacionamentos |
-|----------|--------|-----------------|
-| `ProtocoloEntity` | `T_PB_PROTOCOLO` | 1:N → EventoProtocoloEntity |
-| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | N:1 → ProtocoloEntity |
-
-Tabelas Dependentes - Com vinculo com .NET
-
-| Entidade | Tabela | Relacionamentos | Vínculo .NET |
-|----------|--------|-----------------|--------------|
-| `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | N:1 → ProtocoloEntity; 1:N → EventoPlanoEntity | `T_PB_ANIMAL`, `T_PB_CONSULTA` |
-| `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | N:1 → PlanoCuidadoAnimalEntity | `T_PB_PROCEDIMENTO` |
-| `ScoreRiscoAnimalEntity` | `T_PB_SCORE_RISCO_ANIMAL` | 1:N → FatorRiscoEntity | `T_PB_ANIMAL` |
-
-Tabelas Dependentes de tabelas relacionadas ao .NET
-
-| Entidade | Tabela | Relacionamentos |
-|----------|--------|-----------------|
-| `FatorRiscoEntity` | `T_PB_FATOR_RISCO` | N:1 → ScoreRiscoAnimalEntity |
-
-**Diagrama 1 — Catálogo e Plano de Cuidado**
-Relacionamentos entre `ProtocoloEntity`, `EventoProtocoloEntity`, `PlanoCuidadoAnimalEntity` e `EventoPlanoEntity`, com os enums de domínio associados.
-
-![Diagrama de classes — Protocolo, Plano e Eventos](assets/diagrama-java-entidades-base.png)
-
-| Entidade | Tabela | Papel |
+| Domínio | Rota base | Métodos |
 |---|---|---|
-| `UsuarioEntity` | `T_PB_USUARIO` | credencial, perfil (`VET` / `TUTOR`) e o vínculo com a identidade do registro |
-| `ProtocoloEntity` | `T_PB_PROTOCOLO` | o molde de cuidado e seus critérios de aplicação |
-| `EventoProtocoloEntity` | `T_PB_EVENTO_PROTOCOLO` | a ação prevista no molde, com âncora, deslocamento e recorrência |
-| `PlanoCuidadoAnimalEntity` | `T_PB_PLANO_CUIDADO_ANIMAL` | o plano vivo de um animal |
-| `EventoPlanoEntity` | `T_PB_EVENTO_PLANO` | o item do plano, com data alvo, origem e status |
+| Clínicas | `/api/clinicas` | `GET`, `GET /buscar?cnpj=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Veterinários | `/api/veterinarios` | `GET`, `GET /buscar?crmv=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Responsáveis | `/api/responsaveis` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Animais | `/api/animais` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Condições clínicas | `/api/condicoes-clinicas` | `GET`, `GET /buscar?clinicaId=&codigo=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Consultas | `/api/consultas` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Janelas de atendimento | `/api/janelas-atendimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Registros de atendimento | `/api/registros-atendimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Procedimentos | `/api/procedimentos` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Prescrições | `/api/prescricoes` | `GET`, `GET /{id}`, `POST` (sem `PUT`/`DELETE` — ato imutável) |
+| Regras de prescrição | `/api/regras-prescricao` | `GET`, `GET /{id}`, `POST` (sem `PUT`/`DELETE` — ato imutável) |
 
-As colunas que apontam para o outro serviço — `ID_ANIMAL`, `ID_CONSULTA`, `ID_PROCEDIMENTO`,
-`ID_PRESCRICAO`, `ID_VETERINARIO`, `ID_RESPONSAVEL` — são **ids soltos, sem relação JPA**: as tabelas
-de destino são escritas pelo .NET.
-
-### Enums
-
-| Enum | Valores |
-|---|---|
-| `CategoriaProtocolo` | `PREVENTIVO`, `POS_CIRURGICO` |
-| `TipoEventoProtocolo` | `VACINACAO`, `VERMIFUGACAO`, `EXAME`, `RETORNO`, `CIRURGIA`, `MEDICACAO`, `HIGIENE` |
-| `TipoAncora` | `INSTANCIACAO`, `NASCIMENTO`, `DATA_CIRURGIA` |
-| `UnidadeTempo` | `DIAS`, `SEMANAS`, `MESES` |
-| `TipoOrigemItem` | `PROTOCOLO`, `PRESCRICAO` |
-| `StatusPlano` | `ATIVO`, `CONCLUIDO`, `CANCELADO` |
-| `StatusEventoPlano` | `PENDENTE`, `REALIZADO`, `CANCELADO`, `ATRASADO` |
-| `PerfilUsuario` | `VET`, `TUTOR` |
-| `Especie` | `CACHORRO`, `GATO`, `PASSARO`, `COELHO`, `HAMSTER`, `OUTRO` |
-| `Porte` | `MINI`, `PEQUENO`, `MEDIO`, `GRANDE`, `GIGANTE` |
-| `Sexo` | `MACHO`, `FEMEA` |
-
-Todo enum é persistido como texto (`@Enumerated(EnumType.STRING)`) — `ORDINAL` corromperia os dados
-na primeira reordenação.
+A lista de parâmetros, o corpo de cada requisição e os códigos de erro estão no Swagger
+(`/swagger-ui.html`), gerado a partir do código — é a fonte que não fica desatualizada.
 
 ---
 
-## Como o .NET aciona este serviço
+## Como o Java e o .NET se falam
 
-O cadastro clínico é canônico no .NET. Quando um animal é cadastrado lá, o `MotorApiClient` chama
-`POST /api/motor/planos/instanciar-preventivo` aqui; quando uma cirurgia é registrada, chama o
-pós-cirúrgico. As duas chamadas são **best-effort**: falha deste lado não desfaz o cadastro clínico do
-outro, e a idempotência do motor evita plano duplicado numa nova tentativa.
+**Uma única chamada, Java → .NET.** Ao instanciar um plano de cuidado, o `MotorPlanoService` pergunta
+ao `ProtocoloClient` quais protocolos ativos existem para a categoria e espécie do animal
+(`GET /api/protocolos` no .NET, com um token de serviço emitido pelo próprio Java). Se o .NET estiver
+fora do ar, a resposta é a mesma de "nenhum protocolo compatível": o plano simplesmente não nasce
+agora, sem propagar erro.
 
-**Este serviço não chama o .NET por HTTP.** A leitura dos dados de registro é feita direto no banco,
-por um contexto de persistência somente-leitura.
+O gatilho que existia no sentido contrário — o .NET chamando `/api/motor/**` sem token quando um
+animal ou uma cirurgia eram cadastrados — **foi removido na onda 4** junto com o `MotorApiClient` do
+.NET (ADR `s3-25`). Hoje o Java não recebe chamada nenhuma do .NET.
+
+---
+
+## Modelo de dados
+
+**16 tabelas**, todas no schema `PETBUDDIES`, criadas por `V1__baseline_schema_cuidado.sql`. Catorze
+têm entidade JPA hoje; as duas do check-in ainda não.
+
+| Tabela | Entidade | Papel |
+|---|---|---|
+| `T_PB_CLINICA` | `ClinicaEntity` | a clínica veterinária |
+| `T_PB_RESPONSAVEL` | `ResponsavelEntity` | o tutor do animal |
+| `T_PB_VETERINARIO` | `VeterinarioEntity` | quem assina o ato clínico, vinculado a uma clínica |
+| `T_PB_USUARIO` | `UsuarioEntity` | credencial e perfil (`VET` / `TUTOR`), com o vínculo para um dos dois acima |
+| `T_PB_ANIMAL` | `AnimalEntity` | o paciente |
+| `T_PB_CONSULTA` | `ConsultaEntity` | o agendamento e o comparecimento do animal |
+| `T_PB_CONDICAO_CLINICA` | `CondicaoClinicaEntity` | catálogo de condições que o check-in (quando existir) avalia, por clínica |
+| `T_PB_JANELA_ATENDIMENTO` | `JanelaAtendimentoEntity` | a agenda do veterinário — slots livres ou reservados por uma consulta |
+| `T_PB_REGISTRO_ATENDIMENTO` | `RegistroAtendimentoEntity` | o que aconteceu na consulta: anamnese, diagnóstico, tratamento |
+| `T_PB_PROCEDIMENTO` | `ProcedimentoEntity` | vacina, exame ou cirurgia executados num atendimento |
+| `T_PB_PRESCRICAO` | `PrescricaoEntity` | o ato assinado pelo veterinário — imutável depois de criado |
+| `T_PB_REGRA_PRESCRICAO` | `RegraPrescricaoEntity` | condição → ação sobre a dose, com a condição congelada no momento da assinatura |
+| `T_PB_PLANO_CUIDADO` | `PlanoCuidadoEntity` | o plano vivo de um animal, instanciado pelo motor a partir do protocolo do .NET |
+| `T_PB_ITEM_PLANO_CUIDADO` | `ItemPlanoCuidadoEntity` | o item do plano, com data alvo, origem (protocolo ou prescrição) e status |
+| `T_PB_CHECKIN` | — (sem entidade ainda) | o check-in do tutor, narrativa livre |
+| `T_PB_CONDICAO_OBSERVADA` | — (sem entidade ainda) | a condição que o check-in extraiu da narrativa |
+
+O protocolo em si (`o quê` e `quando` do cuidado) **não tem tabela neste serviço**: é catálogo do
+.NET, lido por HTTP no momento em que um plano nasce (`ProtocoloClient` / `ProtocoloCatalogoDto`).
+
+Todo enum de domínio é persistido como texto (`@Enumerated(EnumType.STRING)`) — `ORDINAL`
+corromperia os dados na primeira reordenação. A lista completa de enums e valores aceitos está no
+Swagger; o código-fonte é `domain/enums/`.
 
 ---
 
@@ -207,18 +180,40 @@ faríamos à mão.
 ### Pré-requisitos
 
 - Java 21+
-- Maven 3.9+
-- Acesso ao Oracle FIAP
+- Maven 3.9+ (**este repositório não versiona o Maven Wrapper** — todo comando abaixo é o `mvn` do
+  sistema, não `./mvnw`)
+- Docker, para o Oracle local — **ou** acesso ao Oracle FIAP
 
-### Passos
+### Banco local (recomendado para desenvolvimento)
+
+O `docker-compose.yml` sobe um `gvenzl/oracle-free:23-slim` só com o schema deste serviço — o Flyway
+recria as 16 tabelas a cada subida.
 
 ```bash
-# Clonar o repositório
+cp .env.example .env
+# preencha ORACLE_PASSWORD, ORACLE_SYS_PASSWORD e PETBUDDIES_JWT_SECRET (mínimo 32 bytes)
+
+docker compose up -d --wait   # sobe só o Oracle; a aplicação roda no terminal
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+`ORACLE_PORT` é parametrizável — útil para rodar mais de uma worktree ao mesmo tempo, cada uma com sua
+própria porta e seu próprio `COMPOSE_PROJECT_NAME`:
+
+```bash
+COMPOSE_PROJECT_NAME=minha-worktree ORACLE_PORT=1581 docker compose up -d --wait
+```
+
+Derrube com `docker compose down -v` — o `-v` apaga o volume, e é o ciclo normal desta sprint: os
+bancos são resetados a cada subida, não migrados (ADR `s3-17`).
+
+### Oracle FIAP (alternativa)
+
+```bash
 git clone https://github.com/3BugBuddies/PetBuddies-AI
 cd petbuddies-ai
-
 cp .env.example .env
-# preencher ORACLE_USER e ORACLE_PASSWORD
+# ORACLE_URL aponta por padrão para o Oracle FIAP; preencha ORACLE_USER (seu RM) e ORACLE_PASSWORD
 
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
@@ -227,27 +222,36 @@ A aplicação sobe em `http://localhost:8080`, com o Swagger em `/swagger-ui.htm
 
 ### Variáveis de ambiente
 
-```env
-ORACLE_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL
-ORACLE_USER=             # seu RM (ex: rm123456)
-ORACLE_PASSWORD=         # sua senha Oracle FIAP
-```
+Todas em `.env.example`, nunca versionadas com valor real (`.env` está no `.gitignore`):
 
-A chave da IA volta ao `.env.example` junto com o check-in, e o segredo do token junto com a
-autenticação. **Nenhum segredo é versionado**: o `.env` está no `.gitignore`.
+| Variável | Para quê |
+|---|---|
+| `ORACLE_URL`, `ORACLE_USER`, `ORACLE_PASSWORD` | conexão com o Oracle (local ou FIAP) — **`ORACLE_USER` em maiúsculas**: o Oracle guarda nome de schema em maiúsculas e o `default_schema` do Hibernate usa o valor literal |
+| `ORACLE_SYS_PASSWORD` | senha do `SYS` do container local; só o `docker-compose.yml` usa |
+| `ORACLE_PORT` | porta do Oracle no host, para rodar mais de uma worktree ao mesmo tempo |
+| `PETBUDDIES_JWT_SECRET` | segredo `HS256` do token (ADR `s3-20`) — mínimo 32 bytes, **o mesmo valor byte a byte do .NET**; abaixo disso a aplicação recusa subir, de propósito |
+| `GEMINI_API_KEY` | reservada para o check-in por IA; não é lida por nenhum código hoje |
 
-### Banco
+### Usuários de demonstração
 
-O schema das cinco tabelas do cuidado é criado pelo próprio serviço — hoje pelo Hibernate
-(`ddl-auto=update`) e, ainda nesta sprint, por um baseline Flyway com validação de schema na subida.
-Este serviço **não** cria as tabelas do registro, que são do .NET: os dois conjuntos não se cruzam.
+`V2__seed_demonstracao.sql` semeia uma clínica, um veterinário, um responsável e os dois usuários que
+a banca usa para entrar:
+
+| Login | Perfil | Senha |
+|---|---|---|
+| `ana@clinica.com` | `VET` | `petbuddies123` |
+| `maria@email.com` | `TUTOR` | `petbuddies123` |
 
 ---
 
 ## Tecnologias
 
 - **Java 21** · Spring Boot 3.4.5
-- **Spring Data JPA + Hibernate** sobre **Oracle Database** (FIAP)
+- **Spring Data JPA + Hibernate** sobre **Oracle Database** (23 local via `gvenzl/oracle-free`, ou FIAP)
+- **Flyway** — quem cria o schema (`ddl-auto=validate`, nunca `update`)
+- **Spring Security** — duas cadeias (API com Bearer, web com formulário) e JWT via `jjwt`
+- **Spring HATEOAS** — toda resposta de recurso em `EntityModel`/`CollectionModel`
 - **Bean Validation** (Jakarta)
 - **Springdoc OpenAPI 2.8.8** — Swagger UI com tags por domínio
-- **Postman** — coleção em `docs/postman/petbuddies-ai-java.postman_collection.json`
+- **Postman** — coleção em `docs/postman/petbuddies-ai-java.postman_collection.json` (hoje vazia: os
+  únicos requests que existiam eram do catálogo de protocolos, removido nesta sprint — ver PR)
