@@ -15,8 +15,7 @@ import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.openai.OpenAiChatOptions;
+import br.com.fiap.petbuddies.infrastructure.ia.ExtratorIA;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,6 +24,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,23 +40,19 @@ public class CheckinExtracaoService {
 
     private static final Logger log = LoggerFactory.getLogger(CheckinExtracaoService.class);
 
-    private final ChatClient chatClient;
+    private final ExtratorIA extratorIA;
     private final AnimalRepository animalRepository;
     private final RegraPrescricaoRepository regraPrescricaoRepository;
     private final CondicaoClinicaRepository condicaoClinicaRepository;
     private final PrescricaoAtivaResolver prescricaoAtivaResolver;
 
     public CheckinExtracaoService(
-            ChatClient.Builder chatClientBuilder,
+            ExtratorIA extratorIA,
             AnimalRepository animalRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository,
             PrescricaoAtivaResolver prescricaoAtivaResolver) {
-        // temperature=0: testado contra a API real — sem isso a confianca
-        // nao calibra, sai 1.0 em tudo (ver corpo do PR).
-        this.chatClient = chatClientBuilder
-                .defaultOptions(OpenAiChatOptions.builder().temperature(0.0).build())
-                .build();
+        this.extratorIA = extratorIA;
         this.animalRepository = animalRepository;
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
@@ -78,21 +74,10 @@ public class CheckinExtracaoService {
         String prompt = montarPrompt(vocabulario);
         log.debug("[CHECKIN-IA] animalId={} vocabulario={} prompt=\n{}", animal.getId(), vocabulario.size(), prompt);
 
-        ExtracaoModelo resultadoModelo;
-        boolean degradado = false;
-        try {
-            resultadoModelo = chatClient.prompt().system(prompt).user(request.getNarrativa())
-                    .call().entity(ExtracaoModelo.class);
-            if (resultadoModelo == null) {
-                degradado = true;
-                resultadoModelo = new ExtracaoModelo(List.of(), List.of());
-            }
-        } catch (Exception e) {
-            log.warn("[CHECKIN-IA] falha na extração para animalId={}: {}", animal.getId(), e.getMessage());
-            degradado = true;
-            resultadoModelo = new ExtracaoModelo(List.of(), List.of());
-        }
-        log.debug("[CHECKIN-IA] resposta do modelo: {}", resultadoModelo);
+        Optional<ExtracaoModelo> retorno = extratorIA.extrair(
+                prompt, request.getNarrativa(), ExtracaoModelo.class, "CHECKIN-IA");
+        boolean degradado = retorno.isEmpty();
+        ExtracaoModelo resultadoModelo = retorno.orElseGet(() -> new ExtracaoModelo(List.of(), List.of()));
 
         List<CondicaoExtraidaResponse> condicoes = filtrarEEnriquecer(resultadoModelo.condicoes(), vocabulario);
         List<String> redFlags = nullSafe(resultadoModelo.redFlags());
