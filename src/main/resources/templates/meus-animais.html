@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Meus animais · PetBuddies</title>
+</head>
+<body>
+<main>
+    <h1>Meus animais</h1>
+
+    <p th:if="${#lists.isEmpty(animais)}">Nenhum animal cadastrado em seu nome ainda.</p>
+
+    <div class="cartoes" th:unless="${#lists.isEmpty(animais)}">
+        <div class="cartao" th:each="animal : ${animais}">
+            <h3 th:text="${animal.nome}">Rex</h3>
+            <p>
+                <span th:text="${animal.especie}">CACHORRO</span> ·
+                <span th:text="${animal.raca}">SEM_RACA</span>
+            </p>
+            <p>Nascimento: <span th:text="${#temporals.format(animal.dataNascimento, 'dd/MM/yyyy')}">01/01/2020</span></p>
+
+            <div th:if="${planosPorAnimal.containsKey(animal.id)}">
+                <p><span class="selo ativo">plano preventivo ativo</span></p>
+                <p th:with="plano=${planosPorAnimal.get(animal.id)}">
+                    <span th:text="${#lists.size(plano.eventos)}">0</span> evento(s) no plano.
+                </p>
+            </div>
+            <p th:unless="${planosPorAnimal.containsKey(animal.id)}">
+                <span class="selo">sem plano preventivo ativo</span>
+            </p>
+        </div>
+    </div>
+</main>
+</body>
+</html>

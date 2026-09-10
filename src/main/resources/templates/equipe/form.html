@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Veterinário · PetBuddies</title>
+</head>
+<body>
+<main>
+    <h1 th:text="${veterinarioId != null ? 'Editar veterinário' : 'Novo veterinário'}">Novo veterinário</h1>
+
+    <form class="formulario" method="post" th:action="@{${acaoFormulario}}" th:object="${veterinarioRequest}">
+        <input type="hidden" th:field="*{clinicaId}"/>
+
+        <label for="nome">Nome</label>
+        <input id="nome" type="text" th:field="*{nome}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">erro</div>
+
+        <label for="crmv">CRMV</label>
+        <input id="crmv" type="text" th:field="*{crmv}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('crmv')}" th:errors="*{crmv}">erro</div>
+
+        <label for="email">E-mail</label>
+        <input id="email" type="email" th:field="*{email}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">erro</div>
+
+        <div class="campo-checkbox">
+            <input id="ativo" type="checkbox" th:field="*{ativo}"/>
+            <label for="ativo" style="margin:0;">Ativo</label>
+        </div>
+
+        <div class="acoes-formulario">
+            <button type="submit">Salvar</button>
+            <a class="botao secundario" th:href="@{/equipe}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Equipe · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <h1>Equipe</h1>
+        <a class="botao" th:href="@{/equipe/novo}">Novo veterinário</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <p th:if="${#lists.isEmpty(equipe)}">Nenhum veterinário cadastrado ainda.</p>
+
+    <table th:unless="${#lists.isEmpty(equipe)}">
+        <thead>
+        <tr><th>Nome</th><th>CRMV</th><th>Situação</th><th>Ações</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="vet : ${equipe}">
+            <td th:text="${vet.nome}">Ana Souza</td>
+            <td th:text="${vet.crmv}">SP-12345</td>
+            <td><span th:class="${vet.ativo ? 'selo ativo' : 'selo'}" th:text="${vet.ativo ? 'ativo' : 'inativo'}">ativo</span></td>
+            <td><a th:href="@{/equipe/{id}/editar(id=${vet.id})}">Editar</a></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

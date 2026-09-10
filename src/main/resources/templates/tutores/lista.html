@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Tutores · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <h1>Tutores</h1>
+        <a class="botao" th:href="@{/tutores/novo}">Novo tutor</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <p th:if="${#lists.isEmpty(tutores)}">Nenhum tutor cadastrado ainda.</p>
+
+    <table th:unless="${#lists.isEmpty(tutores)}">
+        <thead>
+        <tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="tutor : ${tutores}">
+            <td th:text="${tutor.nome}">Maria</td>
+            <td th:text="${tutor.telefone}">11987654321</td>
+            <td th:text="${tutor.email}">maria@email.com</td>
+            <td><a th:href="@{/tutores/{id}/editar(id=${tutor.id})}">Editar</a></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

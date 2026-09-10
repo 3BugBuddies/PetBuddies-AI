@@ -2,7 +2,6 @@ package br.com.fiap.petbuddies.security;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
 import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,8 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
  * vinculo, e consultar o banco a cada requisicao anularia o ganho de ser
  * stateless.
  *
- * <p>O perfil vira papel pelo {@code roles(...)}, que prefixa {@code ROLE_}
- * sozinho — e o que faz {@code hasRole("VET")} casar na segunda cadeia.</p>
+ * <p>Devolve {@link UsuarioPrincipal}, nao o {@code User} padrao: e ele que
+ * carrega o {@code veterinarioId}/{@code responsavelId} para os controllers
+ * de pagina, alem do papel que {@code hasRole(...)} confere.</p>
  */
 @Service
 public class UsuarioDetailsService implements UserDetailsService {
@@ -33,9 +33,6 @@ public class UsuarioDetailsService implements UserDetailsService {
         UsuarioEntity usuario = usuarioRepository.findByLoginAndAtivoTrue(login)
                 .orElseThrow(() -> new UsernameNotFoundException("Credenciais invalidas."));
 
-        return User.withUsername(usuario.getLogin())
-                .password(usuario.getSenhaHash())
-                .roles(usuario.getPerfil().name())
-                .build();
+        return UsuarioPrincipal.from(usuario);
     }
 }

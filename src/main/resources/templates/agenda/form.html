@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Agendar consulta · PetBuddies</title>
+</head>
+<body>
+<main>
+    <h1>Agendar consulta</h1>
+
+    <form class="formulario" method="post" th:action="@{/agenda}" th:object="${consultaRequest}">
+
+        <label for="animalId">Animal</label>
+        <select id="animalId" th:field="*{animalId}">
+            <option value="">Selecione</option>
+            <option th:each="animal : ${animais}" th:value="${animal.id}" th:text="${animal.nome}">Rex</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('animalId')}" th:errors="*{animalId}">erro</div>
+
+        <label for="veterinarioId">Veterinário</label>
+        <select id="veterinarioId" th:field="*{veterinarioId}">
+            <option value="">Selecione</option>
+            <option th:each="vet : ${veterinarios}" th:value="${vet.id}" th:text="${vet.nome}">Ana</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('veterinarioId')}" th:errors="*{veterinarioId}">erro</div>
+
+        <label for="tipo">Tipo</label>
+        <select id="tipo" th:field="*{tipo}">
+            <option value="">Selecione</option>
+            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.TipoConsulta).values()}"
+                    th:value="${valor}" th:text="${valor}">ROTINA</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}">erro</div>
+
+        <label for="dataHora">Data e hora</label>
+        <input id="dataHora" type="datetime-local" th:field="*{dataHora}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('dataHora')}" th:errors="*{dataHora}">erro</div>
+
+        <label for="motivo">Motivo</label>
+        <textarea id="motivo" rows="2" th:field="*{motivo}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}">erro</div>
+
+        <label for="observacao">Observação</label>
+        <textarea id="observacao" rows="2" th:field="*{observacao}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}">erro</div>
+
+        <div class="acoes-formulario">
+            <button type="submit">Agendar</button>
+            <a class="botao secundario" th:href="@{/agenda}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

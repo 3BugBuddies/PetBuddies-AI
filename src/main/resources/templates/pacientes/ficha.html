@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title th:text="${animal.nome} + ' · PetBuddies'">Paciente · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <h1 th:text="${animal.nome}">Rex</h1>
+        <a class="botao secundario" th:href="@{/pacientes/{id}/editar(id=${animal.id})}">Editar cadastro</a>
+    </div>
+
+    <section class="bloco">
+        <p>
+            <span th:text="${animal.especie}">CACHORRO</span> ·
+            <span th:text="${animal.raca}">SEM_RACA</span> ·
+            <span th:text="${animal.porte}">MEDIO</span> ·
+            <span th:text="${animal.sexo}">MACHO</span>
+        </p>
+        <p>Nascimento: <span th:text="${#temporals.format(animal.dataNascimento, 'dd/MM/yyyy')}">01/01/2020</span></p>
+        <p>Tutor: <span th:text="${responsavel.nome}">Maria</span> · <span th:text="${responsavel.telefone}">telefone</span></p>
+    </section>
+
+    <section class="bloco" th:if="${planoResposta != null}">
+        <h2>Resultado da última instanciação</h2>
+        <p th:if="${planoResposta.criado != null and planoResposta.criado}" class="mensagem-sucesso">
+            Plano criado com <span th:text="${#lists.size(planoResposta.eventos)}">0</span> evento(s).
+        </p>
+        <p th:if="${planoResposta.criado != null and !planoResposta.criado and planoResposta.motivo == 'PLANO_JA_EXISTENTE'}"
+           class="mensagem-aviso">
+            Já existe um plano ativo dessa categoria para este animal.
+        </p>
+        <p th:if="${planoResposta.motivo == 'SEM_PROTOCOLO_COMPATIVEL'}" class="mensagem-erro">
+            Nenhum protocolo compatível encontrado no catálogo. Confira se o serviço .NET está no ar.
+        </p>
+    </section>
+
+    <section class="bloco">
+        <h2>Plano preventivo ativo</h2>
+        <p th:if="${planoAtivo == null}">Nenhum plano preventivo ativo.</p>
+        <ul class="lista-eventos" th:if="${planoAtivo != null}">
+            <li th:each="evento : ${planoAtivo.eventos}">
+                <strong th:text="${evento.nome}">Vacina</strong> —
+                <span th:text="${#temporals.format(evento.dataAlvo, 'dd/MM/yyyy')}">01/01/2026</span>
+                <span class="selo" th:text="${evento.status}">PENDENTE</span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="bloco">
+        <h2>Consultas</h2>
+        <p th:if="${#lists.isEmpty(consultas)}">Nenhuma consulta registrada.</p>
+        <table th:unless="${#lists.isEmpty(consultas)}">
+            <thead>
+            <tr><th>Data</th><th>Tipo</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="consulta : ${consultas}">
+                <td th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+                <td th:text="${consulta.tipo}">ROTINA</td>
+                <td><span class="selo" th:text="${consulta.status}">AGENDADA</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="bloco">
+        <h2>Instanciar plano de cuidado</h2>
+        <p>O motor resolve o protocolo mais específico da clínica para este animal e materializa os eventos do plano.</p>
+        <form class="formulario" method="post" th:action="@{/pacientes/{id}/planos(id=${animal.id})}" th:object="${novoPlanoForm}">
+
+            <label for="categoria">Categoria do plano</label>
+            <select id="categoria" th:field="*{categoria}">
+                <option value="">Selecione</option>
+                <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo).values()}"
+                        th:value="${valor}" th:text="${valor}">PREVENTIVO</option>
+            </select>
+            <div class="erro-campo" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">erro</div>
+
+            <label for="consultaId">Consulta cirúrgica (obrigatório só para pós-cirúrgico)</label>
+            <select id="consultaId" th:field="*{consultaId}">
+                <option value="">Nenhuma</option>
+                <option th:each="consulta : ${consultas}" th:value="${consulta.id}"
+                        th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')} + ' — ' + ${consulta.tipo}">
+                    consulta
+                </option>
+            </select>
+            <div class="erro-campo" th:if="${#fields.hasErrors('consultaPreenchidaQuandoNecessaria')}"
+                 th:errors="*{consultaPreenchidaQuandoNecessaria}">erro
+            </div>
+
+            <div class="acoes-formulario">
+                <button type="submit">Instanciar plano</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="bloco">
+        <h2>Fechar atendimento</h2>
+        <p>Em construção — disponível em breve na agenda deste paciente.</p>
+        <a class="botao secundario" th:href="@{/agenda}">Ir para a agenda</a>
+    </section>
+</main>
+</body>
+</html>

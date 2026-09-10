@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Pacientes · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <h1>Pacientes</h1>
+        <a class="botao" th:href="@{/pacientes/novo}">Novo paciente</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <p th:if="${#lists.isEmpty(pacientes)}">Nenhum paciente cadastrado ainda.</p>
+
+    <table th:unless="${#lists.isEmpty(pacientes)}">
+        <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Espécie</th>
+            <th>Tutor</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="paciente : ${pacientes}">
+            <td th:text="${paciente.nome}">Rex</td>
+            <td th:text="${paciente.especie}">CACHORRO</td>
+            <td th:text="${nomesResponsaveis.get(paciente.responsavelId)}">Tutor</td>
+            <td>
+                <a th:href="@{/pacientes/{id}(id=${paciente.id})}">Ver ficha</a> ·
+                <a th:href="@{/pacientes/{id}/editar(id=${paciente.id})}">Editar</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>
