@@ -8,6 +8,7 @@ import br.com.fiap.petbuddies.exception.CodigoCondicaoDuplicadoException;
 import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.ConsultaJaRealizadaException;
 import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.ConsultaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.CrmvDuplicadoException;
 import br.com.fiap.petbuddies.exception.JanelaAtendimentoNaoEncontradaException;
@@ -173,6 +174,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConsultaJaRealizadaException.class)
     public ResponseEntity<ErrorDto> handleConsultaJaRealizada(ConsultaJaRealizadaException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CONSULTA_JA_REALIZADA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ConsultaNaoPodeSerFechadaException.class)
+    public ResponseEntity<ErrorDto> handleConsultaNaoPodeSerFechada(ConsultaNaoPodeSerFechadaException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("CONSULTA_NAO_PODE_SER_FECHADA", ex.getMessage()));
     }
 
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)

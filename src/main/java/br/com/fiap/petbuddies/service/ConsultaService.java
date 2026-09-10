@@ -18,15 +18,22 @@ import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.JanelaConflitanteException;
 import br.com.fiap.petbuddies.exception.JanelaNoPassadoException;
+import br.com.fiap.petbuddies.exception.ConsultaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 @Service
 public class ConsultaService {
+
+    // Estados a partir dos quais o fechamento pode marcar REALIZADA.
+    // CANCELADA, NAO_COMPARECEU e a própria REALIZADA são conflito, não repetição.
+    private static final EnumSet<StatusConsulta> STATUS_FECHAVEL =
+            EnumSet.of(StatusConsulta.AGENDADA, StatusConsulta.CONFIRMADA);
 
     private final ConsultaRepository repository;
     private final AnimalRepository animalRepository;
@@ -125,6 +132,21 @@ public class ConsultaService {
         janelaAtendimentoRepository.findByConsultaId(id)
                 .ifPresent(janela -> janela.setConsulta(null));
         return repository.save(consulta);
+    }
+
+    /**
+     * Usado pelo fechamento de atendimento: valida o estado e já marca
+     * REALIZADA na mesma chamada, para falhar antes de o service do fechamento
+     * gravar qualquer coisa.
+     */
+    @Transactional
+    public ConsultaEntity fechar(Long id) {
+        ConsultaEntity entity = encontrarOuFalhar(id);
+        if (!STATUS_FECHAVEL.contains(entity.getStatus())) {
+            throw new ConsultaNaoPodeSerFechadaException(id, entity.getStatus());
+        }
+        entity.setStatus(StatusConsulta.REALIZADA);
+        return repository.save(entity);
     }
 
     private ConsultaEntity encontrarOuFalhar(Long id) {
