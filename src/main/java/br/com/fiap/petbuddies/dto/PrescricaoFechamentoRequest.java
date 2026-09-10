@@ -55,8 +55,7 @@ public class PrescricaoFechamentoRequest {
 
     // CK_PRESCRICAO_FAIXA: a faixa invertida quebraria a função de dose antes
     // de qualquer regra rodar.
-    // public: BeanWrapperImpl precisa do getter para expor o caminho de erro
-    // "prescricoes[0].faixaDoseValida" — private aqui vira NotReadablePropertyException.
+    // public: o BeanWrapperImpl só lê getter público ao montar o erro de prescricoes[0].faixaDoseValida.
     @AssertTrue(message = "Dose mínima não pode ser maior que a dose máxima.")
     public boolean isFaixaDoseValida() {
         return doseMin == null || doseMax == null || doseMin.compareTo(doseMax) <= 0;

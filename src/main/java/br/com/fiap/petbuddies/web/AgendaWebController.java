@@ -116,8 +116,7 @@ public class AgendaWebController {
         return "redirect:/agenda";
     }
 
-    // Pré-inicializado com um elemento em cada lista: sem isso o binder não
-    // tem índice [0] para preencher no GET, e o POST reenvia sem alterar o objeto.
+    // Sem um elemento em cada lista, *{procedimentos[0]....} não resolve no render do GET.
     private FechamentoAtendimentoRequest novoFechamentoRequest() {
         FechamentoAtendimentoRequest request = new FechamentoAtendimentoRequest();
         request.setRegistroAtendimento(new RegistroAtendimentoFechamentoRequest());
