@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.atendimento;
 
 public class ProcedimentoNaoEncontradoException extends RuntimeException {
     public ProcedimentoNaoEncontradoException(Long id) {

@@ -10,10 +10,10 @@ import br.com.fiap.petbuddies.domain.repository.ProcedimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.ProcedimentoRequest;
-import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.ProcedimentoNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.RegistroAtendimentoNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.ProcedimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

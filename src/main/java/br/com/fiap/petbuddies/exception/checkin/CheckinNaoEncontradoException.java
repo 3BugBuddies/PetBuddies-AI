@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.checkin;
 
 public class CheckinNaoEncontradoException extends RuntimeException {
     public CheckinNaoEncontradoException(Long id) {

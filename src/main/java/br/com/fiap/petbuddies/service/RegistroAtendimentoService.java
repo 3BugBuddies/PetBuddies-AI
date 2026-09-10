@@ -7,9 +7,9 @@ import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.dto.RegistroAtendimentoRequest;
-import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

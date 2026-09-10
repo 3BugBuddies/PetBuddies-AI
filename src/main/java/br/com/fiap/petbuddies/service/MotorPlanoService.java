@@ -21,7 +21,7 @@ import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.PlanoResponse;
 import br.com.fiap.petbuddies.dto.SugestaoCuidadoDto;
-import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cuidado.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
 import br.com.fiap.petbuddies.infrastructure.client.RegraCatalogoDto;

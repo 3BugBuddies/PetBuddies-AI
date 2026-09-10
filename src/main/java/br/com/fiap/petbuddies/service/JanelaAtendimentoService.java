@@ -7,10 +7,10 @@ import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.JanelaAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.JanelaAtendimentoRequest;
-import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.JanelaAtendimentoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.JanelaConflitanteException;
-import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
+import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

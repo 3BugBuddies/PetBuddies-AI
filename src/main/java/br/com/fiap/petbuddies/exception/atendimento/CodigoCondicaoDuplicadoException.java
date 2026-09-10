@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.atendimento;
 
 /** Violação de UK_CONDICAO_CLINICA_CODIGO, recusada antes de chegar ao driver. */
 public class CodigoCondicaoDuplicadoException extends RuntimeException {

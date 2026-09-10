@@ -5,9 +5,9 @@ import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.VeterinarioRequest;
-import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.CrmvDuplicadoException;
-import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.cadastro.CrmvDuplicadoException;
+import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

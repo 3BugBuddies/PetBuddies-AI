@@ -3,8 +3,8 @@ package br.com.fiap.petbuddies.service;
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.dto.ClinicaRequest;
-import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.CnpjDuplicadoException;
+import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.cadastro.CnpjDuplicadoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -8,10 +8,10 @@ import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
 import br.com.fiap.petbuddies.dto.RegraPrescricaoRequest;
-import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.PrescricaoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.RegraPrescricaoIncoerenteException;
-import br.com.fiap.petbuddies.exception.RegraPrescricaoNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
+import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoNaoEncontradaException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

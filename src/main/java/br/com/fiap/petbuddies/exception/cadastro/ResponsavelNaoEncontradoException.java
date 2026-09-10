@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.cadastro;
 
 public class ResponsavelNaoEncontradoException extends RuntimeException {
     public ResponsavelNaoEncontradoException(Long id) {

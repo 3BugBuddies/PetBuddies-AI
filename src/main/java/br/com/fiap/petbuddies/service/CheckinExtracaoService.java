@@ -11,7 +11,7 @@ import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
 import br.com.fiap.petbuddies.dto.CheckinExtracaoRequest;
 import br.com.fiap.petbuddies.dto.CheckinExtracaoResponse;
 import br.com.fiap.petbuddies.dto.CondicaoExtraidaResponse;
-import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;

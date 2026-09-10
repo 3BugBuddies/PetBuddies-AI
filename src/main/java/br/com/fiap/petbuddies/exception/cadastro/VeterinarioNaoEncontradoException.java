@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.cadastro;
 
 public class VeterinarioNaoEncontradoException extends RuntimeException {
 

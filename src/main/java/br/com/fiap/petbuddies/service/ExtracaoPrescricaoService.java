@@ -13,7 +13,7 @@ import br.com.fiap.petbuddies.dto.PrescricaoRequest;
 import br.com.fiap.petbuddies.dto.RascunhoPrescricaoResponse;
 import br.com.fiap.petbuddies.dto.RegraCondicionalExtraidaIA;
 import br.com.fiap.petbuddies.dto.RegraPrescricaoRequest;
-import br.com.fiap.petbuddies.exception.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;

@@ -5,8 +5,8 @@ import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ResponsavelRepository;
 import br.com.fiap.petbuddies.dto.AnimalRequest;
-import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.ResponsavelNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.ResponsavelNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

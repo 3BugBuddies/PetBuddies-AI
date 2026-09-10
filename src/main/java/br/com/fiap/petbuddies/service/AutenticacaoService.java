@@ -5,7 +5,7 @@ import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.LoginRequest;
 import br.com.fiap.petbuddies.dto.LoginResponse;
-import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
+import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.security.TokenService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

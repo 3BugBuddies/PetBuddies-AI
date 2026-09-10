@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.atendimento;
 
 import java.time.LocalDateTime;
 

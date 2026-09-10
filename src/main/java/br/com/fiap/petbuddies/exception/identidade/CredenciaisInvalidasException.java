@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.identidade;
 
 /**
  * Recusa de login. <b>Uma excecao so, e uma mensagem so</b>, para os tres casos:

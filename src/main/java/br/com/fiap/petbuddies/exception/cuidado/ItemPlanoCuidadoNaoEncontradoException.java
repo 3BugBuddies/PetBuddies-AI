@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.cuidado;
 
 public class ItemPlanoCuidadoNaoEncontradoException extends RuntimeException {
     public ItemPlanoCuidadoNaoEncontradoException(Long id) {

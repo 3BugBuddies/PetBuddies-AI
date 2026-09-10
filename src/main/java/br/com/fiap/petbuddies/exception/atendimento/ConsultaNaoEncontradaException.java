@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.atendimento;
 
 public class ConsultaNaoEncontradaException extends RuntimeException {
     public ConsultaNaoEncontradaException(Long id) {

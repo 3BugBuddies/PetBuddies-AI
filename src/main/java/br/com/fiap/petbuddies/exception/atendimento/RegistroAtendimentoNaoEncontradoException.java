@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.atendimento;
 
 public class RegistroAtendimentoNaoEncontradoException extends RuntimeException {
     public RegistroAtendimentoNaoEncontradoException(Long id) {

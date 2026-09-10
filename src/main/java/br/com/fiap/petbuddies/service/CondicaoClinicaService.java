@@ -8,10 +8,10 @@ import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.CondicaoClinicaRequest;
-import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.CodigoCondicaoDuplicadoException;
-import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.atendimento.CodigoCondicaoDuplicadoException;
+import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

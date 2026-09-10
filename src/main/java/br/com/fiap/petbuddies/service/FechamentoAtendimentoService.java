@@ -23,8 +23,8 @@ import br.com.fiap.petbuddies.dto.PrescricaoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.ProcedimentoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.RegistroAtendimentoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.RegraPrescricaoFechamentoRequest;
-import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.RegraPrescricaoIncoerenteException;
+import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

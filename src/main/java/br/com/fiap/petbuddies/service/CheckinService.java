@@ -20,12 +20,12 @@ import br.com.fiap.petbuddies.dto.CheckinRequest;
 import br.com.fiap.petbuddies.dto.CheckinResponse;
 import br.com.fiap.petbuddies.dto.CondicaoConfirmadaRequest;
 import br.com.fiap.petbuddies.dto.CondicaoObservadaResponse;
-import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.CheckinDuplicadoException;
-import br.com.fiap.petbuddies.exception.CheckinNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.CondicaoObservadaIncoerenteException;
-import br.com.fiap.petbuddies.exception.ItemPlanoCuidadoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.checkin.CheckinDuplicadoException;
+import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
+import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

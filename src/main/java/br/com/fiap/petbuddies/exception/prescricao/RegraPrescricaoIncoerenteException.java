@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.prescricao;
 
 /** Violação de CK_REGRA_COERENCIA, recusada antes de chegar ao driver. */
 public class RegraPrescricaoIncoerenteException extends RuntimeException {

@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.prescricao;
 
 public class RegraPrescricaoNaoEncontradaException extends RuntimeException {
     public RegraPrescricaoNaoEncontradaException(Long id) {

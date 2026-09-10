@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.cadastro;
 
 public class CnpjDuplicadoException extends RuntimeException {
     public CnpjDuplicadoException(String cnpj) {

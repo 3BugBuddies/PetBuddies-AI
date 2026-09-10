@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.exception;
+package br.com.fiap.petbuddies.exception.cadastro;
 
 /** Violação de UK_VETERINARIO_CRMV, recusada antes de chegar ao driver. */
 public class CrmvDuplicadoException extends RuntimeException {
