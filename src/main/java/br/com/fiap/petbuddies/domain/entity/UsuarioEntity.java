@@ -2,6 +2,7 @@ package br.com.fiap.petbuddies.domain.entity;
 
 import br.com.fiap.petbuddies.domain.enums.PerfilUsuario;
 import jakarta.persistence.*;
+import org.hibernate.type.NumericBooleanConverter;
 import java.time.LocalDateTime;
 
 /**
@@ -38,6 +39,8 @@ public class UsuarioEntity {
     private Long responsavelId;
 
     @Column(name = "AT_ATIVO", nullable = false)
+
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean ativo = true;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)

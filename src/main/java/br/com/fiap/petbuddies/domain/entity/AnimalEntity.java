@@ -4,6 +4,7 @@ import br.com.fiap.petbuddies.domain.enums.Especie;
 import br.com.fiap.petbuddies.domain.enums.Porte;
 import br.com.fiap.petbuddies.domain.enums.Sexo;
 import jakarta.persistence.*;
+import org.hibernate.type.NumericBooleanConverter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,9 +43,13 @@ public class AnimalEntity {
     private BigDecimal peso;
 
     @Column(name = "CN_CONDICAO_CRONICA", nullable = false)
+
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean condicaoCronica;
 
     @Column(name = "CT_CASTRADO", nullable = false)
+
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean castrado;
 
     @Column(name = "FT_FOTO", length = 500)

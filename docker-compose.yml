@@ -11,7 +11,8 @@
 services:
   oracle:
     image: gvenzl/oracle-free:23-slim
-    container_name: petbuddies-oracle-cuidado
+    # sem container_name fixo: duas worktrees em paralelo colidiriam no mesmo nome.
+    # O compose nomeia por COMPOSE_PROJECT_NAME, que ja e proprio de cada agente.
     ports:
       - "${ORACLE_PORT:-1521}:1521"
     environment:
