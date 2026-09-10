@@ -57,7 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         // Primeira restricao de papel em /api/**: o rascunho da prescricao
                         // narrada (J22) e ato clinico, perfil TUTOR nao autora prescricao.
-                        .requestMatchers(HttpMethod.POST, "/api/prescricoes/rascunho").hasRole("VET")
+                        .requestMatchers(HttpMethod.POST, "/api/prescricao/rascunho").hasRole("VET")
                         .anyRequest().authenticated())
                 .exceptionHandling(erro -> erro
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

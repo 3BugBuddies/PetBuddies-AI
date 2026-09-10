@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/animais")
+@RequestMapping("/api/animal")
 @Tag(name = "registro — animais", description = "CRUD de pacientes, o animal do registro clínico")
 public class AnimalController {
 

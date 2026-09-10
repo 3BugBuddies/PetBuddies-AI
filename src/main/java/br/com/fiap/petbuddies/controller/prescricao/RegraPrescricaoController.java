@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** Sem PUT nem DELETE: a regra é imutável como a prescrição que a carrega. */
 @RestController
-@RequestMapping("/api/regras-prescricao")
+@RequestMapping("/api/regra-prescricao")
 @Tag(name = "registro — regras de prescrição", description = "Condição → ação sobre a dose, com a condição congelada no momento da assinatura")
 public class RegraPrescricaoController {
 

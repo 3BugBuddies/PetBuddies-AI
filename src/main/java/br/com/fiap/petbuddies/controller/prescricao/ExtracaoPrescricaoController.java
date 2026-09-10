@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
  * {@code self}; ele nasce da narrativa e morre se o vet não confirmar.
  */
 @RestController
-@RequestMapping("/api/prescricoes")
+@RequestMapping("/api/prescricao")
 @Tag(name = "ia — prescrição narrada", description = "Transcreve a narrativa do veterinário para um rascunho de prescrição. Perfil VET.")
 public class ExtracaoPrescricaoController {
 

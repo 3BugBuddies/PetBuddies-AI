@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/responsaveis")
+@RequestMapping("/api/responsavel")
 @Tag(name = "registro — responsáveis", description = "CRUD de tutores, o dono do animal no registro clínico")
 public class ResponsavelController {
 
