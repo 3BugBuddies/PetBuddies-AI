@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.ConsultaController;
-import br.com.fiap.petbuddies.controller.RegistroAtendimentoController;
+import br.com.fiap.petbuddies.controller.atendimento.ConsultaController;
+import br.com.fiap.petbuddies.controller.atendimento.RegistroAtendimentoController;
 import br.com.fiap.petbuddies.dto.atendimento.FechamentoAtendimentoResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;

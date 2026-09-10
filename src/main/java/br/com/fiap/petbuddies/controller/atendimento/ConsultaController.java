@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller;
+package br.com.fiap.petbuddies.controller.atendimento;
 
 import br.com.fiap.petbuddies.assembler.ConsultaModelAssembler;
 import br.com.fiap.petbuddies.dto.atendimento.AgendamentoRequest;

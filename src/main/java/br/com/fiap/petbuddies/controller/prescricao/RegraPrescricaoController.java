@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller;
+package br.com.fiap.petbuddies.controller.prescricao;
 
 import br.com.fiap.petbuddies.assembler.RegraPrescricaoModelAssembler;
 import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoRequest;

@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller;
+package br.com.fiap.petbuddies.controller.identidade;
 
 import br.com.fiap.petbuddies.dto.identidade.LoginRequest;
 import br.com.fiap.petbuddies.dto.identidade.LoginResponse;

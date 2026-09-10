@@ -1,6 +1,6 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.ResponsavelController;
+import br.com.fiap.petbuddies.controller.cadastro.ResponsavelController;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResponse;
 import org.springframework.hateoas.EntityModel;

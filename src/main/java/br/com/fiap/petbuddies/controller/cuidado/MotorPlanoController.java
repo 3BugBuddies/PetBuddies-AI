@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller;
+package br.com.fiap.petbuddies.controller.cuidado;
 
 import br.com.fiap.petbuddies.dto.cuidado.ItemPlanoCuidadoDto;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;

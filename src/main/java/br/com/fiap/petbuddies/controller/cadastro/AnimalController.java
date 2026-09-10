@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller;
+package br.com.fiap.petbuddies.controller.cadastro;
 
 import br.com.fiap.petbuddies.assembler.AnimalModelAssembler;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalRequest;

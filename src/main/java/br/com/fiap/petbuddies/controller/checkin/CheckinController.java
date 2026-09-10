@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller;
+package br.com.fiap.petbuddies.controller.checkin;
 
 import br.com.fiap.petbuddies.assembler.CheckinModelAssembler;
 import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoRequest;

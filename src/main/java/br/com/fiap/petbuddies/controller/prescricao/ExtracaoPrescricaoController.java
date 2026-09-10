@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.controller;
+package br.com.fiap.petbuddies.controller.prescricao;
 
 import br.com.fiap.petbuddies.dto.prescricao.NarrativaPrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.RascunhoPrescricaoResponse;

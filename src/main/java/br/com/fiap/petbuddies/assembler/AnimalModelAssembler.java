@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.AnimalController;
-import br.com.fiap.petbuddies.controller.ResponsavelController;
+import br.com.fiap.petbuddies.controller.cadastro.AnimalController;
+import br.com.fiap.petbuddies.controller.cadastro.ResponsavelController;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalResponse;
 import org.springframework.hateoas.EntityModel;

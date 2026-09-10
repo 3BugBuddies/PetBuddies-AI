@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.AnimalController;
-import br.com.fiap.petbuddies.controller.PrescricaoController;
-import br.com.fiap.petbuddies.controller.RegistroAtendimentoController;
-import br.com.fiap.petbuddies.controller.VeterinarioController;
+import br.com.fiap.petbuddies.controller.cadastro.AnimalController;
+import br.com.fiap.petbuddies.controller.prescricao.PrescricaoController;
+import br.com.fiap.petbuddies.controller.atendimento.RegistroAtendimentoController;
+import br.com.fiap.petbuddies.controller.cadastro.VeterinarioController;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.dto.prescricao.PrescricaoResponse;
 import org.springframework.hateoas.EntityModel;

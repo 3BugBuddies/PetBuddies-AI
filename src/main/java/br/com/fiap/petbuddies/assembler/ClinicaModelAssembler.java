@@ -1,6 +1,6 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.ClinicaController;
+import br.com.fiap.petbuddies.controller.cadastro.ClinicaController;
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.dto.cadastro.ClinicaResponse;
 import org.springframework.hateoas.EntityModel;
