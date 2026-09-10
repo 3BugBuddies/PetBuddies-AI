@@ -6,11 +6,13 @@ import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CnpjDuplicadoException;
 import br.com.fiap.petbuddies.exception.CodigoCondicaoDuplicadoException;
 import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.ConsultaJaRealizadaException;
 import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.CrmvDuplicadoException;
 import br.com.fiap.petbuddies.exception.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.JanelaConflitanteException;
+import br.com.fiap.petbuddies.exception.JanelaNoPassadoException;
 import br.com.fiap.petbuddies.exception.PrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.ProcedimentoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.RegistroAtendimentoNaoEncontradoException;
@@ -161,6 +163,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(JanelaConflitanteException.class)
     public ResponseEntity<ErrorDto> handleJanelaConflitante(JanelaConflitanteException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("JANELA_CONFLITANTE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(JanelaNoPassadoException.class)
+    public ResponseEntity<ErrorDto> handleJanelaNoPassado(JanelaNoPassadoException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("JANELA_NO_PASSADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ConsultaJaRealizadaException.class)
+    public ResponseEntity<ErrorDto> handleConsultaJaRealizada(ConsultaJaRealizadaException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("CONSULTA_JA_REALIZADA", ex.getMessage()));
     }
 
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
