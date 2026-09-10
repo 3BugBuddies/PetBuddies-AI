@@ -25,6 +25,7 @@ import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoNaoEncontradaE
 import br.com.fiap.petbuddies.exception.cadastro.ResponsavelNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.cuidado.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -212,6 +213,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CheckinDuplicadoException.class)
     public ResponseEntity<ErrorDto> handleCheckinDuplicado(CheckinDuplicadoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CHECKIN_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DuracaoTratamentoExcedeTetoException.class)
+    public ResponseEntity<ErrorDto> handleDuracaoTratamentoExcedeTeto(DuracaoTratamentoExcedeTetoException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("DURACAO_TRATAMENTO_EXCEDE_TETO", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
