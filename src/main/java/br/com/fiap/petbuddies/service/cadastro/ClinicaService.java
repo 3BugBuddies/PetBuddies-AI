@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.service;
+package br.com.fiap.petbuddies.service.cadastro;
 
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;

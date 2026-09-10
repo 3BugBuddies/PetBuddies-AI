@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.service;
+package br.com.fiap.petbuddies.service.checkin;
 
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
@@ -26,6 +26,7 @@ import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
+import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

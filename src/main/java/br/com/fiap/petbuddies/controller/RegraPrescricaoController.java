@@ -3,7 +3,7 @@ package br.com.fiap.petbuddies.controller;
 import br.com.fiap.petbuddies.assembler.RegraPrescricaoModelAssembler;
 import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoResponse;
-import br.com.fiap.petbuddies.service.RegraPrescricaoService;
+import br.com.fiap.petbuddies.service.prescricao.RegraPrescricaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

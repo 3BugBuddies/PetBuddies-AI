@@ -11,7 +11,7 @@ import br.com.fiap.petbuddies.assembler.ProtocoloAplicadoModelAssembler;
 import br.com.fiap.petbuddies.assembler.SugestaoCuidadoModelAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import br.com.fiap.petbuddies.service.MotorPlanoService;
+import br.com.fiap.petbuddies.service.cuidado.MotorPlanoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

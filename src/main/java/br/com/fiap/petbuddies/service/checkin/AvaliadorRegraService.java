@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.service;
+package br.com.fiap.petbuddies.service.checkin;
 
 import br.com.fiap.petbuddies.domain.entity.CondicaoObservadaEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;

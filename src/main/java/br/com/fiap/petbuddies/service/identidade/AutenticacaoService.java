@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.service;
+package br.com.fiap.petbuddies.service.identidade;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
 import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;

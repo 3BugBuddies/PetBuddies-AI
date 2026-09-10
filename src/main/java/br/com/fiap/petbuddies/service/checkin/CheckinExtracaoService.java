@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.service;
+package br.com.fiap.petbuddies.service.checkin;
 
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
@@ -12,6 +12,7 @@ import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoRequest;
 import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoResponse;
 import br.com.fiap.petbuddies.dto.checkin.CondicaoExtraidaResponse;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;

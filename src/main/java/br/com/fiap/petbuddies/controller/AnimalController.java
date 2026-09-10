@@ -3,7 +3,7 @@ package br.com.fiap.petbuddies.controller;
 import br.com.fiap.petbuddies.assembler.AnimalModelAssembler;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalRequest;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalResponse;
-import br.com.fiap.petbuddies.service.AnimalService;
+import br.com.fiap.petbuddies.service.cadastro.AnimalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
