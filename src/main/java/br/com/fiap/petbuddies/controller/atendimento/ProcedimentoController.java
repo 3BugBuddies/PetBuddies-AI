@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/procedimentos")
+@RequestMapping("/api/procedimento")
 @Tag(name = "registro — procedimentos", description = "Vacina, exame ou cirurgia executados num atendimento")
 public class ProcedimentoController {
 

@@ -25,7 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/motor/planos")
+@RequestMapping("/api/motor/plano")
 @Tag(name = "motor — planos", description = "Instanciação e consulta de planos de cuidado preventivo e pós-cirúrgico")
 public class MotorPlanoController {
 

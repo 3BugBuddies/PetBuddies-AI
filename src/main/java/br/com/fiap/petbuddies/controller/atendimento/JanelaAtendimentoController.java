@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/janelas-atendimento")
+@RequestMapping("/api/janela-atendimento")
 @Tag(name = "registro — janelas de atendimento", description = "Agenda do veterinário: slots de 30 minutos, livres ou reservados por uma consulta")
 public class JanelaAtendimentoController {
 
