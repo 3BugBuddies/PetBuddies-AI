@@ -1,8 +1,9 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.CategoriaPlano;
-import br.com.fiap.petbuddies.domain.enums.StatusPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,10 @@ import java.util.List;
  */
 @Entity
 @Table(name = "T_PB_PLANO_CUIDADO")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlanoCuidadoEntity {
 
     @Id
@@ -49,9 +54,11 @@ public class PlanoCuidadoEntity {
     private StatusPlano status = StatusPlano.ATIVO;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "plano", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -62,29 +69,4 @@ public class PlanoCuidadoEntity {
 
     @PreUpdate
     private void preUpdate() { updatedAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long animalId) { this.animalId = animalId; }
-
-    public Long getConsultaId() { return consultaId; }
-    public void setConsultaId(Long consultaId) { this.consultaId = consultaId; }
-
-    public Long getProtocoloId() { return protocoloId; }
-    public void setProtocoloId(Long protocoloId) { this.protocoloId = protocoloId; }
-
-    public CategoriaPlano getCategoria() { return categoria; }
-    public void setCategoria(CategoriaPlano categoria) { this.categoria = categoria; }
-
-    public StatusPlano getStatus() { return status; }
-    public void setStatus(StatusPlano status) { this.status = status; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-
-    public List<ItemPlanoCuidadoEntity> getItens() { return itens; }
-    public void setItens(List<ItemPlanoCuidadoEntity> itens) { this.itens = itens; }
 }

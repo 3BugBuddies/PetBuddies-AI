@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.security;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
-import br.com.fiap.petbuddies.domain.enums.PerfilUsuario;
+import br.com.fiap.petbuddies.domain.enums.identidade.PerfilUsuario;
 import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

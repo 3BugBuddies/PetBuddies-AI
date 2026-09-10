@@ -1,10 +1,11 @@
 package br.com.fiap.petbuddies.domain.entity;
 
-import br.com.fiap.petbuddies.domain.enums.OperadorRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoAcaoRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
@@ -23,6 +24,10 @@ import java.time.LocalDateTime;
 @Entity
 @Immutable
 @Table(name = "T_PB_REGRA_PRESCRICAO")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegraPrescricaoEntity {
 
     @Id
@@ -65,45 +70,13 @@ public class RegraPrescricaoEntity {
     private Integer ordem;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
     private void prePersist() { createdAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public PrescricaoEntity getPrescricao() { return prescricao; }
-    public void setPrescricao(PrescricaoEntity prescricao) { this.prescricao = prescricao; }
-
-    public CondicaoClinicaEntity getCondicaoClinica() { return condicaoClinica; }
-    public void setCondicaoClinica(CondicaoClinicaEntity condicaoClinica) { this.condicaoClinica = condicaoClinica; }
-
-    public String getRotuloCongelado() { return rotuloCongelado; }
-    public void setRotuloCongelado(String rotuloCongelado) { this.rotuloCongelado = rotuloCongelado; }
-
-    public TipoDado getTipoDadoCongelado() { return tipoDadoCongelado; }
-    public void setTipoDadoCongelado(TipoDado tipoDadoCongelado) { this.tipoDadoCongelado = tipoDadoCongelado; }
-
-    public TipoFonteValor getFonteValorCongelada() { return fonteValorCongelada; }
-    public void setFonteValorCongelada(TipoFonteValor fonteValorCongelada) { this.fonteValorCongelada = fonteValorCongelada; }
-
-    public OperadorRegra getOperador() { return operador; }
-    public void setOperador(OperadorRegra operador) { this.operador = operador; }
-
-    public BigDecimal getLimite() { return limite; }
-    public void setLimite(BigDecimal limite) { this.limite = limite; }
-
-    public TipoAcaoRegra getAcaoDose() { return acaoDose; }
-    public void setAcaoDose(TipoAcaoRegra acaoDose) { this.acaoDose = acaoDose; }
-
-    public Integer getOrdem() { return ordem; }
-    public void setOrdem(Integer ordem) { this.ordem = ordem; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

@@ -1,10 +1,10 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.CondicaoClinicaController;
-import br.com.fiap.petbuddies.controller.PrescricaoController;
-import br.com.fiap.petbuddies.controller.RegraPrescricaoController;
+import br.com.fiap.petbuddies.controller.atendimento.CondicaoClinicaController;
+import br.com.fiap.petbuddies.controller.prescricao.PrescricaoController;
+import br.com.fiap.petbuddies.controller.prescricao.RegraPrescricaoController;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
-import br.com.fiap.petbuddies.dto.RegraPrescricaoResponse;
+import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

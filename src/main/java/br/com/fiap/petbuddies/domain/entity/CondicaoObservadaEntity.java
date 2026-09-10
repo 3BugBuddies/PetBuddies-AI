@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.type.NumericBooleanConverter;
 
@@ -23,6 +24,10 @@ import java.time.LocalDateTime;
 @Entity
 @Immutable
 @Table(name = "T_PB_CONDICAO_OBSERVADA")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CondicaoObservadaEntity {
 
     @Id
@@ -56,36 +61,13 @@ public class CondicaoObservadaEntity {
     private BigDecimal confianca;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
     private void prePersist() { createdAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public CheckinEntity getCheckin() { return checkin; }
-    public void setCheckin(CheckinEntity checkin) { this.checkin = checkin; }
-
-    public CondicaoClinicaEntity getCondicaoClinica() { return condicaoClinica; }
-    public void setCondicaoClinica(CondicaoClinicaEntity condicaoClinica) { this.condicaoClinica = condicaoClinica; }
-
-    public String getCodigoCongelado() { return codigoCongelado; }
-    public void setCodigoCongelado(String codigoCongelado) { this.codigoCongelado = codigoCongelado; }
-
-    public Boolean getValorBooleano() { return valorBooleano; }
-    public void setValorBooleano(Boolean valorBooleano) { this.valorBooleano = valorBooleano; }
-
-    public BigDecimal getValorNumerico() { return valorNumerico; }
-    public void setValorNumerico(BigDecimal valorNumerico) { this.valorNumerico = valorNumerico; }
-
-    public BigDecimal getConfianca() { return confianca; }
-    public void setConfianca(BigDecimal confianca) { this.confianca = confianca; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

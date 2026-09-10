@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
@@ -16,6 +17,10 @@ import java.time.LocalDateTime;
 @Entity
 @Immutable
 @Table(name = "T_PB_PRESCRICAO")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PrescricaoEntity {
 
     @Id
@@ -69,57 +74,13 @@ public class PrescricaoEntity {
     private RegistroAtendimentoEntity registroAtendimento;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
     private void prePersist() { createdAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getMedicamento() { return medicamento; }
-    public void setMedicamento(String medicamento) { this.medicamento = medicamento; }
-
-    public BigDecimal getDoseMin() { return doseMin; }
-    public void setDoseMin(BigDecimal doseMin) { this.doseMin = doseMin; }
-
-    public BigDecimal getDoseMax() { return doseMax; }
-    public void setDoseMax(BigDecimal doseMax) { this.doseMax = doseMax; }
-
-    public String getUnidade() { return unidade; }
-    public void setUnidade(String unidade) { this.unidade = unidade; }
-
-    public Integer getFrequenciaDia() { return frequenciaDia; }
-    public void setFrequenciaDia(Integer frequenciaDia) { this.frequenciaDia = frequenciaDia; }
-
-    public Integer getDuracaoDias() { return duracaoDias; }
-    public void setDuracaoDias(Integer duracaoDias) { this.duracaoDias = duracaoDias; }
-
-    public LocalDate getDataInicio() { return dataInicio; }
-    public void setDataInicio(LocalDate dataInicio) { this.dataInicio = dataInicio; }
-
-    public String getOrientacao() { return orientacao; }
-    public void setOrientacao(String orientacao) { this.orientacao = orientacao; }
-
-    public Long getMaterialOrigemId() { return materialOrigemId; }
-    public void setMaterialOrigemId(Long materialOrigemId) { this.materialOrigemId = materialOrigemId; }
-
-    public Integer getVersaoOrigem() { return versaoOrigem; }
-    public void setVersaoOrigem(Integer versaoOrigem) { this.versaoOrigem = versaoOrigem; }
-
-    public AnimalEntity getAnimal() { return animal; }
-    public void setAnimal(AnimalEntity animal) { this.animal = animal; }
-
-    public VeterinarioEntity getVeterinario() { return veterinario; }
-    public void setVeterinario(VeterinarioEntity veterinario) { this.veterinario = veterinario; }
-
-    public RegistroAtendimentoEntity getRegistroAtendimento() { return registroAtendimento; }
-    public void setRegistroAtendimento(RegistroAtendimentoEntity registroAtendimento) { this.registroAtendimento = registroAtendimento; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

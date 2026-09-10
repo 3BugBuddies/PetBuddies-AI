@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.domain.repository;
 
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
-import br.com.fiap.petbuddies.domain.enums.CategoriaPlano;
-import br.com.fiap.petbuddies.domain.enums.StatusPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

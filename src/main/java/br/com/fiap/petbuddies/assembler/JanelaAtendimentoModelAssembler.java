@@ -1,10 +1,10 @@
 package br.com.fiap.petbuddies.assembler;
 
-import br.com.fiap.petbuddies.controller.ConsultaController;
-import br.com.fiap.petbuddies.controller.JanelaAtendimentoController;
-import br.com.fiap.petbuddies.controller.VeterinarioController;
+import br.com.fiap.petbuddies.controller.atendimento.ConsultaController;
+import br.com.fiap.petbuddies.controller.atendimento.JanelaAtendimentoController;
+import br.com.fiap.petbuddies.controller.cadastro.VeterinarioController;
 import br.com.fiap.petbuddies.domain.entity.JanelaAtendimentoEntity;
-import br.com.fiap.petbuddies.dto.JanelaAtendimentoResponse;
+import br.com.fiap.petbuddies.dto.atendimento.JanelaAtendimentoResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

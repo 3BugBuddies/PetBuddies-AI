@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
-import br.com.fiap.petbuddies.dto.ClinicaRequest;
-import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.service.ClinicaService;
+import br.com.fiap.petbuddies.dto.cadastro.ClinicaRequest;
+import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.service.cadastro.ClinicaService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.stereotype.Controller;

@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,6 +11,10 @@ import java.time.LocalDateTime;
         name = "UK_JANELA_VET_INICIO",
         columnNames = {"ID_VETERINARIO", "DH_DATA_HORA_INICIO"})
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class JanelaAtendimentoEntity {
 
     @Id
@@ -31,9 +36,11 @@ public class JanelaAtendimentoEntity {
     private ConsultaEntity consulta;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -41,20 +48,4 @@ public class JanelaAtendimentoEntity {
 
     @PreUpdate
     private void preUpdate() { updatedAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public LocalDateTime getDataHoraInicio() { return dataHoraInicio; }
-    public void setDataHoraInicio(LocalDateTime dataHoraInicio) { this.dataHoraInicio = dataHoraInicio; }
-
-    public VeterinarioEntity getVeterinario() { return veterinario; }
-    public void setVeterinario(VeterinarioEntity veterinario) { this.veterinario = veterinario; }
-
-    public ConsultaEntity getConsulta() { return consulta; }
-    public void setConsulta(ConsultaEntity consulta) { this.consulta = consulta; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

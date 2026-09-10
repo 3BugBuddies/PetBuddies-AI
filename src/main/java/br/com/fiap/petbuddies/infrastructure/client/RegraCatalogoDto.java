@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.infrastructure.client;
 
-import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
-import br.com.fiap.petbuddies.domain.enums.TipoDataBase;
-import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoCuidado;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoDataBase;
+import br.com.fiap.petbuddies.domain.enums.cuidado.UnidadeTempo;
 
 /**
  * Molde de item, como o .NET devolve dentro de {@link ProtocoloCatalogoDto}.

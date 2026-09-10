@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.infrastructure.client;
 
-import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
-import br.com.fiap.petbuddies.domain.enums.Especie;
+import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 
 import java.time.LocalDateTime;
 import java.util.List;

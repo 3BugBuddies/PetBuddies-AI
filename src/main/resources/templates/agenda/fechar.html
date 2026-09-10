@@ -14,13 +14,138 @@
             <span th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span> —
             status atual <span class="selo" th:text="${consulta.status}">AGENDADA</span>.
         </p>
-        <p class="mensagem-aviso">
-            Esta tela ainda não grava o fechamento do atendimento: o registro da prescrição e a
-            mudança de status para REALIZADA estão em construção. O formulário completo entra
-            aqui em breve.
-        </p>
-        <a class="botao secundario" th:href="@{/agenda}">Voltar para a agenda</a>
     </section>
+
+    <form class="formulario" method="post" th:action="@{/agenda/{id}/fechar(id=${consulta.id})}"
+          th:object="${fechamentoRequest}">
+
+        <h2>Registro do atendimento</h2>
+
+        <label for="dataAtendimento">Data do atendimento</label>
+        <input id="dataAtendimento" type="datetime-local" th:field="*{registroAtendimento.dataAtendimento}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.dataAtendimento')}"
+             th:errors="*{registroAtendimento.dataAtendimento}">erro</div>
+
+        <label for="anamnese">Anamnese</label>
+        <textarea id="anamnese" rows="3" th:field="*{registroAtendimento.anamnese}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.anamnese')}"
+             th:errors="*{registroAtendimento.anamnese}">erro</div>
+
+        <label for="diagnostico">Diagnóstico</label>
+        <textarea id="diagnostico" rows="3" th:field="*{registroAtendimento.diagnostico}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.diagnostico')}"
+             th:errors="*{registroAtendimento.diagnostico}">erro</div>
+
+        <label for="tratamento">Tratamento</label>
+        <textarea id="tratamento" rows="3" th:field="*{registroAtendimento.tratamento}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.tratamento')}"
+             th:errors="*{registroAtendimento.tratamento}">erro</div>
+
+        <label for="observacaoRegistro">Observação</label>
+        <textarea id="observacaoRegistro" rows="2" th:field="*{registroAtendimento.observacao}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.observacao')}"
+             th:errors="*{registroAtendimento.observacao}">erro</div>
+
+        <label for="proximoRetorno">Próximo retorno</label>
+        <input id="proximoRetorno" type="date" th:field="*{registroAtendimento.proximoRetorno}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.proximoRetorno')}"
+             th:errors="*{registroAtendimento.proximoRetorno}">erro</div>
+
+        <label for="proximaVacina">Próxima vacina</label>
+        <input id="proximaVacina" type="date" th:field="*{registroAtendimento.proximaVacina}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.proximaVacina')}"
+             th:errors="*{registroAtendimento.proximaVacina}">erro</div>
+
+        <h2>Procedimento realizado</h2>
+
+        <label for="procedimentoTipo">Tipo</label>
+        <select id="procedimentoTipo" th:field="*{procedimentos[0].tipo}">
+            <option value="">Selecione</option>
+            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.TipoProcedimento).values()}"
+                    th:value="${valor}" th:text="${valor}">EXAME_LABORATORIAL</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].tipo')}"
+             th:errors="*{procedimentos[0].tipo}">erro</div>
+
+        <label for="procedimentoNome">Nome</label>
+        <input id="procedimentoNome" type="text" th:field="*{procedimentos[0].nome}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].nome')}"
+             th:errors="*{procedimentos[0].nome}">erro</div>
+
+        <label for="procedimentoDescricao">Descrição</label>
+        <textarea id="procedimentoDescricao" rows="2" th:field="*{procedimentos[0].descricao}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].descricao')}"
+             th:errors="*{procedimentos[0].descricao}">erro</div>
+
+        <label for="procedimentoInicio">Data prevista de início</label>
+        <input id="procedimentoInicio" type="datetime-local" th:field="*{procedimentos[0].dataPrevistaInicio}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].dataPrevistaInicio')}"
+             th:errors="*{procedimentos[0].dataPrevistaInicio}">erro</div>
+
+        <label for="procedimentoFim">Data prevista de fim</label>
+        <input id="procedimentoFim" type="datetime-local" th:field="*{procedimentos[0].dataPrevistaFim}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].dataPrevistaFim')}"
+             th:errors="*{procedimentos[0].dataPrevistaFim}">erro</div>
+
+        <label for="procedimentoAnexos">URL dos anexos</label>
+        <input id="procedimentoAnexos" type="text" th:field="*{procedimentos[0].anexosUrl}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].anexosUrl')}"
+             th:errors="*{procedimentos[0].anexosUrl}">erro</div>
+
+        <label for="procedimentoObservacao">Observação</label>
+        <textarea id="procedimentoObservacao" rows="2" th:field="*{procedimentos[0].observacao}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].observacao')}"
+             th:errors="*{procedimentos[0].observacao}">erro</div>
+
+        <h2>Prescrição</h2>
+
+        <label for="prescricaoMedicamento">Medicamento</label>
+        <input id="prescricaoMedicamento" type="text" th:field="*{prescricoes[0].medicamento}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].medicamento')}"
+             th:errors="*{prescricoes[0].medicamento}">erro</div>
+
+        <label for="prescricaoDoseMin">Dose mínima</label>
+        <input id="prescricaoDoseMin" type="number" step="0.001" min="0" th:field="*{prescricoes[0].doseMin}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].doseMin')}"
+             th:errors="*{prescricoes[0].doseMin}">erro</div>
+
+        <label for="prescricaoDoseMax">Dose máxima</label>
+        <input id="prescricaoDoseMax" type="number" step="0.001" min="0" th:field="*{prescricoes[0].doseMax}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].doseMax')}"
+             th:errors="*{prescricoes[0].doseMax}">erro</div>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].faixaDoseValida')}"
+             th:errors="*{prescricoes[0].faixaDoseValida}">erro</div>
+
+        <label for="prescricaoUnidade">Unidade</label>
+        <input id="prescricaoUnidade" type="text" th:field="*{prescricoes[0].unidade}" placeholder="mg/kg"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].unidade')}"
+             th:errors="*{prescricoes[0].unidade}">erro</div>
+
+        <label for="prescricaoFrequencia">Frequência ao dia</label>
+        <input id="prescricaoFrequencia" type="number" min="1" max="99" th:field="*{prescricoes[0].frequenciaDia}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].frequenciaDia')}"
+             th:errors="*{prescricoes[0].frequenciaDia}">erro</div>
+
+        <label for="prescricaoDuracao">Duração em dias</label>
+        <input id="prescricaoDuracao" type="number" min="1" max="9999" th:field="*{prescricoes[0].duracaoDias}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].duracaoDias')}"
+             th:errors="*{prescricoes[0].duracaoDias}">erro</div>
+
+        <label for="prescricaoDataInicio">Data de início</label>
+        <input id="prescricaoDataInicio" type="date" th:field="*{prescricoes[0].dataInicio}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].dataInicio')}"
+             th:errors="*{prescricoes[0].dataInicio}">erro</div>
+
+        <label for="prescricaoOrientacao">Orientação</label>
+        <textarea id="prescricaoOrientacao" rows="2" th:field="*{prescricoes[0].orientacao}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].orientacao')}"
+             th:errors="*{prescricoes[0].orientacao}">erro</div>
+
+        <div class="acoes-formulario">
+            <button type="submit">Fechar atendimento</button>
+            <a class="botao secundario" th:href="@{/agenda}">Cancelar</a>
+        </div>
+    </form>
 </main>
 </body>
 </html>
