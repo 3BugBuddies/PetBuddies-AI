@@ -3,10 +3,15 @@ package br.com.fiap.petbuddies.domain.entity;
 import br.com.fiap.petbuddies.domain.enums.StatusConsulta;
 import br.com.fiap.petbuddies.domain.enums.TipoConsulta;
 import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "T_PB_CONSULTA")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ConsultaEntity {
 
     @Id
@@ -40,9 +45,11 @@ public class ConsultaEntity {
     private VeterinarioEntity veterinario;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -50,32 +57,4 @@ public class ConsultaEntity {
 
     @PreUpdate
     private void preUpdate() { updatedAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public TipoConsulta getTipo() { return tipo; }
-    public void setTipo(TipoConsulta tipo) { this.tipo = tipo; }
-
-    public LocalDateTime getDataHora() { return dataHora; }
-    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
-
-    public StatusConsulta getStatus() { return status; }
-    public void setStatus(StatusConsulta status) { this.status = status; }
-
-    public String getObservacao() { return observacao; }
-    public void setObservacao(String observacao) { this.observacao = observacao; }
-
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
-
-    public AnimalEntity getAnimal() { return animal; }
-    public void setAnimal(AnimalEntity animal) { this.animal = animal; }
-
-    public VeterinarioEntity getVeterinario() { return veterinario; }
-    public void setVeterinario(VeterinarioEntity veterinario) { this.veterinario = veterinario; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

@@ -4,6 +4,7 @@ import br.com.fiap.petbuddies.domain.enums.Especie;
 import br.com.fiap.petbuddies.domain.enums.Porte;
 import br.com.fiap.petbuddies.domain.enums.Sexo;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.type.NumericBooleanConverter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +12,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "T_PB_ANIMAL")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AnimalEntity {
 
     @Id
@@ -66,9 +71,11 @@ public class AnimalEntity {
     private ResponsavelEntity responsavel;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -76,50 +83,4 @@ public class AnimalEntity {
 
     @PreUpdate
     private void preUpdate() { updatedAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public Especie getEspecie() { return especie; }
-    public void setEspecie(Especie especie) { this.especie = especie; }
-
-    public String getRaca() { return raca; }
-    public void setRaca(String raca) { this.raca = raca; }
-
-    public Porte getPorte() { return porte; }
-    public void setPorte(Porte porte) { this.porte = porte; }
-
-    public Sexo getSexo() { return sexo; }
-    public void setSexo(Sexo sexo) { this.sexo = sexo; }
-
-    public LocalDate getDataNascimento() { return dataNascimento; }
-    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
-
-    public BigDecimal getPeso() { return peso; }
-    public void setPeso(BigDecimal peso) { this.peso = peso; }
-
-    public boolean isCondicaoCronica() { return condicaoCronica; }
-    public void setCondicaoCronica(boolean condicaoCronica) { this.condicaoCronica = condicaoCronica; }
-
-    public boolean isCastrado() { return castrado; }
-    public void setCastrado(boolean castrado) { this.castrado = castrado; }
-
-    public String getFoto() { return foto; }
-    public void setFoto(String foto) { this.foto = foto; }
-
-    public String getAlergias() { return alergias; }
-    public void setAlergias(String alergias) { this.alergias = alergias; }
-
-    public String getObservacoes() { return observacoes; }
-    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
-
-    public ResponsavelEntity getResponsavel() { return responsavel; }
-    public void setResponsavel(ResponsavelEntity responsavel) { this.responsavel = responsavel; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

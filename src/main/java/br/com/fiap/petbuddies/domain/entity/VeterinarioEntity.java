@@ -1,11 +1,16 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.type.NumericBooleanConverter;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "T_PB_VETERINARIO")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class VeterinarioEntity {
 
     @Id
@@ -33,9 +38,11 @@ public class VeterinarioEntity {
     private ClinicaEntity clinica;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -43,26 +50,4 @@ public class VeterinarioEntity {
 
     @PreUpdate
     private void preUpdate() { updatedAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getCrmv() { return crmv; }
-    public void setCrmv(String crmv) { this.crmv = crmv; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public boolean isAtivo() { return ativo; }
-    public void setAtivo(boolean ativo) { this.ativo = ativo; }
-
-    public ClinicaEntity getClinica() { return clinica; }
-    public void setClinica(ClinicaEntity clinica) { this.clinica = clinica; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
