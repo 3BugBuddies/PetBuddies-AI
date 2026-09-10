@@ -4,7 +4,12 @@ import br.com.fiap.petbuddies.dto.ItemPlanoCuidadoDto;
 import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.PlanoResponse;
+import br.com.fiap.petbuddies.dto.ProtocoloAplicadoResponse;
+import br.com.fiap.petbuddies.dto.SugestaoCuidadoDto;
 import br.com.fiap.petbuddies.assembler.PlanoModelAssembler;
+import br.com.fiap.petbuddies.assembler.ProtocoloAplicadoModelAssembler;
+import br.com.fiap.petbuddies.assembler.SugestaoCuidadoModelAssembler;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import br.com.fiap.petbuddies.service.MotorPlanoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,10 +31,16 @@ public class MotorPlanoController {
 
     private final MotorPlanoService motorPlanoService;
     private final PlanoModelAssembler assembler;
+    private final ProtocoloAplicadoModelAssembler protocoloAplicadoAssembler;
+    private final SugestaoCuidadoModelAssembler sugestaoAssembler;
 
-    public MotorPlanoController(MotorPlanoService motorPlanoService, PlanoModelAssembler assembler) {
+    public MotorPlanoController(MotorPlanoService motorPlanoService, PlanoModelAssembler assembler,
+                                 ProtocoloAplicadoModelAssembler protocoloAplicadoAssembler,
+                                 SugestaoCuidadoModelAssembler sugestaoAssembler) {
         this.motorPlanoService = motorPlanoService;
         this.assembler = assembler;
+        this.protocoloAplicadoAssembler = protocoloAplicadoAssembler;
+        this.sugestaoAssembler = sugestaoAssembler;
     }
 
     @PostMapping("/instanciar-preventivo")
@@ -88,5 +99,31 @@ public class MotorPlanoController {
             @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId,
             @ParameterObject Pageable pageable) {
         return motorPlanoService.listarEventos(animalId, pageable);
+    }
+
+    @GetMapping("/{animalId}/protocolo-aplicado")
+    @Operation(
+        summary = "Protocolo aplicado",
+        description = "O que o protocolo já produziu no animal: os planos nascidos de molde do catálogo, "
+            + "com os itens separados em realizados, pendentes e vencidos. Leitura 100% local — não depende "
+            + "do catálogo do .NET estar no ar. Lista vazia quando o animal não tem plano com protocolo."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista de planos com protocolo, mesmo vazia")
+    public CollectionModel<EntityModel<ProtocoloAplicadoResponse>> protocoloAplicado(
+            @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId) {
+        return protocoloAplicadoAssembler.toCollectionModel(motorPlanoService.buscarProtocoloAplicado(animalId));
+    }
+
+    @GetMapping("/{animalId}/sugestoes")
+    @Operation(
+        summary = "Sugestão por histórico",
+        description = "Próximo cuidado a partir do que o animal já recebeu: reforço vencido (leitura local), "
+            + "recorrência devida e nunca-realizado (dependem do catálogo do .NET — somem quando ele está fora do ar). "
+            + "Lista vazia quando não há nada a sugerir."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista de sugestões, mesmo vazia")
+    public CollectionModel<EntityModel<SugestaoCuidadoDto>> sugestoes(
+            @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId) {
+        return sugestaoAssembler.toCollectionModel(motorPlanoService.sugerirPorHistorico(animalId));
     }
 }

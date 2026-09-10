@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
+import br.com.fiap.petbuddies.domain.enums.StatusItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
@@ -28,6 +29,10 @@ public class ItemPlanoCuidadoDto {
     @Schema(description = "ID da prescrição no PetBuddies-API (.NET). Preenchido apenas quando origem = PRESCRICAO")
     private Long prescricaoId;
 
+    @Schema(description = "true quando a data-alvo já passou e o item não foi cumprido (PENDENTE ou ATRASADO). "
+        + "Derivado na leitura: nada no sistema hoje transiciona um item para ATRASADO")
+    private boolean vencido;
+
     public static ItemPlanoCuidadoDto from(ItemPlanoCuidadoEntity e) {
         ItemPlanoCuidadoDto dto = new ItemPlanoCuidadoDto();
         dto.id = e.getId();
@@ -37,7 +42,17 @@ public class ItemPlanoCuidadoDto {
         dto.status = e.getStatus().name();
         dto.origem = e.getOrigem() != null ? e.getOrigem().name() : null;
         dto.prescricaoId = e.getPrescricaoId();
+        dto.vencido = isVencido(e);
         return dto;
+    }
+
+    private static boolean isVencido(ItemPlanoCuidadoEntity e) {
+        if (e.getStatus() == StatusItem.ATRASADO) {
+            return true;
+        }
+        return e.getStatus() == StatusItem.PENDENTE
+            && e.getDataAlvo() != null
+            && e.getDataAlvo().isBefore(LocalDate.now());
     }
 
     public Long getId() { return id; }
@@ -60,4 +75,7 @@ public class ItemPlanoCuidadoDto {
 
     public Long getPrescricaoId() { return prescricaoId; }
     public void setPrescricaoId(Long prescricaoId) { this.prescricaoId = prescricaoId; }
+
+    public boolean isVencido() { return vencido; }
+    public void setVencido(boolean vencido) { this.vencido = vencido; }
 }

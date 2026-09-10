@@ -33,4 +33,10 @@ public interface PlanoCuidadoRepository extends JpaRepository<PlanoCuidadoEntity
             @Param("animalId") Long animalId, @Param("consultaId") Long consultaId);
 
     List<PlanoCuidadoEntity> findByStatus(StatusPlano status);
+
+    // protocolo aplicado (PR-J9): todo plano do animal que nasceu de um molde do
+    // catalogo, de qualquer status — inclui o pos-cirurgico concluido, nao so o ativo.
+    @EntityGraph(attributePaths = "itens")
+    @Query("SELECT p FROM PlanoCuidadoEntity p WHERE p.animalId = :animalId AND p.protocoloId IS NOT NULL ORDER BY p.createdAt DESC")
+    List<PlanoCuidadoEntity> findComProtocoloPorAnimal(@Param("animalId") Long animalId);
 }

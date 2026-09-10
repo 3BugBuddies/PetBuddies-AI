@@ -1,21 +1,26 @@
 package br.com.fiap.petbuddies.service;
 
+import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.CategoriaPlano;
 import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.Especie;
+import br.com.fiap.petbuddies.domain.enums.MotivoSugestao;
 import br.com.fiap.petbuddies.domain.enums.StatusItem;
 import br.com.fiap.petbuddies.domain.enums.StatusPlano;
+import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.TipoDataBase;
 import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
+import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
 import br.com.fiap.petbuddies.dto.ItemPlanoCuidadoDto;
 import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.PlanoResponse;
+import br.com.fiap.petbuddies.dto.SugestaoCuidadoDto;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
@@ -30,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MotorPlanoService {
@@ -40,13 +46,16 @@ public class MotorPlanoService {
     private final PlanoCuidadoRepository planoRepository;
     private final ItemPlanoCuidadoRepository itemRepository;
     private final ProtocoloClient protocoloClient;
+    private final AnimalRepository animalRepository;
 
     public MotorPlanoService(PlanoCuidadoRepository planoRepository,
                              ItemPlanoCuidadoRepository itemRepository,
-                             ProtocoloClient protocoloClient) {
+                             ProtocoloClient protocoloClient,
+                             AnimalRepository animalRepository) {
         this.planoRepository = planoRepository;
         this.itemRepository = itemRepository;
         this.protocoloClient = protocoloClient;
+        this.animalRepository = animalRepository;
     }
 
     /**
@@ -120,6 +129,121 @@ public class MotorPlanoService {
         return itemRepository
                 .findEventosPorAnimal(animalId, pageable)
                 .map(ItemPlanoCuidadoDto::from);
+    }
+
+    /**
+     * O que o protocolo já produziu no animal: os planos com molde, e seus itens
+     * separados em realizados, pendentes e vencidos. Leitura 100% local — nenhuma
+     * chamada ao catálogo do .NET. É o que garante que a leitura de um plano já
+     * materializado funciona inteira mesmo com o catálogo fora do ar.
+     */
+    @Transactional(readOnly = true)
+    public List<PlanoCuidadoEntity> buscarProtocoloAplicado(Long animalId) {
+        return planoRepository.findComProtocoloPorAnimal(animalId);
+    }
+
+    /**
+     * Sugestão por histórico (PR-J9): reforço vencido é leitura local; recorrência
+     * devida e nunca-realizado dependem do catálogo do .NET, e por isso somem
+     * quando ele está fora do ar — a mesma degradação de {@link #protocoloAplicavel}.
+     *
+     * <p>Sem {@code @Transactional} de propósito, pelo mesmo motivo do javadoc de
+     * {@link #instanciarPreventivo(PlanoPreventivoRequest)}: há uma chamada HTTP
+     * no meio, entre duas leituras curtas de banco.</p>
+     */
+    public List<SugestaoCuidadoDto> sugerirPorHistorico(Long animalId) {
+        List<SugestaoCuidadoDto> sugestoes = new ArrayList<>();
+
+        itemRepository.findVencidosPorAnimal(animalId, TipoOrigemItem.PROTOCOLO,
+                        List.of(StatusItem.PENDENTE, StatusItem.ATRASADO), LocalDate.now())
+                .forEach(item -> sugestoes.add(SugestaoCuidadoDto.reforcoVencido(
+                        animalId, item.getId(), item.getTipo(), item.getNome(), item.getDataAlvo())));
+
+        sugestoes.addAll(sugerirPorRecorrencia(animalId));
+
+        sugestoes.sort(Comparator.comparing(
+                SugestaoCuidadoDto::getDataVencimento, Comparator.nullsLast(Comparator.naturalOrder())));
+        return sugestoes;
+    }
+
+    /**
+     * A metade que depende do catálogo: regras do protocolo preventivo ativo
+     * ancoradas em {@code ULTIMA_REALIZACAO}. O pós-cirúrgico fica fora — pela
+     * tabela do ADR s3-24 §2, ele é sempre âncora {@code DATA_CIRURGIA}, ocorrência
+     * única, sem recorrência para sugerir.
+     */
+    private List<SugestaoCuidadoDto> sugerirPorRecorrencia(Long animalId) {
+        Optional<PlanoCuidadoEntity> planoAtivo = planoRepository.findPlanoAtivoPorCategoria(
+                animalId, StatusPlano.ATIVO, CategoriaPlano.PREVENTIVO);
+        if (planoAtivo.isEmpty()) {
+            return List.of();
+        }
+
+        Optional<AnimalEntity> animal = animalRepository.findById(animalId);
+        if (animal.isEmpty()) {
+            return List.of();
+        }
+
+        PlanoCuidadoEntity plano = planoAtivo.get();
+        List<ProtocoloCatalogoDto> catalogo = protocoloClient.buscar(
+                CategoriaProtocolo.valueOf(plano.getCategoria().name()), animal.get().getEspecie());
+
+        Optional<ProtocoloCatalogoDto> protocoloAplicado = catalogo.stream()
+                .filter(p -> p.id().equals(plano.getProtocoloId()))
+                .findFirst();
+        if (protocoloAplicado.isEmpty()) {
+            return List.of(); // catalogo fora do ar, ou protocolo nao esta mais no ativo — nada a sugerir
+        }
+
+        List<RegraCatalogoDto> regrasPorHistorico = protocoloAplicado.get().regras().stream()
+                .filter(r -> r.dataBase() == TipoDataBase.ULTIMA_REALIZACAO)
+                .collect(Collectors.toList());
+        if (regrasPorHistorico.isEmpty()) {
+            return List.of();
+        }
+
+        List<TipoCuidado> tipos = regrasPorHistorico.stream()
+                .map(RegraCatalogoDto::tipo)
+                .distinct()
+                .collect(Collectors.toList());
+        List<ItemPlanoCuidadoEntity> historico = itemRepository.findHistoricoPorTipos(animalId, tipos);
+
+        List<SugestaoCuidadoDto> sugestoes = new ArrayList<>();
+        LocalDate hoje = LocalDate.now();
+        for (RegraCatalogoDto regra : regrasPorHistorico) {
+            List<ItemPlanoCuidadoEntity> itensDoTipo = historico.stream()
+                    .filter(e -> e.getTipo() == regra.tipo())
+                    .collect(Collectors.toList());
+
+            boolean jaAgendado = itensDoTipo.stream()
+                    .anyMatch(e -> e.getStatus() == StatusItem.PENDENTE
+                            && e.getDataAlvo() != null && !e.getDataAlvo().isBefore(hoje));
+            if (jaAgendado) {
+                continue; // ja existe ocorrencia futura em aberto — nao duplica sugestao
+            }
+
+            Optional<ItemPlanoCuidadoEntity> ultimoRealizado = itensDoTipo.stream()
+                    .filter(e -> e.getStatus() == StatusItem.REALIZADO)
+                    .max(Comparator.comparing(MotorPlanoService::dataDeReferencia));
+
+            if (ultimoRealizado.isEmpty()) {
+                sugestoes.add(SugestaoCuidadoDto.porHistoricoDeTipo(
+                        animalId, regra.tipo(), regra.nome(), null, MotivoSugestao.NUNCA_REALIZADO));
+                continue;
+            }
+
+            LocalDate proxima = somar(dataDeReferencia(ultimoRealizado.get()), regra.offset(), regra.unidadeOffset());
+            if (!proxima.isAfter(hoje)) {
+                sugestoes.add(SugestaoCuidadoDto.porHistoricoDeTipo(
+                        animalId, regra.tipo(), regra.nome(), proxima, MotivoSugestao.RECORRENCIA_DEVIDA));
+            }
+        }
+        return sugestoes;
+    }
+
+    /** Data do "ultima vez que aconteceu": a execucao, quando existe, senao a data-alvo. */
+    private static LocalDate dataDeReferencia(ItemPlanoCuidadoEntity item) {
+        return item.getExecutadoEm() != null ? item.getExecutadoEm().toLocalDate() : item.getDataAlvo();
     }
 
     @Transactional
