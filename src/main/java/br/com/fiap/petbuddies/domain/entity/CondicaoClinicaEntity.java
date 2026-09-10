@@ -3,6 +3,7 @@ package br.com.fiap.petbuddies.domain.entity;
 import br.com.fiap.petbuddies.domain.enums.TipoDado;
 import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
 import jakarta.persistence.*;
+import org.hibernate.type.NumericBooleanConverter;
 import java.time.LocalDateTime;
 
 // UK_CONDICAO_CLINICA_CODIGO (ID_CLINICA, CD_CODIGO): o código é único dentro
@@ -39,9 +40,13 @@ public class CondicaoClinicaEntity {
     private String unidade;
 
     @Column(name = "FL_CRITICA", nullable = false)
+
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean critica;
 
     @Column(name = "AT_ATIVO", nullable = false)
+
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean ativo = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

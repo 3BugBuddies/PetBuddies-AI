@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.type.NumericBooleanConverter;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,6 +24,8 @@ public class VeterinarioEntity {
     private String email;
 
     @Column(name = "AT_ATIVO", nullable = false)
+
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean ativo = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
