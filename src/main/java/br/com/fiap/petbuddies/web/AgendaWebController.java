@@ -61,6 +61,7 @@ public class AgendaWebController {
         model.addAttribute("nomesAnimais", mapaNomes(animalService.listar(null, null), AnimalEntity::getId, AnimalEntity::getNome));
         model.addAttribute("nomesVeterinarios",
                 mapaNomes(veterinarioService.listar(null), VeterinarioEntity::getId, VeterinarioEntity::getNome));
+        model.addAttribute("statusFechavel", ConsultaService.STATUS_FECHAVEL);
         return "agenda/lista";
     }
 

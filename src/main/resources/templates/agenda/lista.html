@@ -34,7 +34,9 @@
             <td th:text="${consulta.tipo}">ROTINA</td>
             <td><span class="selo" th:text="${consulta.status}">AGENDADA</span></td>
             <td>
-                <a th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
+                <a th:if="${statusFechavel.contains(consulta.status)}"
+                   th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
+                <span th:unless="${statusFechavel.contains(consulta.status)}" class="texto-fraco">—</span>
             </td>
         </tr>
         </tbody>
