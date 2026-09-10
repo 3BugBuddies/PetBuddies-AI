@@ -13,6 +13,7 @@ import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
+import br.com.fiap.petbuddies.service.cuidado.PlanoTratamentoService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,16 +27,19 @@ public class PrescricaoService {
     private final AnimalRepository animalRepository;
     private final VeterinarioRepository veterinarioRepository;
     private final RegistroAtendimentoRepository registroAtendimentoRepository;
+    private final PlanoTratamentoService planoTratamentoService;
 
     public PrescricaoService(
             PrescricaoRepository repository,
             AnimalRepository animalRepository,
             VeterinarioRepository veterinarioRepository,
-            RegistroAtendimentoRepository registroAtendimentoRepository) {
+            RegistroAtendimentoRepository registroAtendimentoRepository,
+            PlanoTratamentoService planoTratamentoService) {
         this.repository = repository;
         this.animalRepository = animalRepository;
         this.veterinarioRepository = veterinarioRepository;
         this.registroAtendimentoRepository = registroAtendimentoRepository;
+        this.planoTratamentoService = planoTratamentoService;
     }
 
     @Transactional(readOnly = true)
@@ -77,6 +81,8 @@ public class PrescricaoService {
         entity.setAnimal(animal);
         entity.setVeterinario(veterinario);
         entity.setRegistroAtendimento(registroAtendimento);
-        return repository.save(entity);
+        entity = repository.save(entity);
+        planoTratamentoService.materializarItens(entity);
+        return entity;
     }
 }

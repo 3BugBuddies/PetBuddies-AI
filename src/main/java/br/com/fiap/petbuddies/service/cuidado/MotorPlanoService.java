@@ -118,10 +118,16 @@ public class MotorPlanoService {
 
     @Transactional(readOnly = true)
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        return planoRepository
-                .findPlanoAtivoPorCategoria(
-                        animalId, StatusPlano.ATIVO, CategoriaPlano.PREVENTIVO)
-                .map(PlanoResponse::from);
+        // A ordem preserva a precedencia anterior: onde havia preventivo, ele continua vindo.
+        for (CategoriaPlano categoria : List.of(
+                CategoriaPlano.PREVENTIVO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.TRATAMENTO)) {
+            Optional<PlanoCuidadoEntity> plano = planoRepository
+                    .findPlanoAtivoPorCategoria(animalId, StatusPlano.ATIVO, categoria);
+            if (plano.isPresent()) {
+                return plano.map(PlanoResponse::from);
+            }
+        }
+        return Optional.empty();
     }
 
     @Transactional(readOnly = true)

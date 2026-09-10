@@ -293,7 +293,7 @@ flowchart LR
     App["App mobile<br/>vet e tutor"] --> Java
     Web["Telas Thymeleaf<br/>8 telas"] --> Java
     Java["petbuddies-ai (Java)<br/>registro, agenda, prescrição, cuidado"]
-    Java -->|"GET /api/protocolos"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
+    Java -->|"GET /api/protocolo"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
     Java --> Gemini["Gemini 2.5 Flash<br/>interpreta narrativa"]
     Java --> Oracle[("Oracle<br/>16 tabelas")]
 ```
@@ -309,13 +309,13 @@ sequenceDiagram
     participant N as PetBuddies-API
     participant DB as Oracle
 
-    V->>J: POST /api/motor/planos/instanciar-preventivo
+    V->>J: POST /api/motor/plano/instanciar-preventivo
     J->>DB: já existe plano ATIVO para o animal?
     alt já existe
         DB-->>J: plano existente
         J-->>V: 200 — devolve o plano (idempotente)
     else não existe
-        J->>N: GET /api/protocolos?especie=&categoria=
+        J->>N: GET /api/protocolo?especie=&categoria=
         N-->>J: protocolos ativos + regras
         J->>DB: grava PLANO_CUIDADO e um ITEM por regra
         J-->>V: 201 — plano com os itens e datas previstas
@@ -333,7 +333,7 @@ sequenceDiagram
     participant G as Gemini
     participant DB as Oracle
 
-    T->>J: POST /api/checkins/extracao — narrativa em texto livre
+    T->>J: POST /api/checkin/extracao — narrativa em texto livre
     J->>DB: condições clínicas do vocabulário da clínica
     J->>G: narrativa + vocabulário (temperature=0)
     G-->>J: condições reconhecidas, com trecho e confiança
@@ -341,7 +341,7 @@ sequenceDiagram
 
     Note over T: o tutor confirma o que reconheceu
 
-    T->>J: POST /api/checkins — condições confirmadas
+    T->>J: POST /api/checkin — condições confirmadas
     J->>DB: grava CHECKIN e CONDICAO_OBSERVADA
     J->>J: motor percorre as regras assinadas da prescrição ativa
     J->>DB: grava o desfecho no ITEM_PLANO_CUIDADO
@@ -388,48 +388,48 @@ Respostas de recurso vêm em envelope HATEOAS (`EntityModel` / `CollectionModel`
 
 | Recurso | Rota base | Métodos |
 |---|---|---|
-| Clínicas | `/api/clinicas` | `GET`, `GET /buscar?cnpj=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Veterinários | `/api/veterinarios` | `GET (?clinicaId=)`, `GET /buscar?crmv=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Responsáveis | `/api/responsaveis` | `GET (?nome=)`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Animais | `/api/animais` | `GET (?responsavelId=&nome=)`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Clínicas | `/api/clinica` | `GET`, `GET /buscar?cnpj=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Veterinários | `/api/veterinario` | `GET (?clinicaId=)`, `GET /buscar?crmv=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Responsáveis | `/api/responsavel` | `GET (?nome=)`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Animais | `/api/animal` | `GET (?responsavelId=&nome=)`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
 
 ### Atendimento
 
 | Recurso | Rota base | Métodos |
 |---|---|---|
-| Consultas | `/api/consultas` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`, `POST /agendamentos`, `POST /{id}/cancelamento`, `POST /{id}/fechamento` |
-| Janelas de atendimento | `/api/janelas-atendimento` | `GET (?veterinarioId=)`, `GET /livres`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Registros de atendimento | `/api/registros-atendimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Procedimentos | `/api/procedimentos` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Condições clínicas | `/api/condicoes-clinicas` | `GET (?clinicaId=)`, `GET /buscar?clinicaId=&codigo=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Consultas | `/api/consulta` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`, `POST /agendamentos`, `POST /{id}/cancelamento`, `POST /{id}/fechamento` |
+| Janelas de atendimento | `/api/janela-atendimento` | `GET (?veterinarioId=)`, `GET /livres`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Registros de atendimento | `/api/registro-atendimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Procedimentos | `/api/procedimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Condições clínicas | `/api/condicao-clinica` | `GET (?clinicaId=)`, `GET /buscar?clinicaId=&codigo=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
 
 ### Prescrição
 
 | Recurso | Rota | Métodos |
 |---|---|---|
-| Prescrições | `/api/prescricoes` | `GET`, `GET /{id}`, `POST` — sem `PUT`/`DELETE`, é ato imutável |
-| Rascunho por IA | `/api/prescricoes/rascunho` | `POST` — interpreta a narrativa da vet e devolve prescrição + regras propostas, sem gravar. Exige `VET` |
-| Regras de prescrição | `/api/regras-prescricao` | `GET`, `GET /{id}`, `POST` — sem `PUT`/`DELETE` |
+| Prescrições | `/api/prescricao` | `GET`, `GET /{id}`, `POST` — sem `PUT`/`DELETE`, é ato imutável |
+| Rascunho por IA | `/api/prescricao/rascunho` | `POST` — interpreta a narrativa da vet e devolve prescrição + regras propostas, sem gravar. Exige `VET` |
+| Regras de prescrição | `/api/regra-prescricao` | `GET`, `GET /{id}`, `POST` — sem `PUT`/`DELETE` |
 
 ### Motor de planos
 
 | Método | Rota | O que faz |
 |---|---|---|
-| `POST` | `/api/motor/planos/instanciar-preventivo` | cria o plano preventivo do animal, ou devolve o existente |
-| `POST` | `/api/motor/planos/instanciar-pos-cirurgico` | idem, para o plano vinculado a uma consulta |
-| `GET` | `/api/motor/planos/{animalId}` | plano `ATIVO` do animal, com os itens pendentes |
-| `GET` | `/api/motor/planos/{animalId}/eventos` | itens do plano, paginado (`?page=&size=`) |
-| `GET` | `/api/motor/planos/{animalId}/protocolo-aplicado` | itens separados em realizados, pendentes e vencidos |
-| `GET` | `/api/motor/planos/{animalId}/sugestoes` | próximo cuidado sugerido pelo histórico do animal |
+| `POST` | `/api/motor/plano/instanciar-preventivo` | cria o plano preventivo do animal, ou devolve o existente |
+| `POST` | `/api/motor/plano/instanciar-pos-cirurgico` | idem, para o plano vinculado a uma consulta |
+| `GET` | `/api/motor/plano/{animalId}` | plano `ATIVO` do animal, com os itens pendentes |
+| `GET` | `/api/motor/plano/{animalId}/eventos` | itens do plano, paginado (`?page=&size=`) |
+| `GET` | `/api/motor/plano/{animalId}/protocolo-aplicado` | itens separados em realizados, pendentes e vencidos |
+| `GET` | `/api/motor/plano/{animalId}/sugestoes` | próximo cuidado sugerido pelo histórico do animal |
 
 ### Check-in
 
 | Método | Rota | O que faz |
 |---|---|---|
-| `POST` | `/api/checkins/extracao` | passo 1 — interpreta a narrativa; não grava |
-| `POST` | `/api/checkins` | passo 2 — grava o confirmado, avalia a regra e grava o desfecho |
-| `GET` | `/api/checkins/{id}` | busca por id |
-| `GET` | `/api/checkins?animalId=` | check-ins do animal, do mais recente ao mais antigo |
+| `POST` | `/api/checkin/extracao` | passo 1 — interpreta a narrativa; não grava |
+| `POST` | `/api/checkin` | passo 2 — grava o confirmado, avalia a regra e grava o desfecho |
+| `GET` | `/api/checkin/{id}` | busca por id |
+| `GET` | `/api/checkin?animalId=` | check-ins do animal, do mais recente ao mais antigo |
 
 ---
 
@@ -440,14 +440,14 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 | Passo | Método | Rota | O que observar |
 |---|---|---|---|
 | 1 | `POST` | `/api/auth/login` | `200` + token; use como Bearer nos passos seguintes |
-| 2 | `POST` | `/api/animais` | `201` — paciente para o responsável do seed (`responsavelId: 1`) |
-| 3 | `POST` | `/api/condicoes-clinicas` | `201` — o vocabulário que o check-in vai avaliar |
-| 4 | `POST` | `/api/janelas-atendimento` | `201` — um slot livre para o veterinário do seed |
-| 5 | `POST` | `/api/consultas/agendamentos` | `201` — ocupa a janela; a consulta nasce `AGENDADA` |
-| 6 | `POST` | `/api/consultas/{id}/fechamento` | `201` — registro, procedimentos e prescrições numa transação; a consulta vira `REALIZADA` |
-| 7 | `POST` | `/api/motor/planos/instanciar-preventivo` | `201` — lê o catálogo do .NET e materializa o plano |
-| 8 | `POST` | `/api/checkins/extracao` | `200` — a IA interpreta a narrativa contra o vocabulário |
-| 9 | `POST` | `/api/checkins` | `201` — o motor decide a dose ou escala à clínica |
+| 2 | `POST` | `/api/animal` | `201` — paciente para o responsável do seed (`responsavelId: 1`) |
+| 3 | `POST` | `/api/condicao-clinica` | `201` — o vocabulário que o check-in vai avaliar |
+| 4 | `POST` | `/api/janela-atendimento` | `201` — um slot livre para o veterinário do seed |
+| 5 | `POST` | `/api/consulta/agendamento` | `201` — ocupa a janela; a consulta nasce `AGENDADA` |
+| 6 | `POST` | `/api/consulta/{id}/fechamento` | `201` — registro, procedimentos e prescrições numa transação; a consulta vira `REALIZADA` |
+| 7 | `POST` | `/api/motor/plano/instanciar-preventivo` | `201` — lê o catálogo do .NET e materializa o plano |
+| 8 | `POST` | `/api/checkin/extracao` | `200` — a IA interpreta a narrativa contra o vocabulário |
+| 9 | `POST` | `/api/checkin` | `201` — o motor decide a dose ou escala à clínica |
 
 > O passo 8 só reconhece condições de uma prescrição ativa. Sem o passo 6, a extração devolve lista vazia — é o escopo do vocabulário funcionando.
 
@@ -457,13 +457,13 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 
 | Situação | Exemplo | Status |
 |---|---|---|
-| Campo obrigatório ausente ou fora de faixa | `POST /api/animais` sem `nome` | `400` |
-| Parâmetro de query obrigatório ausente | `GET /api/checkins` sem `animalId` | `400` |
+| Campo obrigatório ausente ou fora de faixa | `POST /api/animal` sem `nome` | `400` |
+| Parâmetro de query obrigatório ausente | `GET /api/checkin` sem `animalId` | `400` |
 | JSON malformado ou enum inválido | `"especie": "INVALIDO"` | `400` |
-| Faixa de dose invertida | `POST /api/prescricoes` com `doseMin > doseMax` | `400` |
+| Faixa de dose invertida | `POST /api/prescricao` com `doseMin > doseMax` | `400` |
 | Credenciais inválidas | senha errada | `401` — mesma mensagem para login inexistente e usuário inativo |
-| Papel sem permissão | `TUTOR` chamando `POST /api/prescricoes/rascunho` | `403` |
-| Recurso inexistente | `GET /api/animais/999999` | `404` |
+| Papel sem permissão | `TUTOR` chamando `POST /api/prescricao/rascunho` | `403` |
+| Recurso inexistente | `GET /api/animal/999999` | `404` |
 | CNPJ, CRMV ou código duplicado | CNPJ repetido | `409` |
 | Janela ocupada ou consulta já realizada | agendar em janela ocupada | `409` |
 | Check-in duplicado | mesmo animal, data e item | `409` |
@@ -480,7 +480,7 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 
 Importe `docs/postman/petbuddies-ai-java.postman_collection.json`. A coleção traz Bearer no nível da collection (variável `token`) e `baseUrl` em `http://localhost:8080`: faça o login, copie o token para a variável e as pastas seguintes já saem autenticadas.
 
-A coleção ainda não cobre `POST /api/consultas/{id}/cancelamento`, `GET /api/janelas-atendimento/livres`, `GET /api/motor/planos/{animalId}/protocolo-aplicado`, `GET /api/motor/planos/{animalId}/sugestoes`, `POST /api/prescricoes/rascunho` e a pasta de check-in — use o Swagger para essas.
+A coleção ainda não cobre `POST /api/consulta/{id}/cancelamento`, `GET /api/janela-atendimento/livres`, `GET /api/motor/plano/{animalId}/protocolo-aplicado`, `GET /api/motor/plano/{animalId}/sugestoes`, `POST /api/prescricao/rascunho` e a pasta de check-in — use o Swagger para essas.
 
 ---
 
@@ -491,25 +491,25 @@ A coleção ainda não cobre `POST /api/consultas/{id}/cancelamento`, `GET /api/
 { "login": "ana@clinica.com", "senha": "petbuddies123" }
 ```
 
-#### `POST /api/animais`
+#### `POST /api/animal`
 ```json
 { "nome": "Rex", "especie": "CACHORRO", "raca": "Vira-lata", "porte": "MEDIO", "sexo": "MACHO",
   "dataNascimento": "2021-03-15", "peso": 18.5, "castrado": true, "responsavelId": 1 }
 ```
 
-#### `POST /api/motor/planos/instanciar-preventivo`
+#### `POST /api/motor/plano/instanciar-preventivo`
 ```json
 { "animalId": 1, "especie": "CACHORRO", "dataNascimento": "2021-03-15" }
 ```
 
-#### `POST /api/checkins/extracao` — passo 1, interpreta e não grava
+#### `POST /api/checkin/extracao` — passo 1, interpreta e não grava
 ```json
 { "animalId": 1, "narrativa": "Ele comeu bem hoje, mas as fezes estavam mais moles que o normal." }
 ```
 
 A resposta traz `condicoes[]` com `confianca` por item, e `degradado: true` se o modelo falhou.
 
-#### `POST /api/checkins` — passo 2, grava o confirmado
+#### `POST /api/checkin` — passo 2, grava o confirmado
 ```json
 {
   "animalId": 1,
@@ -520,7 +520,7 @@ A resposta traz `condicoes[]` com `confianca` por item, e `degradado: true` se o
 }
 ```
 
-#### `POST /api/consultas/{id}/fechamento`
+#### `POST /api/consulta/{id}/fechamento`
 ```json
 {
   "registroAtendimento": {

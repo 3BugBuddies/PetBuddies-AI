@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * confirmação é o que o guardrail 5 proíbe.
  */
 @RestController
-@RequestMapping("/api/checkins")
+@RequestMapping("/api/checkin")
 @Tag(name = "cuidado — check-in", description = "Check-in narrado do tutor, com extração por IA (ADR s3-13)")
 public class CheckinController {
 

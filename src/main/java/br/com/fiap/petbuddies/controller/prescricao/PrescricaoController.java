@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** Sem PUT nem DELETE: a prescrição é imutável depois de assinada (ADR s3-09). */
 @RestController
-@RequestMapping("/api/prescricoes")
+@RequestMapping("/api/prescricao")
 @Tag(name = "registro — prescrições", description = "O ato assinado pelo veterinário — imutável depois de criado")
 public class PrescricaoController {
 

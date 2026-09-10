@@ -25,6 +25,7 @@ import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoFechamentoReque
 import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoFechamentoRequest;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
+import br.com.fiap.petbuddies.service.cuidado.PlanoTratamentoService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +54,7 @@ public class FechamentoAtendimentoService {
     private final PrescricaoRepository prescricaoRepository;
     private final RegraPrescricaoRepository regraPrescricaoRepository;
     private final CondicaoClinicaRepository condicaoClinicaRepository;
+    private final PlanoTratamentoService planoTratamentoService;
 
     public FechamentoAtendimentoService(
             ConsultaService consultaService,
@@ -60,13 +62,15 @@ public class FechamentoAtendimentoService {
             ProcedimentoRepository procedimentoRepository,
             PrescricaoRepository prescricaoRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
-            CondicaoClinicaRepository condicaoClinicaRepository) {
+            CondicaoClinicaRepository condicaoClinicaRepository,
+            PlanoTratamentoService planoTratamentoService) {
         this.consultaService = consultaService;
         this.registroAtendimentoRepository = registroAtendimentoRepository;
         this.procedimentoRepository = procedimentoRepository;
         this.prescricaoRepository = prescricaoRepository;
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
+        this.planoTratamentoService = planoTratamentoService;
     }
 
     @Transactional
@@ -143,6 +147,7 @@ public class FechamentoAtendimentoService {
             prescricao.setVeterinario(veterinario);
             prescricao.setRegistroAtendimento(registro);
             prescricao = prescricaoRepository.save(prescricao);
+            planoTratamentoService.materializarItens(prescricao);
 
             List<RegraPrescricaoEntity> regras = criarRegras(pr.getRegras(), prescricao);
             resultado.add(PrescricaoComRegrasResponse.from(prescricao, regras));

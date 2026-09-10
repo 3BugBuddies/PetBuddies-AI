@@ -22,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/consultas")
+@RequestMapping("/api/consulta")
 @Tag(name = "registro — consultas", description = "Agendamento e comparecimento do animal na clínica")
 public class ConsultaController {
 
@@ -103,7 +103,7 @@ public class ConsultaController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/agendamentos")
+    @PostMapping("/agendamento")
     @Operation(
         summary = "Agenda consulta numa janela livre",
         description = "Ocupa a janela de atendimento informada; a consulta nasce AGENDADA, com data/hora e "

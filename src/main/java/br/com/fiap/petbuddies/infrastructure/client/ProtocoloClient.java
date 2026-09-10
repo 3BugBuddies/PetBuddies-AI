@@ -45,7 +45,7 @@ public class ProtocoloClient {
     public List<ProtocoloCatalogoDto> buscar(CategoriaProtocolo categoria, Especie especie) {
         try {
             ProtocoloCatalogoDto[] resposta = restClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/api/protocolos")
+                    .uri(uriBuilder -> uriBuilder.path("/api/protocolo")
                             .queryParam("categoria", categoria)
                             .queryParam("especie", especie)
                             .queryParam("ativo", true)
