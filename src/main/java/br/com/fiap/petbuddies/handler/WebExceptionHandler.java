@@ -3,6 +3,8 @@ package br.com.fiap.petbuddies.handler;
 import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.CnpjDuplicadoException;
+import br.com.fiap.petbuddies.exception.ConsultaJaRealizadaException;
+import br.com.fiap.petbuddies.exception.ConsultaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.CodigoCondicaoDuplicadoException;
 import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
@@ -65,7 +67,9 @@ public class WebExceptionHandler {
             CnpjDuplicadoException.class,
             CrmvDuplicadoException.class,
             CodigoCondicaoDuplicadoException.class,
-            JanelaConflitanteException.class
+            JanelaConflitanteException.class,
+            ConsultaJaRealizadaException.class,
+            ConsultaNaoPodeSerFechadaException.class
     })
     public ModelAndView handleConflito(RuntimeException ex, HttpServletResponse response) {
         return erro(response, HttpStatus.CONFLICT, ex.getMessage());
