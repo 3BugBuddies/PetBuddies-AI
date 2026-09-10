@@ -51,9 +51,8 @@ public class CheckinExtracaoService {
             RegraPrescricaoRepository regraPrescricaoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository,
             PrescricaoAtivaResolver prescricaoAtivaResolver) {
-        // temperature=0: testado contra a API real em 2026-09-10
-        // (.claude/docs/ia/2026-09-10-teste-extracao-real.md) — sem isso a
-        // confianca nao calibra, sai 1.0 em tudo.
+        // temperature=0: testado contra a API real — sem isso a confianca
+        // nao calibra, sai 1.0 em tudo (ver corpo do PR).
         this.chatClient = chatClientBuilder
                 .defaultOptions(OpenAiChatOptions.builder().temperature(0.0).build())
                 .build();
@@ -216,8 +215,8 @@ public class CheckinExtracaoService {
      * {@code trecho} e {@code literal} não são persistidos (nenhuma tabela
      * tem coluna pra eles) — servem só para ancorar a confiança no texto e
      * para a tela de confirmação do tutor mostrar de onde cada campo veio.
-     * Sem eles a confiança sai 1.0 em tudo, verificado contra a API real em
-     * 2026-09-10 (.claude/docs/ia/2026-09-10-teste-extracao-real.md).
+     * Sem eles a confiança sai 1.0 em tudo, verificado contra a API real
+     * (ver corpo do PR).
      */
     public record CondicaoExtraidaModelo(
             String codigo, Boolean valorBooleano, BigDecimal valorNumerico,

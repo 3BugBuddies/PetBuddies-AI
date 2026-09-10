@@ -8,7 +8,6 @@ import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
 import br.com.fiap.petbuddies.domain.enums.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CheckinRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
@@ -233,9 +232,8 @@ public class CheckinService {
     }
 
     private CheckinResponse montarResposta(CheckinEntity checkin) {
-        List<CondicaoObservadaResponse> condicoes = condicaoObservadaRepository.findByCheckin_Id(checkin.getId()).stream()
-                .map(CondicaoObservadaResponse::from)
-                .toList();
+        List<CondicaoObservadaEntity> observadas = condicaoObservadaRepository.findByCheckin_Id(checkin.getId());
+        List<CondicaoObservadaResponse> condicoes = observadas.stream().map(CondicaoObservadaResponse::from).toList();
 
         // Só reconstitui o que foi de fato gravado no item — prescrição
         // avaliada sem item na hora do POST não deixa rastro para o GET.
@@ -250,7 +248,10 @@ public class CheckinService {
                 })
                 .toList();
 
-        boolean escalado = desfechos.stream().anyMatch(d -> d.getDesfecho() == TipoDesfecho.ACIONAR_CLINICA);
+        // Mesmo critério do POST (escalarPorCritica): condição crítica
+        // observada, não "algum item terminou ACIONAR_CLINICA" — a
+        // escalação vale mesmo quando não existe item pra gravar.
+        boolean escalado = observadas.stream().anyMatch(this::observacaoCritica);
         return CheckinResponse.of(checkin, condicoes, desfechos, escalado);
     }
 }
