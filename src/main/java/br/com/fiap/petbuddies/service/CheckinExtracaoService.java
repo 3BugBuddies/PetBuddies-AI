@@ -143,6 +143,11 @@ public class CheckinExtracaoService {
                 - "codigo": exatamente um dos códigos acima
                 - "valorBooleano": true ou false, somente para condição de tipo BOOLEANO (nulo se a condição for NUMERICO)
                 - "valorNumerico": o número relatado, somente para condição de tipo NUMERICO (nulo se a condição for BOOLEANO)
+
+                ATENÇÃO — condição NUMERICO só entra no array se a narrativa trouxer um NÚMERO medido.
+                Se o tutor apenas disse que está normal, sem medir, NÃO inclua a condição NUMERICO.
+                NUNCA preencha "valorBooleano" numa condição de tipo NUMERICO.
+
                 - "trecho": as palavras EXATAS da narrativa que embasam esta extração (copie, não parafraseie)
                 - "literal": true se o tutor disse diretamente; false se você inferiu a partir do contexto
                 - "confianca": CALIBRADA com base em quão direto foi o relato, nunca 1.0 por padrão:
@@ -193,6 +198,12 @@ public class CheckinExtracaoService {
             boolean temNumerico = bruta.valorNumerico() != null;
             boolean valorCoerente = numerico ? (temNumerico && !temBooleano) : (temBooleano && !temNumerico);
             if (!valorCoerente) {
+                // O prompt já instrui o modelo a respeitar TP_DADO, mas quem
+                // garante CK_COBS_UM_VALOR é este filtro — nunca o prompt.
+                // Uma condição NUMERICO nunca vira linha com valorBooleano, e
+                // vice-versa, mesmo que o modelo erre a instrução.
+                log.warn("[CHECKIN-IA] descartada por tipo incoerente: codigo={} tipoDado={} valorBooleano={} valorNumerico={}",
+                        bruta.codigo(), condicao.getTipoDado(), bruta.valorBooleano(), bruta.valorNumerico());
                 continue;
             }
 

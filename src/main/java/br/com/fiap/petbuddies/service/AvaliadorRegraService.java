@@ -8,7 +8,6 @@ import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -92,10 +91,10 @@ public class AvaliadorRegraService {
     /**
      * Base numérica de DOSE_PADRAO e do "nenhuma regra casou": a prescrição
      * não tem coluna de dose padrão, só a faixa NR_DOSE_MIN/NR_DOSE_MAX.
-     * Decisão de implementação sem ADR — ver corpo do PR.
+     * NR_DOSE_MIN — o piso da faixa, mais conservador — por decisão de
+     * implementação sem ADR, marcada como pendente no corpo do PR.
      */
     private BigDecimal doseBase(PrescricaoEntity prescricao) {
-        return prescricao.getDoseMin().add(prescricao.getDoseMax())
-                .divide(BigDecimal.valueOf(2), 3, RoundingMode.HALF_UP);
+        return prescricao.getDoseMin();
     }
 }
