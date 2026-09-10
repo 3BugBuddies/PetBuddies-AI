@@ -1,9 +1,13 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.ConsultaModelAssembler;
+import br.com.fiap.petbuddies.assembler.FechamentoAtendimentoModelAssembler;
 import br.com.fiap.petbuddies.dto.ConsultaRequest;
 import br.com.fiap.petbuddies.dto.ConsultaResponse;
+import br.com.fiap.petbuddies.dto.FechamentoAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.FechamentoAtendimentoResponse;
 import br.com.fiap.petbuddies.service.ConsultaService;
+import br.com.fiap.petbuddies.service.FechamentoAtendimentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,10 +26,18 @@ public class ConsultaController {
 
     private final ConsultaService service;
     private final ConsultaModelAssembler assembler;
+    private final FechamentoAtendimentoService fechamentoService;
+    private final FechamentoAtendimentoModelAssembler fechamentoAssembler;
 
-    public ConsultaController(ConsultaService service, ConsultaModelAssembler assembler) {
+    public ConsultaController(
+            ConsultaService service,
+            ConsultaModelAssembler assembler,
+            FechamentoAtendimentoService fechamentoService,
+            FechamentoAtendimentoModelAssembler fechamentoAssembler) {
         this.service = service;
         this.assembler = assembler;
+        this.fechamentoService = fechamentoService;
+        this.fechamentoAssembler = fechamentoAssembler;
     }
 
     @GetMapping
@@ -87,5 +99,25 @@ public class ConsultaController {
     public ResponseEntity<Void> remover(@PathVariable Long id) {
         service.remover(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/fechamento")
+    @Operation(
+        summary = "Fecha o atendimento",
+        description = "Ato único e transacional: grava o registro do atendimento, os procedimentos "
+            + "executados e as prescrições assinadas com suas regras condicionais, e muda a consulta para "
+            + "REALIZADA. Ou tudo grava, ou nada grava. O animal e o veterinário vêm da própria consulta."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Atendimento fechado"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos, inclusive faixa de dose ou regra incoerente"),
+        @ApiResponse(responseCode = "404", description = "Consulta ou condição clínica não encontrada"),
+        @ApiResponse(responseCode = "409", description = "Consulta já REALIZADA, CANCELADA ou NAO_COMPARECEU")
+    })
+    public ResponseEntity<EntityModel<FechamentoAtendimentoResponse>> fechar(
+            @PathVariable Long id, @RequestBody @Valid FechamentoAtendimentoRequest request) {
+        EntityModel<FechamentoAtendimentoResponse> model =
+                fechamentoAssembler.toModel(fechamentoService.fechar(id, request));
+        return ResponseEntity.created(model.getRequiredLink("self").toUri()).body(model);
     }
 }
