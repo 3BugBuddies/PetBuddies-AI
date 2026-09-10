@@ -50,6 +50,15 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- ===== SPRING AI (J22) =====
+             Gemini pela camada de compatibilidade OpenAI. So a extracao
+             estruturada da narrativa; sem memoria de chat (nao ha conversa aqui,
+             e o starter de memoria JDBC brigaria com ddl-auto=validate). -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
+        </dependency>
+
         <!-- ===== HATEOAS ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
