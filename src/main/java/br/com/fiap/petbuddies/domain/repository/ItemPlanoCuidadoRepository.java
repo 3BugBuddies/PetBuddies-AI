@@ -10,12 +10,23 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuidadoEntity, Long> {
 
     List<ItemPlanoCuidadoEntity> findByPlanoIdOrderByDataAlvoAsc(Long planoId);
 
     List<ItemPlanoCuidadoEntity> findByPlanoIdAndStatus(Long planoId, StatusItem status);
+
+    // A baixa do item de casa (ADR s3-24 §5, escrita pelo J6): o check-in
+    // encontra o item do dia daquela prescricao para gravar o desfecho nele.
+    // UX_ITEM_PRESC_DATA garante no maximo um item por prescricao por dia.
+    Optional<ItemPlanoCuidadoEntity> findByPrescricaoIdAndDataAlvo(Long prescricaoId, LocalDate dataAlvo);
+
+    // Reconstrói os desfechos de um check-in já persistido (GET) — só enxerga
+    // os itens que existiam para receber a baixa, ao contrário da resposta do
+    // POST, que inclui também prescrições avaliadas sem item (ver CheckinService).
+    List<ItemPlanoCuidadoEntity> findByCheckinId(Long checkinId);
 
     List<ItemPlanoCuidadoEntity> findByDataAlvoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusItem status);
 
