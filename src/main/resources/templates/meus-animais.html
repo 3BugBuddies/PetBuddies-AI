@@ -19,14 +19,15 @@
             </p>
             <p>Nascimento: <span th:text="${#temporals.format(animal.dataNascimento, 'dd/MM/yyyy')}">01/01/2020</span></p>
 
-            <div th:if="${planosPorAnimal.containsKey(animal.id)}">
-                <p><span class="selo ativo">plano preventivo ativo</span></p>
-                <p th:with="plano=${planosPorAnimal.get(animal.id)}">
-                    <span th:text="${#lists.size(plano.eventos)}">0</span> evento(s) no plano.
+            <div th:if="${planosPorAnimal.containsKey(animal.id)}"
+                 th:with="plano=${planosPorAnimal.get(animal.id)}">
+                <p><span class="selo ativo">plano <span th:text="${#strings.toLowerCase(plano.categoria)}">preventivo</span> ativo</span></p>
+                <p>
+                    <span th:text="${#lists.size(plano.eventos)}">0</span> item(ns) no plano.
                 </p>
             </div>
             <p th:unless="${planosPorAnimal.containsKey(animal.id)}">
-                <span class="selo">sem plano preventivo ativo</span>
+                <span class="selo">sem plano de cuidado ativo</span>
             </p>
         </div>
     </div>
