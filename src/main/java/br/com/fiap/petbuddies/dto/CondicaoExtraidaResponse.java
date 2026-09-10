@@ -22,10 +22,13 @@ public class CondicaoExtraidaResponse {
     private BigDecimal valorNumerico;
     private Double confianca;
     private boolean critica;
+    private String trecho;
+    private boolean literal;
 
     public static CondicaoExtraidaResponse of(
             Long condicaoClinicaId, String codigo, String rotulo, TipoDado tipoDado, String unidade,
-            Boolean valorBooleano, BigDecimal valorNumerico, Double confianca, boolean critica) {
+            Boolean valorBooleano, BigDecimal valorNumerico, Double confianca, boolean critica,
+            String trecho, boolean literal) {
         CondicaoExtraidaResponse dto = new CondicaoExtraidaResponse();
         dto.condicaoClinicaId = condicaoClinicaId;
         dto.codigo = codigo;
@@ -36,6 +39,8 @@ public class CondicaoExtraidaResponse {
         dto.valorNumerico = valorNumerico;
         dto.confianca = confianca;
         dto.critica = critica;
+        dto.trecho = trecho;
+        dto.literal = literal;
         return dto;
     }
 
@@ -48,4 +53,8 @@ public class CondicaoExtraidaResponse {
     public BigDecimal getValorNumerico() { return valorNumerico; }
     public Double getConfianca() { return confianca; }
     public boolean isCritica() { return critica; }
+    /** Palavras exatas da narrativa que embasam a extração — não persistido, só para a tela de confirmação. */
+    public String getTrecho() { return trecho; }
+    /** true se o tutor falou diretamente; false se a IA inferiu. Não persistido. */
+    public boolean isLiteral() { return literal; }
 }

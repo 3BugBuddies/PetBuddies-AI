@@ -15,6 +15,7 @@ import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -50,7 +51,12 @@ public class CheckinExtracaoService {
             RegraPrescricaoRepository regraPrescricaoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository,
             PrescricaoAtivaResolver prescricaoAtivaResolver) {
-        this.chatClient = chatClientBuilder.build();
+        // temperature=0: testado contra a API real em 2026-09-10
+        // (.claude/docs/ia/2026-09-10-teste-extracao-real.md) — sem isso a
+        // confianca nao calibra, sai 1.0 em tudo.
+        this.chatClient = chatClientBuilder
+                .defaultOptions(OpenAiChatOptions.builder().temperature(0.0).build())
+                .build();
         this.animalRepository = animalRepository;
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
@@ -66,7 +72,7 @@ public class CheckinExtracaoService {
         if (vocabulario.isEmpty()) {
             // Sem prescrição ativa com regra por relato e sem condição crítica
             // cadastrada: nada para o modelo extrair. Não chama o modelo à toa.
-            return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), List.of(), false);
+            return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), List.of(), List.of(), false);
         }
 
         String prompt = montarPrompt(vocabulario);
@@ -79,17 +85,18 @@ public class CheckinExtracaoService {
                     .call().entity(ExtracaoModelo.class);
             if (resultadoModelo == null) {
                 degradado = true;
-                resultadoModelo = new ExtracaoModelo(List.of());
+                resultadoModelo = new ExtracaoModelo(List.of(), List.of());
             }
         } catch (Exception e) {
             log.warn("[CHECKIN-IA] falha na extração para animalId={}: {}", animal.getId(), e.getMessage());
             degradado = true;
-            resultadoModelo = new ExtracaoModelo(List.of());
+            resultadoModelo = new ExtracaoModelo(List.of(), List.of());
         }
         log.debug("[CHECKIN-IA] resposta do modelo: {}", resultadoModelo);
 
         List<CondicaoExtraidaResponse> condicoes = filtrarEEnriquecer(resultadoModelo.condicoes(), vocabulario);
-        return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), condicoes, degradado);
+        List<String> redFlags = nullSafe(resultadoModelo.redFlags());
+        return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), condicoes, redFlags, degradado);
     }
 
     /**
@@ -137,14 +144,25 @@ public class CheckinExtracaoService {
                 - "codigo": exatamente um dos códigos acima
                 - "valorBooleano": true ou false, somente para condição de tipo BOOLEANO (nulo se a condição for NUMERICO)
                 - "valorNumerico": o número relatado, somente para condição de tipo NUMERICO (nulo se a condição for BOOLEANO)
-                - "confianca": sua confiança nesta extração específica, entre 0.0 e 1.0
+                - "trecho": as palavras EXATAS da narrativa que embasam esta extração (copie, não parafraseie)
+                - "literal": true se o tutor disse diretamente; false se você inferiu a partir do contexto
+                - "confianca": CALIBRADA com base em quão direto foi o relato, nunca 1.0 por padrão:
+                    0.95-1.0 = o tutor deu o dado explicitamente, com as palavras da própria condição
+                    0.7-0.9  = disse com outras palavras, mas o sentido é claro
+                    0.4-0.6  = inferência razoável a partir do contexto, não uma afirmação direta
+                    0.1-0.3  = palpite fraco
+                  Se toda condição desta resposta sair com a mesma confiança, você não calibrou.
 
                 NÃO inclua condição que o tutor não mencionou — a ausência do item é o "não sei".
                 Mencionar e negar é diferente de não mencionar: "as fezes estavam normais" gera um
                 item com valorBooleano=false, nunca a ausência do item.
 
+                Se a narrativa citar algo clinicamente relevante que NÃO está no vocabulário acima
+                (ex.: mancando, gemendo, sangramento em outro lugar), copie a frase para "redFlags"
+                como texto livre — nunca invente um código do vocabulário para isso.
+
                 Responda APENAS com JSON válido, sem explicação:
-                {"condicoes":[{"codigo":"...","valorBooleano":null,"valorNumerico":null,"confianca":0.0}]}
+                {"condicoes":[{"codigo":"...","valorBooleano":null,"valorNumerico":null,"trecho":"...","literal":true,"confianca":0.0}],"redFlags":[]}
                 """.formatted(itens);
     }
 
@@ -182,7 +200,7 @@ public class CheckinExtracaoService {
             resultado.add(CondicaoExtraidaResponse.of(
                     condicao.getId(), condicao.getCodigo(), condicao.getRotulo(), condicao.getTipoDado(),
                     condicao.getUnidade(), bruta.valorBooleano(), bruta.valorNumerico(), bruta.confianca(),
-                    condicao.isCritica()));
+                    condicao.isCritica(), bruta.trecho(), Boolean.TRUE.equals(bruta.literal())));
         }
         return resultado;
     }
@@ -192,7 +210,16 @@ public class CheckinExtracaoService {
     }
 
     /** Contrato de structured output do Spring AI — não cruza a borda do controller. */
-    public record ExtracaoModelo(List<CondicaoExtraidaModelo> condicoes) {}
+    public record ExtracaoModelo(List<CondicaoExtraidaModelo> condicoes, List<String> redFlags) {}
 
-    public record CondicaoExtraidaModelo(String codigo, Boolean valorBooleano, BigDecimal valorNumerico, Double confianca) {}
+    /**
+     * {@code trecho} e {@code literal} não são persistidos (nenhuma tabela
+     * tem coluna pra eles) — servem só para ancorar a confiança no texto e
+     * para a tela de confirmação do tutor mostrar de onde cada campo veio.
+     * Sem eles a confiança sai 1.0 em tudo, verificado contra a API real em
+     * 2026-09-10 (.claude/docs/ia/2026-09-10-teste-extracao-real.md).
+     */
+    public record CondicaoExtraidaModelo(
+            String codigo, Boolean valorBooleano, BigDecimal valorNumerico,
+            String trecho, Boolean literal, Double confianca) {}
 }
