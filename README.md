@@ -293,7 +293,7 @@ flowchart LR
     App["App mobile<br/>vet e tutor"] --> Java
     Web["Telas Thymeleaf<br/>8 telas"] --> Java
     Java["petbuddies-ai (Java)<br/>registro, agenda, prescrição, cuidado"]
-    Java -->|"GET /api/protocolos"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
+    Java -->|"GET /api/protocolo"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
     Java --> Gemini["Gemini 2.5 Flash<br/>interpreta narrativa"]
     Java --> Oracle[("Oracle<br/>16 tabelas")]
 ```
@@ -315,7 +315,7 @@ sequenceDiagram
         DB-->>J: plano existente
         J-->>V: 200 — devolve o plano (idempotente)
     else não existe
-        J->>N: GET /api/protocolos?especie=&categoria=
+        J->>N: GET /api/protocolo?especie=&categoria=
         N-->>J: protocolos ativos + regras
         J->>DB: grava PLANO_CUIDADO e um ITEM por regra
         J-->>V: 201 — plano com os itens e datas previstas

@@ -6,7 +6,7 @@ import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** O protocolo e suas regras, como o .NET devolve em {@code GET /api/protocolos}. */
+/** O protocolo e suas regras, como o .NET devolve em {@code GET /api/protocolo}. */
 public record ProtocoloCatalogoDto(
         Long id,
         String nome,
