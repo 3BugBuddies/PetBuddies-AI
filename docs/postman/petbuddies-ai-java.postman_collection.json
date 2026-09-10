@@ -1,10 +1,1728 @@
 {
   "info": {
-    "name": "PetBuddies AI — Java (Catálogo)",
+    "name": "PetBuddies · API única (Java)",
+    "description": "Coleção do serviço `petbuddies-ai`, a API única do produto (ADR s3-25).\n\n**Como usar:** suba o serviço (`docker compose up -d --wait` e `mvn spring-boot:run`), rode *Autenticação → Login — vet* e o token fica guardado para as demais requisições.\n\n**Escopo:** reflete os endpoints existentes em `main`. Os casos de uso da onda 5 — fechar atendimento, agendamento e cancelamento, check-in, protocolo aplicado — entram aqui conforme cada PR mergear.\n\nO catálogo de protocolos **não está aqui**: passou ao serviço .NET no PR J17, e o Java o consome por HTTP.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
   ],
-  "item": []
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login — vet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"ana@clinica.com\",\n  \"senha\": \"petbuddies123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Salva o token na variável da coleção. Rode este primeiro."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o token na variavel da colecao: todas as outras requisicoes o herdam.",
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login — tutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"maria@email.com\",\n  \"senha\": \"petbuddies123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Mesmo efeito, com perfil TUTOR."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o token na variavel da colecao: todas as outras requisicoes o herdam.",
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login — credencial inválida (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"ana@clinica.com\",\n  \"senha\": \"errada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ],
+      "description": "Os dois usuários vêm do seed `V2`. O login guarda o token automaticamente."
+    },
+    {
+      "name": "Clínicas",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinicas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar por CNPJ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinicas/buscar?cnpj=12345678000199",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinicas",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "cnpj",
+                  "value": "12345678000199",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinicas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinicas",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinicas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Clinica PetBuddies Moema\",\n  \"cnpj\": \"98765432000155\",\n  \"telefone\": \"1133334444\",\n  \"email\": \"moema@petbuddies.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinicas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinicas",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Clinica PetBuddies Vila Mariana\",\n  \"cnpj\": \"12345678000199\",\n  \"telefone\": \"1140028922\",\n  \"email\": \"contato@petbuddies.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinicas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinicas",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Veterinários",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinarios?clinicaId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinarios"
+              ],
+              "query": [
+                {
+                  "key": "clinicaId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar por CRMV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinarios/buscar?crmv=SP-12345",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinarios",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "crmv",
+                  "value": "SP-12345",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinarios",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Carlos Lima\",\n  \"crmv\": \"SP-54321\",\n  \"email\": \"carlos@clinica.com\",\n  \"ativo\": true,\n  \"clinicaId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinarios",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Ana Souza\",\n  \"crmv\": \"SP-12345\",\n  \"email\": \"ana@clinica.com\",\n  \"ativo\": true,\n  \"clinicaId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinarios",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Responsáveis",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsaveis?nome=Maria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsaveis"
+              ],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "Maria",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsaveis/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsaveis",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsaveis",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsaveis"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Joao Pereira\",\n  \"telefone\": \"11912345678\",\n  \"email\": \"joao@email.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsaveis/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsaveis",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria Oliveira\",\n  \"telefone\": \"11987654321\",\n  \"email\": \"maria@email.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsaveis/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsaveis",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Animais",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animais?responsavelId=1&nome=Rex",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animais"
+              ],
+              "query": [
+                {
+                  "key": "responsavelId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "nome",
+                  "value": "Rex",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Sem parâmetro, lista todos."
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animais/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animais",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/animais",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animais"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Rex\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"Golden Retriever\",\n  \"porte\": \"GRANDE\",\n  \"sexo\": \"MACHO\",\n  \"dataNascimento\": \"2022-03-15\",\n  \"peso\": 28.5,\n  \"condicaoCronica\": false,\n  \"castrado\": true,\n  \"foto\": null,\n  \"alergias\": null,\n  \"observacoes\": \"Docil com criancas\",\n  \"responsavelId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/animais/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animais",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Rex\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"Golden Retriever\",\n  \"porte\": \"GRANDE\",\n  \"sexo\": \"MACHO\",\n  \"dataNascimento\": \"2022-03-15\",\n  \"peso\": 30.0,\n  \"condicaoCronica\": false,\n  \"castrado\": true,\n  \"foto\": null,\n  \"alergias\": \"Dipirona\",\n  \"observacoes\": null,\n  \"responsavelId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animais/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animais",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultas",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/consultas?animalId=1&veterinarioId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consultas"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "veterinarioId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/consultas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consultas",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consultas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consultas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ROTINA\",\n  \"dataHora\": \"2026-09-15T14:30:00\",\n  \"status\": \"AGENDADA\",\n  \"observacao\": \"Primeira consulta do ano\",\n  \"motivo\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consultas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consultas",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ROTINA\",\n  \"dataHora\": \"2026-09-15T15:00:00\",\n  \"status\": \"CONFIRMADA\",\n  \"observacao\": null,\n  \"motivo\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/consultas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consultas",
+                "1"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Status: AGENDADA · CONFIRMADA · REALIZADA · CANCELADA · NAO_COMPARECEU. Tipo: ROTINA · VACINACAO · EXAME · RETORNO · EMERGENCIA."
+    },
+    {
+      "name": "Janelas de atendimento",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/janelas-atendimento?veterinarioId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janelas-atendimento"
+              ],
+              "query": [
+                {
+                  "key": "veterinarioId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/janelas-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janelas-atendimento",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/janelas-atendimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janelas-atendimento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataHoraInicio\": \"2026-09-15T14:30:00\",\n  \"veterinarioId\": 1,\n  \"consultaId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "UK_JANELA_VET_INICIO: mesmo vet e mesmo horário é conflito."
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/janelas-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janelas-atendimento",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataHoraInicio\": \"2026-09-15T15:00:00\",\n  \"veterinarioId\": 1,\n  \"consultaId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/janelas-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janelas-atendimento",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registros de atendimento",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/registros-atendimento?animalId=1&consultaId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registros-atendimento"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "consultaId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/registros-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registros-atendimento",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/registros-atendimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registros-atendimento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataAtendimento\": \"2026-09-15T14:45:00\",\n  \"anamnese\": \"Tutor relata apatia ha tres dias.\",\n  \"diagnostico\": \"Gastrite leve\",\n  \"tratamento\": \"Dieta branda e protetor gastrico\",\n  \"observacao\": null,\n  \"proximoRetorno\": \"2026-09-29\",\n  \"proximaVacina\": \"2026-12-01\",\n  \"animalId\": 1,\n  \"consultaId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/registros-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registros-atendimento",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataAtendimento\": \"2026-09-15T14:45:00\",\n  \"anamnese\": \"Tutor relata apatia ha tres dias.\",\n  \"diagnostico\": \"Gastrite\",\n  \"tratamento\": \"Dieta branda\",\n  \"observacao\": \"Reavaliar\",\n  \"proximoRetorno\": \"2026-09-29\",\n  \"proximaVacina\": null,\n  \"animalId\": 1,\n  \"consultaId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/registros-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registros-atendimento",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Procedimentos",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/procedimentos?animalId=1&registroAtendimentoId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "procedimentos"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "registroAtendimentoId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/procedimentos/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "procedimentos",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/procedimentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "procedimentos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VACINACAO\",\n  \"nome\": \"V10 - primeira dose\",\n  \"descricao\": null,\n  \"status\": \"PENDENTE\",\n  \"dataPrevistaInicio\": \"2026-09-15T15:00:00\",\n  \"dataPrevistaFim\": \"2026-09-15T15:15:00\",\n  \"anexosUrl\": null,\n  \"observacao\": null,\n  \"registroAtendimentoId\": 1,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/procedimentos/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "procedimentos",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VACINACAO\",\n  \"nome\": \"V10 - primeira dose\",\n  \"descricao\": null,\n  \"status\": \"REALIZADO\",\n  \"dataPrevistaInicio\": \"2026-09-15T15:00:00\",\n  \"dataPrevistaFim\": \"2026-09-15T15:15:00\",\n  \"anexosUrl\": null,\n  \"observacao\": \"Sem reacao adversa\",\n  \"registroAtendimentoId\": 1,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/procedimentos/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "procedimentos",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prescrições",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricoes?animalId=1&registroAtendimentoId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricoes"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "registroAtendimentoId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricoes/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricoes",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicamento\": \"Omeprazol\",\n  \"doseMin\": 0.5,\n  \"doseMax\": 1.0,\n  \"unidade\": \"mg/kg\",\n  \"frequenciaDia\": 1,\n  \"duracaoDias\": 10,\n  \"dataInicio\": \"2026-09-15\",\n  \"orientacao\": \"Administrar em jejum, pela manha.\",\n  \"materialOrigemId\": null,\n  \"versaoOrigem\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1,\n  \"registroAtendimentoId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Faixa inválida — doseMin > doseMax (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicamento\": \"Omeprazol\",\n  \"doseMin\": 2.0,\n  \"doseMax\": 1.0,\n  \"unidade\": \"mg/kg\",\n  \"frequenciaDia\": 1,\n  \"duracaoDias\": 10,\n  \"dataInicio\": \"2026-09-15\",\n  \"orientacao\": \"Deve ser recusado por CK_PRESCRICAO_FAIXA.\",\n  \"materialOrigemId\": null,\n  \"versaoOrigem\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1,\n  \"registroAtendimentoId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Ato assinado e imutável (ADR s3-09): não há PUT nem DELETE, e é de propósito."
+    },
+    {
+      "name": "Regras de prescrição",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/regras-prescricao?prescricaoId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "regras-prescricao"
+              ],
+              "query": [
+                {
+                  "key": "prescricaoId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/regras-prescricao/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "regras-prescricao",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/regras-prescricao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "regras-prescricao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescricaoId\": 1,\n  \"condicaoClinicaId\": 1,\n  \"operador\": \"MAIOR_QUE\",\n  \"limite\": 39.0,\n  \"acaoDose\": \"ACIONAR_CLINICA\",\n  \"ordem\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Rótulo, tipo de dado e fonte são congelados pelo service a partir da condição clínica (ADR s3-10) — o request nunca os carrega."
+          }
+        }
+      ],
+      "description": "Operador: MAIOR_QUE · MAIOR_OU_IGUAL · MENOR_QUE · MENOR_OU_IGUAL · IGUAL. Ação: DOSE_MIN · DOSE_MAX · DOSE_PADRAO · ACIONAR_CLINICA · SUSPENDER. Imutável, como a prescrição."
+    },
+    {
+      "name": "Condições clínicas",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicoes-clinicas?clinicaId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicoes-clinicas"
+              ],
+              "query": [
+                {
+                  "key": "clinicaId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar por código",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicoes-clinicas/buscar?clinicaId=1&codigo=FEBRE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicoes-clinicas",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "clinicaId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "codigo",
+                  "value": "FEBRE",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicoes-clinicas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicoes-clinicas",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicoes-clinicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicoes-clinicas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"FEBRE\",\n  \"rotulo\": \"Temperatura corporal\",\n  \"tipoDado\": \"NUMERICO\",\n  \"fonteValor\": \"RELATO\",\n  \"unidade\": \"C\",\n  \"critica\": true,\n  \"ativo\": true,\n  \"clinicaId\": 1,\n  \"veterinarioAutorId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicoes-clinicas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicoes-clinicas",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"FEBRE\",\n  \"rotulo\": \"Temperatura corporal\",\n  \"tipoDado\": \"NUMERICO\",\n  \"fonteValor\": \"RELATO\",\n  \"unidade\": \"C\",\n  \"critica\": true,\n  \"ativo\": false,\n  \"clinicaId\": 1,\n  \"veterinarioAutorId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicoes-clinicas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicoes-clinicas",
+                "1"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Vocabulário por clínica. tipoDado: BOOLEANO · NUMERICO. fonteValor: RELATO · ANIMAL · HISTORICO."
+    },
+    {
+      "name": "Motor de planos",
+      "item": [
+        {
+          "name": "Instanciar plano preventivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/planos/instanciar-preventivo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "planos",
+                "instanciar-preventivo"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": 1,\n  \"especie\": \"CACHORRO\",\n  \"dataNascimento\": \"2022-03-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Lê o catálogo de protocolos no .NET pelo ProtocoloClient. Com o .NET fora do ar, devolve 200 com criado=false e motivo=SEM_PROTOCOLO_COMPATIVEL. Idempotente: plano ATIVO existente é devolvido em vez de duplicado."
+          }
+        },
+        {
+          "name": "Instanciar plano pós-cirúrgico",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/planos/instanciar-pos-cirurgico",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "planos",
+                "instanciar-pos-cirurgico"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": 1,\n  \"consultaId\": 1,\n  \"especie\": \"CACHORRO\",\n  \"dataRealizacao\": \"2026-09-15T15:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Plano do animal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/planos/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "planos",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eventos do plano",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/planos/1/eventos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "planos",
+                "1",
+                "eventos"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Exige autenticação desde o PR de limpeza da onda 4 — a zona aberta existia para um gatilho do .NET que o ADR s3-25 removeu."
+    }
+  ]
 }
