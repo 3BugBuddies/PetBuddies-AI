@@ -32,7 +32,7 @@ public class ConsultaService {
 
     // Estados a partir dos quais o fechamento pode marcar REALIZADA.
     // CANCELADA, NAO_COMPARECEU e a própria REALIZADA são conflito, não repetição.
-    private static final EnumSet<StatusConsulta> STATUS_FECHAVEL =
+    public static final EnumSet<StatusConsulta> STATUS_FECHAVEL =
             EnumSet.of(StatusConsulta.AGENDADA, StatusConsulta.CONFIRMADA);
 
     private final ConsultaRepository repository;
