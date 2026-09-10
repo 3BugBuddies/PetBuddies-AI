@@ -1,10 +1,10 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
-import br.com.fiap.petbuddies.domain.enums.OperadorRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoAcaoRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import lombok.*;
 
 import java.math.BigDecimal;

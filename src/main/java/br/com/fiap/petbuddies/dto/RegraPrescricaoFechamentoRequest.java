@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.enums.OperadorRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoAcaoRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;

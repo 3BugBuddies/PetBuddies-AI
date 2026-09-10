@@ -3,7 +3,7 @@ package br.com.fiap.petbuddies.dto;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.entity.ProcedimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
-import br.com.fiap.petbuddies.domain.enums.StatusConsulta;
+import br.com.fiap.petbuddies.domain.enums.atendimento.StatusConsulta;
 import lombok.*;
 
 import java.util.List;

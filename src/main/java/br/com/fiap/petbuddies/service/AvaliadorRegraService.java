@@ -3,8 +3,8 @@ package br.com.fiap.petbuddies.service;
 import br.com.fiap.petbuddies.domain.entity.CondicaoObservadaEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
-import br.com.fiap.petbuddies.domain.enums.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
+import br.com.fiap.petbuddies.domain.enums.checkin.TipoDesfecho;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

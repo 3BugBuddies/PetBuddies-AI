@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
-import br.com.fiap.petbuddies.domain.enums.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import lombok.*;
 
 import java.time.LocalDateTime;

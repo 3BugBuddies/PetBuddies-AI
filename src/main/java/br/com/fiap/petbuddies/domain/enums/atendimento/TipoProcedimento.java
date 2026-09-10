@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.atendimento;
 
 // CK_PROCEDIMENTO_TIPO
 public enum TipoProcedimento {

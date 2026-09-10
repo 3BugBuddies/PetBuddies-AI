@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.enums.MotivoSugestao;
-import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
+import br.com.fiap.petbuddies.domain.enums.cuidado.MotivoSugestao;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoCuidado;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 

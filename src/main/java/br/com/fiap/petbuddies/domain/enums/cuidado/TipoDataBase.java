@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.cuidado;
 
 /**
  * Data-base a partir da qual o deslocamento da regra e contado.

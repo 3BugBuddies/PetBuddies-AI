@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.prescricao;
 
 // CK_REGRA_ACAO
 public enum TipoAcaoRegra {

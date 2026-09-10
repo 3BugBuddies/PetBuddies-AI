@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.enums.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

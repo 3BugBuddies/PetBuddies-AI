@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.cuidado;
 
 /**
  * O vocabulario de cuidados, compartilhado pela regra do protocolo e pelo item

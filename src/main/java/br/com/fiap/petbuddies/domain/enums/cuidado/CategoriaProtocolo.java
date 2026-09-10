@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.cuidado;
 
 /**
  * Filtro de aplicacao do protocolo: que moldes o veterinario ve quando quer

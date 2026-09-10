@@ -2,8 +2,8 @@ package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
-import br.com.fiap.petbuddies.domain.enums.StatusItem;
-import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 

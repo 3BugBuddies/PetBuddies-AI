@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
-import br.com.fiap.petbuddies.domain.enums.Especie;
-import br.com.fiap.petbuddies.domain.enums.Porte;
-import br.com.fiap.petbuddies.domain.enums.Sexo;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Porte;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Sexo;
 import lombok.*;
 
 import java.math.BigDecimal;

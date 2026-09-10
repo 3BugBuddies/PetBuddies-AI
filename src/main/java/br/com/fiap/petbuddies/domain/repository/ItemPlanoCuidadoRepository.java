@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.domain.repository;
 
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
-import br.com.fiap.petbuddies.domain.enums.StatusItem;
-import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
-import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoCuidado;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

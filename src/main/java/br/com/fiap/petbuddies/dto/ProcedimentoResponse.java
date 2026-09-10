@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.ProcedimentoEntity;
-import br.com.fiap.petbuddies.domain.enums.StatusProcedimento;
-import br.com.fiap.petbuddies.domain.enums.TipoProcedimento;
+import br.com.fiap.petbuddies.domain.enums.atendimento.StatusProcedimento;
+import br.com.fiap.petbuddies.domain.enums.atendimento.TipoProcedimento;
 import lombok.*;
 
 import java.time.LocalDateTime;

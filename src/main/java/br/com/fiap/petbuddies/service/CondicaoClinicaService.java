@@ -3,7 +3,7 @@ package br.com.fiap.petbuddies.service;
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
-import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;

@@ -2,9 +2,9 @@ package br.com.fiap.petbuddies.service;
 
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
-import br.com.fiap.petbuddies.domain.enums.OperadorRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoAcaoRegra;
-import br.com.fiap.petbuddies.domain.enums.TipoDado;
+import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
+import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.dto.ExtracaoPrescricaoIA;

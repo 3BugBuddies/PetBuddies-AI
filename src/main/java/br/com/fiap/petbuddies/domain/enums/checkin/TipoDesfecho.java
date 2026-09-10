@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.checkin;
 
 /**
  * O que o motor decidiu para um item de tratamento num dia. Nulo em item de

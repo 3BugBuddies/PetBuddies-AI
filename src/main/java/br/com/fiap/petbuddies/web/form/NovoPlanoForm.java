@@ -1,6 +1,6 @@
 package br.com.fiap.petbuddies.web.form;
 
-import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
+import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

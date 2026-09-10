@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
-import br.com.fiap.petbuddies.domain.enums.PerfilUsuario;
+import br.com.fiap.petbuddies.domain.enums.identidade.PerfilUsuario;
 import lombok.*;
 
 /**

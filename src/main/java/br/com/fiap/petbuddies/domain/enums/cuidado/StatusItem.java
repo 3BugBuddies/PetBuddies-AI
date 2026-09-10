@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.cuidado;
 
 /**
  * Estado de um item do plano. Nao confundir com {@link StatusPlano}, que descreve

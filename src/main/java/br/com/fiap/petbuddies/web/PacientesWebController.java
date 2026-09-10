@@ -3,7 +3,7 @@ package br.com.fiap.petbuddies.web;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
-import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
+import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo;
 import br.com.fiap.petbuddies.dto.AnimalRequest;
 import br.com.fiap.petbuddies.dto.AnimalResponse;
 import br.com.fiap.petbuddies.dto.ConsultaResponse;

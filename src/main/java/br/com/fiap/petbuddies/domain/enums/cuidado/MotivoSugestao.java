@@ -1,4 +1,4 @@
-package br.com.fiap.petbuddies.domain.enums;
+package br.com.fiap.petbuddies.domain.enums.cuidado;
 
 /** Por que um cuidado aparece na sugestão por histórico (PR-J9). */
 public enum MotivoSugestao {

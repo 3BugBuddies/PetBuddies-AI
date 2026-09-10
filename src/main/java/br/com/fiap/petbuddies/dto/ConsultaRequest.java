@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.enums.StatusConsulta;
-import br.com.fiap.petbuddies.domain.enums.TipoConsulta;
+import br.com.fiap.petbuddies.domain.enums.atendimento.StatusConsulta;
+import br.com.fiap.petbuddies.domain.enums.atendimento.TipoConsulta;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;

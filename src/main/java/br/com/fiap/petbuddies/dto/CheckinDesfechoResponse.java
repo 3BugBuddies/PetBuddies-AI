@@ -1,6 +1,6 @@
 package br.com.fiap.petbuddies.dto;
 
-import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
+import br.com.fiap.petbuddies.domain.enums.checkin.TipoDesfecho;
 import lombok.*;
 
 import java.math.BigDecimal;

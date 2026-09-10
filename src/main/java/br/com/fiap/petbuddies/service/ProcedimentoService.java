@@ -4,7 +4,7 @@ import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ProcedimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
-import br.com.fiap.petbuddies.domain.enums.StatusProcedimento;
+import br.com.fiap.petbuddies.domain.enums.atendimento.StatusProcedimento;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ProcedimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;

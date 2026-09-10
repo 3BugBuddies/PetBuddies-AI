@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
-import br.com.fiap.petbuddies.domain.enums.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import java.time.LocalDate;
