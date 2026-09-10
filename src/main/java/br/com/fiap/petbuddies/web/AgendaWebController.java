@@ -6,11 +6,17 @@ import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.dto.AnimalResponse;
 import br.com.fiap.petbuddies.dto.ConsultaRequest;
 import br.com.fiap.petbuddies.dto.ConsultaResponse;
+import br.com.fiap.petbuddies.dto.FechamentoAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.PrescricaoFechamentoRequest;
+import br.com.fiap.petbuddies.dto.ProcedimentoFechamentoRequest;
+import br.com.fiap.petbuddies.dto.RegistroAtendimentoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.VeterinarioResponse;
 import br.com.fiap.petbuddies.service.AnimalService;
 import br.com.fiap.petbuddies.service.ConsultaService;
+import br.com.fiap.petbuddies.service.FechamentoAtendimentoService;
 import br.com.fiap.petbuddies.service.VeterinarioService;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -25,10 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Agenda de consultas. A tela de "fechar atendimento" (fluxo 2) fica como
- * lugar preparado até o {@code J18} mergear — ver {@link #fechar}.
- */
+/** Agenda de consultas. */
 @Controller
 @RequestMapping("/agenda")
 public class AgendaWebController {
@@ -36,12 +39,17 @@ public class AgendaWebController {
     private final ConsultaService consultaService;
     private final AnimalService animalService;
     private final VeterinarioService veterinarioService;
+    private final FechamentoAtendimentoService fechamentoAtendimentoService;
 
     public AgendaWebController(
-            ConsultaService consultaService, AnimalService animalService, VeterinarioService veterinarioService) {
+            ConsultaService consultaService,
+            AnimalService animalService,
+            VeterinarioService veterinarioService,
+            FechamentoAtendimentoService fechamentoAtendimentoService) {
         this.consultaService = consultaService;
         this.animalService = animalService;
         this.veterinarioService = veterinarioService;
+        this.fechamentoAtendimentoService = fechamentoAtendimentoService;
     }
 
     @GetMapping
@@ -82,16 +90,44 @@ public class AgendaWebController {
         return "redirect:/agenda";
     }
 
-    /**
-     * Lugar preparado para o fluxo 2 (fechar atendimento). O service que grava
-     * a transação nasce no {@code J18}, em paralelo — a tela real é o próximo
-     * passo depois dele mergear.
-     */
     @GetMapping("/{id}/fechar")
     public String fechar(@PathVariable Long id, Model model) {
         ConsultaEntity consulta = consultaService.buscarPorId(id);
         model.addAttribute("consulta", ConsultaResponse.from(consulta));
+        if (!model.containsAttribute("fechamentoRequest")) {
+            model.addAttribute("fechamentoRequest", novoFechamentoRequest());
+        }
         return "agenda/fechar";
+    }
+
+    @PostMapping("/{id}/fechar")
+    public String fecharAtendimento(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("fechamentoRequest") FechamentoAtendimentoRequest request,
+            BindingResult result,
+            Model model,
+            RedirectAttributes redirect) {
+        if (result.hasErrors()) {
+            model.addAttribute("consulta", ConsultaResponse.from(consultaService.buscarPorId(id)));
+            return "agenda/fechar";
+        }
+        fechamentoAtendimentoService.fechar(id, request);
+        redirect.addFlashAttribute("sucesso", "Atendimento fechado.");
+        return "redirect:/agenda";
+    }
+
+    // Pré-inicializado com um elemento em cada lista: sem isso o binder não
+    // tem índice [0] para preencher no GET, e o POST reenvia sem alterar o objeto.
+    private FechamentoAtendimentoRequest novoFechamentoRequest() {
+        FechamentoAtendimentoRequest request = new FechamentoAtendimentoRequest();
+        request.setRegistroAtendimento(new RegistroAtendimentoFechamentoRequest());
+        List<ProcedimentoFechamentoRequest> procedimentos = new ArrayList<>();
+        procedimentos.add(new ProcedimentoFechamentoRequest());
+        request.setProcedimentos(procedimentos);
+        List<PrescricaoFechamentoRequest> prescricoes = new ArrayList<>();
+        prescricoes.add(new PrescricaoFechamentoRequest());
+        request.setPrescricoes(prescricoes);
+        return request;
     }
 
     private List<AnimalResponse> listaAnimais() {
