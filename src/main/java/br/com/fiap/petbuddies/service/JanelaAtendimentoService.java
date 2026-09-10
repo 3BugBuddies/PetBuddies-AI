@@ -14,6 +14,8 @@ import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -43,6 +45,15 @@ public class JanelaAtendimentoService {
     @Transactional(readOnly = true)
     public JanelaAtendimentoEntity buscarPorId(Long id) {
         return encontrarOuFalhar(id);
+    }
+
+    // a leitura que a tela de agendamento faz primeiro: slots livres de um vet, num dia
+    @Transactional(readOnly = true)
+    public List<JanelaAtendimentoEntity> listarLivres(Long veterinarioId, LocalDate data) {
+        LocalDateTime inicio = data.atStartOfDay();
+        LocalDateTime fim = inicio.plusDays(1);
+        return repository.findByVeterinarioIdAndConsultaIsNullAndDataHoraInicioBetweenOrderByDataHoraInicioAsc(
+                veterinarioId, inicio, fim);
     }
 
     @Transactional

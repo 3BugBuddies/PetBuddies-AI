@@ -15,6 +15,8 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping("/api/janelas-atendimento")
 @Tag(name = "registro — janelas de atendimento", description = "Agenda do veterinário: slots de 30 minutos, livres ou reservados por uma consulta")
@@ -38,6 +40,21 @@ public class JanelaAtendimentoController {
             @Parameter(description = "Id do veterinário")
             @RequestParam(required = false) Long veterinarioId) {
         return assembler.toCollectionModel(service.listar(veterinarioId));
+    }
+
+    @GetMapping("/livres")
+    @Operation(
+        summary = "Lista janelas livres de um veterinário num dia",
+        description = "Slots sem consulta vinculada do veterinário informado, dentro do dia informado, "
+            + "da mais cedo para a mais tarde — a leitura que a tela de agendamento faz primeiro."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista de janelas livres")
+    public CollectionModel<EntityModel<JanelaAtendimentoResponse>> listarLivres(
+            @Parameter(description = "Id do veterinário", required = true)
+            @RequestParam Long veterinarioId,
+            @Parameter(description = "Dia, no formato AAAA-MM-DD", required = true)
+            @RequestParam LocalDate data) {
+        return assembler.toCollectionModel(service.listarLivres(veterinarioId, data));
     }
 
     @GetMapping("/{id}")

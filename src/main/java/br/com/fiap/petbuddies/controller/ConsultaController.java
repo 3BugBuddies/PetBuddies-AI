@@ -1,6 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.ConsultaModelAssembler;
+import br.com.fiap.petbuddies.dto.AgendamentoRequest;
+import br.com.fiap.petbuddies.dto.CancelamentoRequest;
 import br.com.fiap.petbuddies.dto.ConsultaRequest;
 import br.com.fiap.petbuddies.dto.ConsultaResponse;
 import br.com.fiap.petbuddies.service.ConsultaService;
@@ -87,5 +89,38 @@ public class ConsultaController {
     public ResponseEntity<Void> remover(@PathVariable Long id) {
         service.remover(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/agendamentos")
+    @Operation(
+        summary = "Agenda consulta numa janela livre",
+        description = "Ocupa a janela de atendimento informada; a consulta nasce AGENDADA, com data/hora e "
+            + "veterinário herdados do slot, não do corpo da requisição."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Consulta agendada"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou janela no passado"),
+        @ApiResponse(responseCode = "404", description = "Janela ou animal não encontrado"),
+        @ApiResponse(responseCode = "409", description = "Janela já ocupada por outra consulta")
+    })
+    public ResponseEntity<EntityModel<ConsultaResponse>> agendar(@RequestBody @Valid AgendamentoRequest request) {
+        EntityModel<ConsultaResponse> model = assembler.toModel(service.agendar(request));
+        return ResponseEntity.created(model.getRequiredLink("self").toUri()).body(model);
+    }
+
+    @PostMapping("/{id}/cancelamento")
+    @Operation(
+        summary = "Cancela consulta",
+        description = "Marca a consulta como CANCELADA com o motivo informado e devolve a janela de "
+            + "atendimento vinculada ao pool de horários livres."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Consulta cancelada"),
+        @ApiResponse(responseCode = "400", description = "Motivo do cancelamento ausente"),
+        @ApiResponse(responseCode = "404", description = "Consulta não encontrada"),
+        @ApiResponse(responseCode = "409", description = "Consulta já realizada")
+    })
+    public EntityModel<ConsultaResponse> cancelar(@PathVariable Long id, @RequestBody @Valid CancelamentoRequest request) {
+        return assembler.toModel(service.cancelar(id, request));
     }
 }
