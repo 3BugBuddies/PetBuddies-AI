@@ -5,7 +5,12 @@ import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CondicaoClinicaRequest {
 
     @NotBlank(message = "Código é obrigatório.")
@@ -34,31 +39,4 @@ public class CondicaoClinicaRequest {
 
     @NotNull(message = "Veterinário autor é obrigatório.")
     private Long veterinarioAutorId;
-
-    public String getCodigo() { return codigo; }
-    public void setCodigo(String codigo) { this.codigo = codigo; }
-
-    public String getRotulo() { return rotulo; }
-    public void setRotulo(String rotulo) { this.rotulo = rotulo; }
-
-    public TipoDado getTipoDado() { return tipoDado; }
-    public void setTipoDado(TipoDado tipoDado) { this.tipoDado = tipoDado; }
-
-    public TipoFonteValor getFonteValor() { return fonteValor; }
-    public void setFonteValor(TipoFonteValor fonteValor) { this.fonteValor = fonteValor; }
-
-    public String getUnidade() { return unidade; }
-    public void setUnidade(String unidade) { this.unidade = unidade; }
-
-    public Boolean getCritica() { return critica; }
-    public void setCritica(Boolean critica) { this.critica = critica; }
-
-    public Boolean getAtivo() { return ativo; }
-    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
-
-    public Long getClinicaId() { return clinicaId; }
-    public void setClinicaId(Long clinicaId) { this.clinicaId = clinicaId; }
-
-    public Long getVeterinarioAutorId() { return veterinarioAutorId; }
-    public void setVeterinarioAutorId(Long veterinarioAutorId) { this.veterinarioAutorId = veterinarioAutorId; }
 }

@@ -3,9 +3,14 @@ package br.com.fiap.petbuddies.dto;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusItem;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 import java.time.LocalDate;
 
 @Schema(description = "Evento de um plano de cuidado")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemPlanoCuidadoDto {
 
     @Schema(description = "ID do evento")
@@ -54,28 +59,4 @@ public class ItemPlanoCuidadoDto {
             && e.getDataAlvo() != null
             && e.getDataAlvo().isBefore(LocalDate.now());
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public LocalDate getDataAlvo() { return dataAlvo; }
-    public void setDataAlvo(LocalDate dataAlvo) { this.dataAlvo = dataAlvo; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public String getOrigem() { return origem; }
-    public void setOrigem(String origem) { this.origem = origem; }
-
-    public Long getPrescricaoId() { return prescricaoId; }
-    public void setPrescricaoId(Long prescricaoId) { this.prescricaoId = prescricaoId; }
-
-    public boolean isVencido() { return vencido; }
-    public void setVencido(boolean vencido) { this.vencido = vencido; }
 }

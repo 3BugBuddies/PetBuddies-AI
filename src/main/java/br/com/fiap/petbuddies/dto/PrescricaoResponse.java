@@ -1,11 +1,15 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PrescricaoResponse {
 
     private Long id;
@@ -45,21 +49,4 @@ public class PrescricaoResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public String getMedicamento() { return medicamento; }
-    public BigDecimal getDoseMin() { return doseMin; }
-    public BigDecimal getDoseMax() { return doseMax; }
-    public String getUnidade() { return unidade; }
-    public Integer getFrequenciaDia() { return frequenciaDia; }
-    public Integer getDuracaoDias() { return duracaoDias; }
-    public LocalDate getDataInicio() { return dataInicio; }
-    public String getOrientacao() { return orientacao; }
-    public Long getMaterialOrigemId() { return materialOrigemId; }
-    public Integer getVersaoOrigem() { return versaoOrigem; }
-    public Long getAnimalId() { return animalId; }
-    public Long getVeterinarioId() { return veterinarioId; }
-    public Long getRegistroAtendimentoId() { return registroAtendimentoId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

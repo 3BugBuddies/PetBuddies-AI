@@ -3,6 +3,7 @@ package br.com.fiap.petbuddies.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -16,6 +17,10 @@ import java.time.LocalDate;
  * avaliador, no passo 2, que decide contra qual prescrição a condição
  * confirmada conta.</p>
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CheckinExtracaoRequest {
 
     @NotNull(message = "Animal é obrigatório.")
@@ -27,13 +32,4 @@ public class CheckinExtracaoRequest {
     @NotBlank(message = "Narrativa é obrigatória.")
     @Size(max = 4000, message = "Narrativa deve ter no máximo 4000 caracteres.")
     private String narrativa;
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long animalId) { this.animalId = animalId; }
-
-    public LocalDate getDataReferencia() { return dataReferencia; }
-    public void setDataReferencia(LocalDate dataReferencia) { this.dataReferencia = dataReferencia; }
-
-    public String getNarrativa() { return narrativa; }
-    public void setNarrativa(String narrativa) { this.narrativa = narrativa; }
 }

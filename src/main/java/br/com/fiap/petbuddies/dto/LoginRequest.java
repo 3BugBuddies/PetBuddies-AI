@@ -2,7 +2,12 @@ package br.com.fiap.petbuddies.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginRequest {
 
     @NotBlank(message = "Login é obrigatório.")
@@ -11,12 +16,6 @@ public class LoginRequest {
 
     @NotBlank(message = "Senha é obrigatória.")
     private String senha;
-
-    public String getLogin() { return login; }
-    public void setLogin(String login) { this.login = login; }
-
-    public String getSenha() { return senha; }
-    public void setSenha(String senha) { this.senha = senha; }
 
     /**
      * Sem a senha, de proposito: {@code toString} de DTO acaba em log de erro e

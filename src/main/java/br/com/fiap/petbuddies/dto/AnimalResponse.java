@@ -4,11 +4,15 @@ import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.enums.Especie;
 import br.com.fiap.petbuddies.domain.enums.Porte;
 import br.com.fiap.petbuddies.domain.enums.Sexo;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AnimalResponse {
 
     private Long id;
@@ -49,21 +53,4 @@ public class AnimalResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public String getNome() { return nome; }
-    public Especie getEspecie() { return especie; }
-    public String getRaca() { return raca; }
-    public Porte getPorte() { return porte; }
-    public Sexo getSexo() { return sexo; }
-    public LocalDate getDataNascimento() { return dataNascimento; }
-    public BigDecimal getPeso() { return peso; }
-    public Boolean getCondicaoCronica() { return condicaoCronica; }
-    public Boolean getCastrado() { return castrado; }
-    public String getFoto() { return foto; }
-    public String getAlergias() { return alergias; }
-    public String getObservacoes() { return observacoes; }
-    public Long getResponsavelId() { return responsavelId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

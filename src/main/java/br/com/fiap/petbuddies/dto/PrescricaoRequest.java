@@ -1,10 +1,15 @@
 package br.com.fiap.petbuddies.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PrescricaoRequest {
 
     @NotBlank(message = "Medicamento é obrigatório.")
@@ -58,43 +63,4 @@ public class PrescricaoRequest {
     private boolean isFaixaDoseValida() {
         return doseMin == null || doseMax == null || doseMin.compareTo(doseMax) <= 0;
     }
-
-    public String getMedicamento() { return medicamento; }
-    public void setMedicamento(String medicamento) { this.medicamento = medicamento; }
-
-    public BigDecimal getDoseMin() { return doseMin; }
-    public void setDoseMin(BigDecimal doseMin) { this.doseMin = doseMin; }
-
-    public BigDecimal getDoseMax() { return doseMax; }
-    public void setDoseMax(BigDecimal doseMax) { this.doseMax = doseMax; }
-
-    public String getUnidade() { return unidade; }
-    public void setUnidade(String unidade) { this.unidade = unidade; }
-
-    public Integer getFrequenciaDia() { return frequenciaDia; }
-    public void setFrequenciaDia(Integer frequenciaDia) { this.frequenciaDia = frequenciaDia; }
-
-    public Integer getDuracaoDias() { return duracaoDias; }
-    public void setDuracaoDias(Integer duracaoDias) { this.duracaoDias = duracaoDias; }
-
-    public LocalDate getDataInicio() { return dataInicio; }
-    public void setDataInicio(LocalDate dataInicio) { this.dataInicio = dataInicio; }
-
-    public String getOrientacao() { return orientacao; }
-    public void setOrientacao(String orientacao) { this.orientacao = orientacao; }
-
-    public Long getMaterialOrigemId() { return materialOrigemId; }
-    public void setMaterialOrigemId(Long materialOrigemId) { this.materialOrigemId = materialOrigemId; }
-
-    public Integer getVersaoOrigem() { return versaoOrigem; }
-    public void setVersaoOrigem(Integer versaoOrigem) { this.versaoOrigem = versaoOrigem; }
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long animalId) { this.animalId = animalId; }
-
-    public Long getVeterinarioId() { return veterinarioId; }
-    public void setVeterinarioId(Long veterinarioId) { this.veterinarioId = veterinarioId; }
-
-    public Long getRegistroAtendimentoId() { return registroAtendimentoId; }
-    public void setRegistroAtendimentoId(Long registroAtendimentoId) { this.registroAtendimentoId = registroAtendimentoId; }
 }

@@ -1,5 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
+import lombok.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +14,9 @@ import java.util.Map;
  * nulo, porque a prescrição ainda não existe — a tela preenche esse campo
  * com o id devolvido pelo POST da prescrição antes de assinar cada regra.</p>
  */
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RascunhoPrescricaoResponse {
 
     private String narrativaOriginal;
@@ -50,12 +55,4 @@ public class RascunhoPrescricaoResponse {
         dto.condicoesDescartadas = condicoesDescartadas;
         return dto;
     }
-
-    public String getNarrativaOriginal() { return narrativaOriginal; }
-    public boolean isExtracaoDisponivel() { return extracaoDisponivel; }
-    public String getMotivoDegradacao() { return motivoDegradacao; }
-    public PrescricaoRequest getPrescricao() { return prescricao; }
-    public Map<String, Double> getConfiancaPorCampo() { return confiancaPorCampo; }
-    public List<RegraPrescricaoRequest> getRegrasPropostas() { return regrasPropostas; }
-    public List<String> getCondicoesDescartadas() { return condicoesDescartadas; }
 }

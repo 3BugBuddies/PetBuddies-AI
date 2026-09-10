@@ -3,9 +3,13 @@ package br.com.fiap.petbuddies.dto;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.enums.TipoDado;
 import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CondicaoClinicaResponse {
 
     private Long id;
@@ -38,17 +42,4 @@ public class CondicaoClinicaResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public String getCodigo() { return codigo; }
-    public String getRotulo() { return rotulo; }
-    public TipoDado getTipoDado() { return tipoDado; }
-    public TipoFonteValor getFonteValor() { return fonteValor; }
-    public String getUnidade() { return unidade; }
-    public Boolean getCritica() { return critica; }
-    public Boolean getAtivo() { return ativo; }
-    public Long getClinicaId() { return clinicaId; }
-    public Long getVeterinarioAutorId() { return veterinarioAutorId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

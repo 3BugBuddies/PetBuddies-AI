@@ -1,5 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
+import lombok.*;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -12,6 +14,9 @@ import java.util.List;
  * vazia — o app deve cair para as perguntas fixas, nunca fingir que nada foi
  * observado.</p>
  */
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CheckinExtracaoResponse {
 
     private Long animalId;
@@ -41,11 +46,4 @@ public class CheckinExtracaoResponse {
         dto.degradado = degradado;
         return dto;
     }
-
-    public Long getAnimalId() { return animalId; }
-    public LocalDate getDataReferencia() { return dataReferencia; }
-    public String getNarrativa() { return narrativa; }
-    public List<CondicaoExtraidaResponse> getCondicoes() { return condicoes; }
-    public List<String> getRedFlags() { return redFlags; }
-    public boolean isDegradado() { return degradado; }
 }

@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.enums.TipoDado;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -11,6 +12,9 @@ import java.math.BigDecimal;
  * nela. Presente com {@code valorBooleano=false} é "mencionada e negada": os
  * dois nunca colapsam no mesmo valor.
  */
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CondicaoExtraidaResponse {
 
     private Long condicaoClinicaId;
@@ -22,7 +26,9 @@ public class CondicaoExtraidaResponse {
     private BigDecimal valorNumerico;
     private Double confianca;
     private boolean critica;
+    /** Palavras exatas da narrativa que embasam a extração — não persistido, só para a tela de confirmação. */
     private String trecho;
+    /** true se o tutor falou diretamente; false se a IA inferiu. Não persistido. */
     private boolean literal;
 
     public static CondicaoExtraidaResponse of(
@@ -43,18 +49,4 @@ public class CondicaoExtraidaResponse {
         dto.literal = literal;
         return dto;
     }
-
-    public Long getCondicaoClinicaId() { return condicaoClinicaId; }
-    public String getCodigo() { return codigo; }
-    public String getRotulo() { return rotulo; }
-    public TipoDado getTipoDado() { return tipoDado; }
-    public String getUnidade() { return unidade; }
-    public Boolean getValorBooleano() { return valorBooleano; }
-    public BigDecimal getValorNumerico() { return valorNumerico; }
-    public Double getConfianca() { return confianca; }
-    public boolean isCritica() { return critica; }
-    /** Palavras exatas da narrativa que embasam a extração — não persistido, só para a tela de confirmação. */
-    public String getTrecho() { return trecho; }
-    /** true se o tutor falou diretamente; false se a IA inferiu. Não persistido. */
-    public boolean isLiteral() { return literal; }
 }

@@ -1,9 +1,14 @@
 package br.com.fiap.petbuddies.dto;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class JanelaAtendimentoRequest {
 
     @NotNull(message = "Data e hora de início são obrigatórias.")
@@ -14,13 +19,4 @@ public class JanelaAtendimentoRequest {
 
     /** Ausente, o slot nasce livre. Preenchido, reserva o horário para a consulta. */
     private Long consultaId;
-
-    public LocalDateTime getDataHoraInicio() { return dataHoraInicio; }
-    public void setDataHoraInicio(LocalDateTime dataHoraInicio) { this.dataHoraInicio = dataHoraInicio; }
-
-    public Long getVeterinarioId() { return veterinarioId; }
-    public void setVeterinarioId(Long veterinarioId) { this.veterinarioId = veterinarioId; }
-
-    public Long getConsultaId() { return consultaId; }
-    public void setConsultaId(Long consultaId) { this.consultaId = consultaId; }
 }

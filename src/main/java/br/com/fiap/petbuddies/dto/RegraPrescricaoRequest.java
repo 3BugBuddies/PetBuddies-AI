@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -14,6 +15,10 @@ import java.math.BigDecimal;
  * partir da condição clínica no momento da criação (ADR s3-10), nunca
  * recebidos do cliente.
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegraPrescricaoRequest {
 
     @NotNull(message = "Prescrição é obrigatória.")
@@ -36,22 +41,4 @@ public class RegraPrescricaoRequest {
     @Positive(message = "Ordem deve ser maior que zero.")
     @Max(value = 999, message = "Ordem excede a precisão NUMBER(3).")
     private Integer ordem;
-
-    public Long getPrescricaoId() { return prescricaoId; }
-    public void setPrescricaoId(Long prescricaoId) { this.prescricaoId = prescricaoId; }
-
-    public Long getCondicaoClinicaId() { return condicaoClinicaId; }
-    public void setCondicaoClinicaId(Long condicaoClinicaId) { this.condicaoClinicaId = condicaoClinicaId; }
-
-    public OperadorRegra getOperador() { return operador; }
-    public void setOperador(OperadorRegra operador) { this.operador = operador; }
-
-    public BigDecimal getLimite() { return limite; }
-    public void setLimite(BigDecimal limite) { this.limite = limite; }
-
-    public TipoAcaoRegra getAcaoDose() { return acaoDose; }
-    public void setAcaoDose(TipoAcaoRegra acaoDose) { this.acaoDose = acaoDose; }
-
-    public Integer getOrdem() { return ordem; }
-    public void setOrdem(Integer ordem) { this.ordem = ordem; }
 }

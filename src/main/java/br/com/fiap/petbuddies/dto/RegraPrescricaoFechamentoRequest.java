@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -16,6 +17,10 @@ import java.math.BigDecimal;
  * pelo service a partir da condição clínica, nunca recebidos do cliente —
  * mesma regra do {@code RegraPrescricaoRequest} avulso.
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegraPrescricaoFechamentoRequest {
 
     @NotNull(message = "Condição clínica é obrigatória.")
@@ -35,19 +40,4 @@ public class RegraPrescricaoFechamentoRequest {
     @Positive(message = "Ordem deve ser maior que zero.")
     @Max(value = 999, message = "Ordem excede a precisão NUMBER(3).")
     private Integer ordem;
-
-    public Long getCondicaoClinicaId() { return condicaoClinicaId; }
-    public void setCondicaoClinicaId(Long condicaoClinicaId) { this.condicaoClinicaId = condicaoClinicaId; }
-
-    public OperadorRegra getOperador() { return operador; }
-    public void setOperador(OperadorRegra operador) { this.operador = operador; }
-
-    public BigDecimal getLimite() { return limite; }
-    public void setLimite(BigDecimal limite) { this.limite = limite; }
-
-    public TipoAcaoRegra getAcaoDose() { return acaoDose; }
-    public void setAcaoDose(TipoAcaoRegra acaoDose) { this.acaoDose = acaoDose; }
-
-    public Integer getOrdem() { return ordem; }
-    public void setOrdem(Integer ordem) { this.ordem = ordem; }
 }

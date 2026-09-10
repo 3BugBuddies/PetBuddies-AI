@@ -3,9 +3,13 @@ package br.com.fiap.petbuddies.dto;
 import br.com.fiap.petbuddies.domain.entity.ProcedimentoEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusProcedimento;
 import br.com.fiap.petbuddies.domain.enums.TipoProcedimento;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProcedimentoResponse {
 
     private Long id;
@@ -41,19 +45,4 @@ public class ProcedimentoResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public TipoProcedimento getTipo() { return tipo; }
-    public String getNome() { return nome; }
-    public String getDescricao() { return descricao; }
-    public StatusProcedimento getStatus() { return status; }
-    public LocalDateTime getDataPrevistaInicio() { return dataPrevistaInicio; }
-    public LocalDateTime getDataPrevistaFim() { return dataPrevistaFim; }
-    public String getAnexosUrl() { return anexosUrl; }
-    public String getObservacao() { return observacao; }
-    public Long getRegistroAtendimentoId() { return registroAtendimentoId; }
-    public Long getAnimalId() { return animalId; }
-    public Long getVeterinarioId() { return veterinarioId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

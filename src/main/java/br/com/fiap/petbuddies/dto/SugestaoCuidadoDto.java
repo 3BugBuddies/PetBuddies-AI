@@ -3,6 +3,7 @@ package br.com.fiap.petbuddies.dto;
 import br.com.fiap.petbuddies.domain.enums.MotivoSugestao;
 import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -12,6 +13,10 @@ import java.time.LocalDate;
  * saldo e tier: nada muda até o veterinário aceitar.
  */
 @Schema(description = "Sugestão de próximo cuidado, derivada do histórico do animal")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SugestaoCuidadoDto {
 
     @Schema(description = "ID do animal no PetBuddies-API (.NET)")
@@ -56,22 +61,4 @@ public class SugestaoCuidadoDto {
         dto.motivo = motivo;
         return dto;
     }
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long animalId) { this.animalId = animalId; }
-
-    public TipoCuidado getTipo() { return tipo; }
-    public void setTipo(TipoCuidado tipo) { this.tipo = tipo; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public LocalDate getDataVencimento() { return dataVencimento; }
-    public void setDataVencimento(LocalDate dataVencimento) { this.dataVencimento = dataVencimento; }
-
-    public MotivoSugestao getMotivo() { return motivo; }
-    public void setMotivo(MotivoSugestao motivo) { this.motivo = motivo; }
-
-    public Long getItemId() { return itemId; }
-    public void setItemId(Long itemId) { this.itemId = itemId; }
 }

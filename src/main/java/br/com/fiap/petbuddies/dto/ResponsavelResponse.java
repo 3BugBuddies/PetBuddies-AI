@@ -1,8 +1,12 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
+import lombok.*;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResponsavelResponse {
 
     private Long id;
@@ -22,11 +26,4 @@ public class ResponsavelResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public String getNome() { return nome; }
-    public String getTelefone() { return telefone; }
-    public String getEmail() { return email; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

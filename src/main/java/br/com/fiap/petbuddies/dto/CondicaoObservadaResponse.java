@@ -1,10 +1,14 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.CondicaoObservadaEntity;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CondicaoObservadaResponse {
 
     private Long id;
@@ -26,12 +30,4 @@ public class CondicaoObservadaResponse {
         dto.createdAt = entity.getCreatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public Long getCondicaoClinicaId() { return condicaoClinicaId; }
-    public String getCodigoCongelado() { return codigoCongelado; }
-    public Boolean getValorBooleano() { return valorBooleano; }
-    public BigDecimal getValorNumerico() { return valorNumerico; }
-    public BigDecimal getConfianca() { return confianca; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
 }
