@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:fragment="page(titulo, conteudo)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:replace="${titulo}">PetBuddies</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<header class="topo">
+    <a class="marca" th:href="@{/}">PetBuddies</a>
+    <nav th:if="${usuario != null}">
+        <th:block th:if="${usuario.vet}">
+            <a th:href="@{/painel}">Painel</a>
+            <a th:href="@{/agenda}">Agenda</a>
+            <a th:href="@{/pacientes}">Pacientes</a>
+            <a th:href="@{/tutores}">Tutores</a>
+            <a th:href="@{/equipe}">Equipe</a>
+            <a th:href="@{/clinica}">Clínica</a>
+        </th:block>
+        <th:block th:if="${usuario.tutor}">
+            <a th:href="@{/meus-animais}">Meus animais</a>
+        </th:block>
+    </nav>
+    <form th:if="${usuario != null}" th:action="@{/logout}" method="post" class="form-sair">
+        <span class="usuario-logado" th:text="${usuario.username}">usuario</span>
+        <button type="submit" class="botao-link">Sair</button>
+    </form>
+</header>
+<main class="conteudo" th:replace="${conteudo}">
+    Conteúdo da página
+</main>
+<footer class="rodape">PetBuddies · Challenge FIAP 2026</footer>
+</body>
+</html>

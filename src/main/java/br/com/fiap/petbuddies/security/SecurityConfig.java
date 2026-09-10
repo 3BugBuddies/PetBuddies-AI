@@ -76,6 +76,10 @@ public class SecurityConfig {
      *
      * <p>O CSRF fica <b>ligado</b>: aqui ha cookie de sessao, e o formulario
      * gerado ja envia o token.</p>
+     *
+     * <p>As telas da clinica (vet) e a do tutor sao os dois grupos que a
+     * rubrica de Spring Security pede como prova de perfil — ver {@code
+     * UsuarioPrincipal} para o vinculo que a tela do tutor usa para filtrar.</p>
      */
     @Bean
     @Order(2)
@@ -87,9 +91,11 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**",
                                 "/api-docs", "/api-docs/**").permitAll()
-                        .requestMatchers("/clinica/**").hasRole("VET")
+                        .requestMatchers("/painel/**", "/clinica/**", "/equipe/**",
+                                "/tutores/**", "/pacientes/**", "/agenda/**").hasRole("VET")
+                        .requestMatchers("/meus-animais", "/meus-animais/**").hasRole("TUTOR")
                         .anyRequest().authenticated())
-                .formLogin(formulario -> formulario.permitAll())
+                .formLogin(formulario -> formulario.loginPage("/login").permitAll())
                 .logout(saida -> saida.permitAll())
                 .build();
     }

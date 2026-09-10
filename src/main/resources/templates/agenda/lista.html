@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Agenda · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <h1>Agenda</h1>
+        <a class="botao" th:href="@{/agenda/novo}">Agendar consulta</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <p th:if="${#lists.isEmpty(consultas)}">Nenhuma consulta agendada ainda.</p>
+
+    <table th:unless="${#lists.isEmpty(consultas)}">
+        <thead>
+        <tr>
+            <th>Data</th>
+            <th>Animal</th>
+            <th>Veterinário</th>
+            <th>Tipo</th>
+            <th>Status</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="consulta : ${consultas}">
+            <td th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+            <td th:text="${nomesAnimais.get(consulta.animalId)}">Rex</td>
+            <td th:text="${nomesVeterinarios.get(consulta.veterinarioId)}">Ana</td>
+            <td th:text="${consulta.tipo}">ROTINA</td>
+            <td><span class="selo" th:text="${consulta.status}">AGENDADA</span></td>
+            <td>
+                <a th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Não foi possível · PetBuddies</title>
+</head>
+<body>
+<main class="caixa-erro">
+    <h1>Não foi possível concluir</h1>
+    <p class="mensagem-erro" th:text="${mensagem}">mensagem do erro</p>
+    <a th:href="@{/}">Voltar ao início</a>
+</main>
+</body>
+</html>

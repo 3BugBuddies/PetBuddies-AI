@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Erro · PetBuddies</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<main class="caixa-erro pagina-avulsa" th:switch="${status}">
+    <th:block th:case="403">
+        <h1>Acesso negado</h1>
+        <p>Seu perfil não tem permissão para abrir esta página.</p>
+    </th:block>
+    <th:block th:case="404">
+        <h1>Página não encontrada</h1>
+        <p>O endereço não existe ou foi movido.</p>
+    </th:block>
+    <th:block th:case="*">
+        <h1 th:text="${status} != null ? ('Erro ' + ${status}) : 'Erro'">Erro</h1>
+        <p th:text="${message} != null and ${message} != '' ? ${message} : 'Não foi possível concluir a operação.'">
+            mensagem
+        </p>
+    </th:block>
+    <a th:href="@{/}">Voltar ao início</a>
+</main>
+</body>
+</html>

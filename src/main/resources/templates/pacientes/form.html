@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Paciente · PetBuddies</title>
+</head>
+<body>
+<main>
+    <h1 th:text="${animalId != null ? 'Editar paciente' : 'Novo paciente'}">Novo paciente</h1>
+
+    <form class="formulario" method="post" th:action="@{${acaoFormulario}}" th:object="${animalRequest}">
+
+        <label for="nome">Nome</label>
+        <input id="nome" type="text" th:field="*{nome}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">erro</div>
+
+        <label for="especie">Espécie</label>
+        <select id="especie" th:field="*{especie}">
+            <option value="">Selecione</option>
+            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.Especie).values()}"
+                    th:value="${valor}" th:text="${valor}">CACHORRO</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('especie')}" th:errors="*{especie}">erro</div>
+
+        <label for="raca">Raça</label>
+        <input id="raca" type="text" th:field="*{raca}" placeholder="SEM_RACA se não souber"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('raca')}" th:errors="*{raca}">erro</div>
+
+        <label for="porte">Porte</label>
+        <select id="porte" th:field="*{porte}">
+            <option value="">Selecione</option>
+            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.Porte).values()}"
+                    th:value="${valor}" th:text="${valor}">MEDIO</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('porte')}" th:errors="*{porte}">erro</div>
+
+        <label for="sexo">Sexo</label>
+        <select id="sexo" th:field="*{sexo}">
+            <option value="">Selecione</option>
+            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.Sexo).values()}"
+                    th:value="${valor}" th:text="${valor}">MACHO</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('sexo')}" th:errors="*{sexo}">erro</div>
+
+        <label for="dataNascimento">Data de nascimento</label>
+        <input id="dataNascimento" type="date" th:field="*{dataNascimento}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('dataNascimento')}" th:errors="*{dataNascimento}">erro</div>
+
+        <label for="peso">Peso (kg)</label>
+        <input id="peso" type="number" step="0.01" min="0" th:field="*{peso}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('peso')}" th:errors="*{peso}">erro</div>
+
+        <div class="campo-checkbox">
+            <input id="condicaoCronica" type="checkbox" th:field="*{condicaoCronica}"/>
+            <label for="condicaoCronica" style="margin:0;">Tem condição crônica</label>
+        </div>
+
+        <div class="campo-checkbox">
+            <input id="castrado" type="checkbox" th:field="*{castrado}"/>
+            <label for="castrado" style="margin:0;">Castrado</label>
+        </div>
+
+        <label for="alergias">Alergias</label>
+        <textarea id="alergias" rows="2" th:field="*{alergias}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('alergias')}" th:errors="*{alergias}">erro</div>
+
+        <label for="observacoes">Observações</label>
+        <textarea id="observacoes" rows="3" th:field="*{observacoes}"></textarea>
+        <div class="erro-campo" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}">erro</div>
+
+        <label for="responsavelId">Tutor responsável</label>
+        <select id="responsavelId" th:field="*{responsavelId}">
+            <option value="">Selecione</option>
+            <option th:each="tutor : ${responsaveis}" th:value="${tutor.id}" th:text="${tutor.nome}">Tutor</option>
+        </select>
+        <div class="erro-campo" th:if="${#fields.hasErrors('responsavelId')}" th:errors="*{responsavelId}">erro</div>
+
+        <div class="acoes-formulario">
+            <button type="submit">Salvar</button>
+            <a class="botao secundario" th:href="@{/pacientes}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

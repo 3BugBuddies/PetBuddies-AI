@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Fechar atendimento · PetBuddies</title>
+</head>
+<body>
+<main>
+    <h1>Fechar atendimento</h1>
+
+    <section class="bloco">
+        <p>
+            Consulta de <span th:text="${consulta.tipo}">ROTINA</span> em
+            <span th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span> —
+            status atual <span class="selo" th:text="${consulta.status}">AGENDADA</span>.
+        </p>
+        <p class="mensagem-aviso">
+            Esta tela ainda não grava o fechamento do atendimento: o registro da prescrição e a
+            mudança de status para REALIZADA estão em construção. O formulário completo entra
+            aqui em breve.
+        </p>
+        <a class="botao secundario" th:href="@{/agenda}">Voltar para a agenda</a>
+    </section>
+</main>
+</body>
+</html>

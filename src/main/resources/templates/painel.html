@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Painel · PetBuddies</title>
+</head>
+<body>
+<main>
+    <h1 th:text="${clinica != null ? clinica.nome : 'Painel'}">Painel</h1>
+
+    <section class="bloco grade-painel">
+        <div>
+            <div class="numero-painel" th:text="${totalPacientes}">0</div>
+            <div>pacientes</div>
+        </div>
+        <div>
+            <div class="numero-painel" th:text="${totalTutores}">0</div>
+            <div>tutores</div>
+        </div>
+        <div>
+            <div class="numero-painel" th:text="${totalVeterinarios}">0</div>
+            <div>veterinários</div>
+        </div>
+        <div>
+            <div class="numero-painel" th:text="${#lists.size(consultasHoje)}">0</div>
+            <div>consultas hoje</div>
+        </div>
+    </section>
+
+    <section class="bloco">
+        <h2>Consultas de hoje</h2>
+        <p th:if="${#lists.isEmpty(consultasHoje)}">Nenhuma consulta agendada para hoje.</p>
+        <table th:unless="${#lists.isEmpty(consultasHoje)}">
+            <thead>
+            <tr>
+                <th>Horário</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="consulta : ${consultasHoje}">
+                <td th:text="${#temporals.format(consulta.dataHora, 'HH:mm')}">10:00</td>
+                <td th:text="${consulta.tipo}">ROTINA</td>
+                <td><span class="selo" th:text="${consulta.status}">AGENDADA</span></td>
+                <td><a th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="bloco">
+        <h2>Atalhos</h2>
+        <p>
+            <a class="botao" th:href="@{/pacientes}">Pacientes</a>
+            <a class="botao secundario" th:href="@{/agenda}">Agenda</a>
+        </p>
+    </section>
+</main>
+</body>
+</html>
