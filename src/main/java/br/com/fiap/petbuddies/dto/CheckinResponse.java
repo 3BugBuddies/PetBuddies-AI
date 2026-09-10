@@ -1,11 +1,15 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CheckinResponse {
 
     private Long id;
@@ -37,16 +41,4 @@ public class CheckinResponse {
         dto.escalado = escalado;
         return dto;
     }
-
-    public Long getId() { return id; }
-    public Long getAnimalId() { return animalId; }
-    public Long getItemPlanoCuidadoId() { return itemPlanoCuidadoId; }
-    public LocalDate getDataReferencia() { return dataReferencia; }
-    public LocalDateTime getRegistradoEm() { return registradoEm; }
-    public String getNarrativa() { return narrativa; }
-    public String getObservacoesGerais() { return observacoesGerais; }
-    public String getTicUtilizada() { return ticUtilizada; }
-    public List<CondicaoObservadaResponse> getCondicoesObservadas() { return condicoesObservadas; }
-    public List<CheckinDesfechoResponse> getDesfechos() { return desfechos; }
-    public boolean isEscalado() { return escalado; }
 }

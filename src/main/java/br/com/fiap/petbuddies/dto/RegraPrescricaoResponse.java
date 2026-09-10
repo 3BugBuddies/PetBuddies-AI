@@ -5,10 +5,14 @@ import br.com.fiap.petbuddies.domain.enums.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.TipoAcaoRegra;
 import br.com.fiap.petbuddies.domain.enums.TipoDado;
 import br.com.fiap.petbuddies.domain.enums.TipoFonteValor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegraPrescricaoResponse {
 
     private Long id;
@@ -40,17 +44,4 @@ public class RegraPrescricaoResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public Long getPrescricaoId() { return prescricaoId; }
-    public Long getCondicaoClinicaId() { return condicaoClinicaId; }
-    public String getRotuloCongelado() { return rotuloCongelado; }
-    public TipoDado getTipoDadoCongelado() { return tipoDadoCongelado; }
-    public TipoFonteValor getFonteValorCongelada() { return fonteValorCongelada; }
-    public OperadorRegra getOperador() { return operador; }
-    public BigDecimal getLimite() { return limite; }
-    public TipoAcaoRegra getAcaoDose() { return acaoDose; }
-    public Integer getOrdem() { return ordem; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

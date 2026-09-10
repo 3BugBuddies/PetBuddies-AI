@@ -2,6 +2,7 @@ package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
 import br.com.fiap.petbuddies.domain.enums.PerfilUsuario;
+import lombok.*;
 
 /**
  * O corpo do login, exatamente como o contrato v2.1 §2 mostra: token, perfil,
@@ -14,6 +15,10 @@ import br.com.fiap.petbuddies.domain.enums.PerfilUsuario;
  * <p>O vinculo nulo continua no JSON, como {@code null}: o app le os dois
  * campos e usa o que veio preenchido.</p>
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponse {
 
     private String token;
@@ -31,19 +36,4 @@ public class LoginResponse {
         dto.veterinarioId = usuario.getVeterinarioId();
         return dto;
     }
-
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-
-    public PerfilUsuario getPerfil() { return perfil; }
-    public void setPerfil(PerfilUsuario perfil) { this.perfil = perfil; }
-
-    public Long getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
-
-    public Long getResponsavelId() { return responsavelId; }
-    public void setResponsavelId(Long responsavelId) { this.responsavelId = responsavelId; }
-
-    public Long getVeterinarioId() { return veterinarioId; }
-    public void setVeterinarioId(Long veterinarioId) { this.veterinarioId = veterinarioId; }
 }

@@ -4,11 +4,15 @@ import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.entity.ProcedimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusConsulta;
+import lombok.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /** O resultado do fechamento: a consulta já REALIZADA e tudo que a transação gravou. */
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FechamentoAtendimentoResponse {
 
     private Long consultaId;
@@ -30,10 +34,4 @@ public class FechamentoAtendimentoResponse {
         dto.prescricoes = prescricoes;
         return dto;
     }
-
-    public Long getConsultaId() { return consultaId; }
-    public StatusConsulta getStatus() { return status; }
-    public RegistroAtendimentoResponse getRegistroAtendimento() { return registroAtendimento; }
-    public List<ProcedimentoResponse> getProcedimentos() { return procedimentos; }
-    public List<PrescricaoComRegrasResponse> getPrescricoes() { return prescricoes; }
 }

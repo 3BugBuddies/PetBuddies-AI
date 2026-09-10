@@ -5,9 +5,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Schema(description = "Dados para instanciar plano de recuperação pós-cirúrgica")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlanoPosCirurgicoRequest {
 
     @Schema(description = "ID do animal no PetBuddies-API (.NET)", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -25,16 +30,4 @@ public class PlanoPosCirurgicoRequest {
     @Schema(description = "Data/hora da realização da cirurgia", example = "2026-05-01T14:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull @PastOrPresent
     private LocalDateTime dataRealizacao;
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long animalId) { this.animalId = animalId; }
-
-    public Long getConsultaId() { return consultaId; }
-    public void setConsultaId(Long consultaId) { this.consultaId = consultaId; }
-
-    public Especie getEspecie() { return especie; }
-    public void setEspecie(Especie especie) { this.especie = especie; }
-
-    public LocalDateTime getDataRealizacao() { return dataRealizacao; }
-    public void setDataRealizacao(LocalDateTime dataRealizacao) { this.dataRealizacao = dataRealizacao; }
 }

@@ -1,9 +1,13 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.JanelaAtendimentoEntity;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class JanelaAtendimentoResponse {
 
     private Long id;
@@ -24,11 +28,4 @@ public class JanelaAtendimentoResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public LocalDateTime getDataHoraInicio() { return dataHoraInicio; }
-    public Long getVeterinarioId() { return veterinarioId; }
-    public Long getConsultaId() { return consultaId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

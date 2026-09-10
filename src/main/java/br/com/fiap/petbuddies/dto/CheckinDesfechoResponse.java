@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -10,6 +11,9 @@ import java.math.BigDecimal;
  * esta prescrição — a avaliação acontece e é devolvida aqui, mas não há onde
  * gravar {@code TP_DESFECHO} (ver "o que revisar com atenção" no corpo do PR).
  */
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CheckinDesfechoResponse {
 
     private Long prescricaoId;
@@ -33,12 +37,4 @@ public class CheckinDesfechoResponse {
         dto.regraAplicadaId = regraAplicadaId;
         return dto;
     }
-
-    public Long getPrescricaoId() { return prescricaoId; }
-    public String getMedicamento() { return medicamento; }
-    public Long getItemPlanoCuidadoId() { return itemPlanoCuidadoId; }
-    public TipoDesfecho getDesfecho() { return desfecho; }
-    public BigDecimal getDoseAplicada() { return doseAplicada; }
-    public String getUnidade() { return unidade; }
-    public Long getRegraAplicadaId() { return regraAplicadaId; }
 }

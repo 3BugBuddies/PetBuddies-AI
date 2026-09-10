@@ -9,10 +9,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AnimalRequest {
 
     @NotBlank(message = "Nome é obrigatório.")
@@ -55,43 +60,4 @@ public class AnimalRequest {
 
     @NotNull(message = "Responsável é obrigatório.")
     private Long responsavelId;
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public Especie getEspecie() { return especie; }
-    public void setEspecie(Especie especie) { this.especie = especie; }
-
-    public String getRaca() { return raca; }
-    public void setRaca(String raca) { this.raca = raca; }
-
-    public Porte getPorte() { return porte; }
-    public void setPorte(Porte porte) { this.porte = porte; }
-
-    public Sexo getSexo() { return sexo; }
-    public void setSexo(Sexo sexo) { this.sexo = sexo; }
-
-    public LocalDate getDataNascimento() { return dataNascimento; }
-    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
-
-    public BigDecimal getPeso() { return peso; }
-    public void setPeso(BigDecimal peso) { this.peso = peso; }
-
-    public Boolean getCondicaoCronica() { return condicaoCronica; }
-    public void setCondicaoCronica(Boolean condicaoCronica) { this.condicaoCronica = condicaoCronica; }
-
-    public Boolean getCastrado() { return castrado; }
-    public void setCastrado(Boolean castrado) { this.castrado = castrado; }
-
-    public String getFoto() { return foto; }
-    public void setFoto(String foto) { this.foto = foto; }
-
-    public String getAlergias() { return alergias; }
-    public void setAlergias(String alergias) { this.alergias = alergias; }
-
-    public String getObservacoes() { return observacoes; }
-    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
-
-    public Long getResponsavelId() { return responsavelId; }
-    public void setResponsavelId(Long responsavelId) { this.responsavelId = responsavelId; }
 }

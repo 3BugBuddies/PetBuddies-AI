@@ -4,6 +4,7 @@ import br.com.fiap.petbuddies.domain.enums.TipoProcedimento;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,10 @@ import java.time.LocalDateTime;
  * Sem registroAtendimentoId, animalId nem veterinarioId: vêm do atendimento
  * que está sendo fechado, não do corpo.
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProcedimentoFechamentoRequest {
 
     @NotNull(message = "Tipo do procedimento é obrigatório.")
@@ -37,25 +42,4 @@ public class ProcedimentoFechamentoRequest {
 
     @Size(max = 2000, message = "Observação deve ter no máximo 2000 caracteres.")
     private String observacao;
-
-    public TipoProcedimento getTipo() { return tipo; }
-    public void setTipo(TipoProcedimento tipo) { this.tipo = tipo; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    public LocalDateTime getDataPrevistaInicio() { return dataPrevistaInicio; }
-    public void setDataPrevistaInicio(LocalDateTime dataPrevistaInicio) { this.dataPrevistaInicio = dataPrevistaInicio; }
-
-    public LocalDateTime getDataPrevistaFim() { return dataPrevistaFim; }
-    public void setDataPrevistaFim(LocalDateTime dataPrevistaFim) { this.dataPrevistaFim = dataPrevistaFim; }
-
-    public String getAnexosUrl() { return anexosUrl; }
-    public void setAnexosUrl(String anexosUrl) { this.anexosUrl = anexosUrl; }
-
-    public String getObservacao() { return observacao; }
-    public void setObservacao(String observacao) { this.observacao = observacao; }
 }

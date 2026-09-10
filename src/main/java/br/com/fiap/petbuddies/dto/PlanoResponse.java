@@ -3,12 +3,17 @@ package br.com.fiap.petbuddies.dto;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusItem;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Schema(description = "Plano de cuidado do animal")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlanoResponse {
 
     @Schema(description = "ID do plano")
@@ -66,32 +71,4 @@ public class PlanoResponse {
         r.motivo = "SEM_PROTOCOLO_COMPATIVEL";
         return r;
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long v) { this.animalId = v; }
-
-    public Long getProtocoloId() { return protocoloId; }
-    public void setProtocoloId(Long v) { this.protocoloId = v; }
-
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public LocalDateTime getInstanciadoEm() { return instanciadoEm; }
-    public void setInstanciadoEm(LocalDateTime v) { this.instanciadoEm = v; }
-
-
-    public List<ItemPlanoCuidadoDto> getEventos() { return eventos; }
-    public void setEventos(List<ItemPlanoCuidadoDto> eventos) { this.eventos = eventos; }
-
-    public Boolean getCriado() { return criado; }
-    public void setCriado(Boolean criado) { this.criado = criado; }
-
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
 }

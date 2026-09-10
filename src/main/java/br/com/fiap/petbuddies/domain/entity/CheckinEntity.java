@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -14,6 +15,10 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "T_PB_CHECKIN")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CheckinEntity {
 
     @Id
@@ -49,9 +54,11 @@ public class CheckinEntity {
     private String ticUtilizada;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -59,32 +66,4 @@ public class CheckinEntity {
 
     @PreUpdate
     private void preUpdate() { updatedAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public AnimalEntity getAnimal() { return animal; }
-    public void setAnimal(AnimalEntity animal) { this.animal = animal; }
-
-    public ItemPlanoCuidadoEntity getItemPlanoCuidado() { return itemPlanoCuidado; }
-    public void setItemPlanoCuidado(ItemPlanoCuidadoEntity itemPlanoCuidado) { this.itemPlanoCuidado = itemPlanoCuidado; }
-
-    public LocalDate getDataReferencia() { return dataReferencia; }
-    public void setDataReferencia(LocalDate dataReferencia) { this.dataReferencia = dataReferencia; }
-
-    public LocalDateTime getRegistradoEm() { return registradoEm; }
-    public void setRegistradoEm(LocalDateTime registradoEm) { this.registradoEm = registradoEm; }
-
-    public String getNarrativa() { return narrativa; }
-    public void setNarrativa(String narrativa) { this.narrativa = narrativa; }
-
-    public String getObservacoesGerais() { return observacoesGerais; }
-    public void setObservacoesGerais(String observacoesGerais) { this.observacoesGerais = observacoesGerais; }
-
-    public String getTicUtilizada() { return ticUtilizada; }
-    public void setTicUtilizada(String ticUtilizada) { this.ticUtilizada = ticUtilizada; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

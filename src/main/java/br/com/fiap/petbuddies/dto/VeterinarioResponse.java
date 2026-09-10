@@ -1,8 +1,12 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
+import lombok.*;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class VeterinarioResponse {
 
     private Long id;
@@ -27,13 +31,4 @@ public class VeterinarioResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public String getNome() { return nome; }
-    public String getCrmv() { return crmv; }
-    public String getEmail() { return email; }
-    public Boolean getAtivo() { return ativo; }
-    public Long getClinicaId() { return clinicaId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

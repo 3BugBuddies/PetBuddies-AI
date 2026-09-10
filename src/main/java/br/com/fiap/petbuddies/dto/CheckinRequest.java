@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +14,10 @@ import java.util.List;
  * o tutor validou o que a IA entendeu. Nenhuma chamada ao modelo acontece
  * neste passo — é determinístico do início ao fim.
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CheckinRequest {
 
     @NotNull(message = "Animal é obrigatório.")
@@ -33,22 +38,4 @@ public class CheckinRequest {
 
     /** Vazia é um check-in válido: "nada a relatar hoje". */
     private List<@Valid CondicaoConfirmadaRequest> condicoes = List.of();
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long animalId) { this.animalId = animalId; }
-
-    public LocalDate getDataReferencia() { return dataReferencia; }
-    public void setDataReferencia(LocalDate dataReferencia) { this.dataReferencia = dataReferencia; }
-
-    public String getNarrativa() { return narrativa; }
-    public void setNarrativa(String narrativa) { this.narrativa = narrativa; }
-
-    public Long getItemPlanoCuidadoId() { return itemPlanoCuidadoId; }
-    public void setItemPlanoCuidadoId(Long itemPlanoCuidadoId) { this.itemPlanoCuidadoId = itemPlanoCuidadoId; }
-
-    public String getTicUtilizada() { return ticUtilizada; }
-    public void setTicUtilizada(String ticUtilizada) { this.ticUtilizada = ticUtilizada; }
-
-    public List<CondicaoConfirmadaRequest> getCondicoes() { return condicoes; }
-    public void setCondicoes(List<CondicaoConfirmadaRequest> condicoes) { this.condicoes = condicoes; }
 }

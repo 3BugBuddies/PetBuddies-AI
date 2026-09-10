@@ -1,10 +1,14 @@
 package br.com.fiap.petbuddies.dto;
 
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegistroAtendimentoResponse {
 
     private Long id;
@@ -36,17 +40,4 @@ public class RegistroAtendimentoResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public LocalDateTime getDataAtendimento() { return dataAtendimento; }
-    public String getAnamnese() { return anamnese; }
-    public String getDiagnostico() { return diagnostico; }
-    public String getTratamento() { return tratamento; }
-    public String getObservacao() { return observacao; }
-    public LocalDate getProximoRetorno() { return proximoRetorno; }
-    public LocalDate getProximaVacina() { return proximaVacina; }
-    public Long getAnimalId() { return animalId; }
-    public Long getConsultaId() { return consultaId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

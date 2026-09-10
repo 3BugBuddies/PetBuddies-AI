@@ -5,6 +5,7 @@ import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusItem;
 import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +17,10 @@ import java.util.stream.Collectors;
  * e CANCELADO ficam fora — não são o que o protocolo aplicou.
  */
 @Schema(description = "Protocolo aplicado a um plano do animal, com os itens que ele produziu")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProtocoloAplicadoResponse {
 
     @Schema(description = "ID do plano")
@@ -78,31 +83,4 @@ public class ProtocoloAplicadoResponse {
 
         return r;
     }
-
-    public Long getPlanoId() { return planoId; }
-    public void setPlanoId(Long planoId) { this.planoId = planoId; }
-
-    public Long getAnimalId() { return animalId; }
-    public void setAnimalId(Long animalId) { this.animalId = animalId; }
-
-    public Long getProtocoloId() { return protocoloId; }
-    public void setProtocoloId(Long protocoloId) { this.protocoloId = protocoloId; }
-
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
-
-    public String getStatusPlano() { return statusPlano; }
-    public void setStatusPlano(String statusPlano) { this.statusPlano = statusPlano; }
-
-    public LocalDateTime getInstanciadoEm() { return instanciadoEm; }
-    public void setInstanciadoEm(LocalDateTime instanciadoEm) { this.instanciadoEm = instanciadoEm; }
-
-    public List<ItemPlanoCuidadoDto> getRealizados() { return realizados; }
-    public void setRealizados(List<ItemPlanoCuidadoDto> realizados) { this.realizados = realizados; }
-
-    public List<ItemPlanoCuidadoDto> getPendentes() { return pendentes; }
-    public void setPendentes(List<ItemPlanoCuidadoDto> pendentes) { this.pendentes = pendentes; }
-
-    public List<ItemPlanoCuidadoDto> getVencidos() { return vencidos; }
-    public void setVencidos(List<ItemPlanoCuidadoDto> vencidos) { this.vencidos = vencidos; }
 }

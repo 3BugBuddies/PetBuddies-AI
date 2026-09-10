@@ -5,6 +5,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -13,6 +14,10 @@ import java.math.BigDecimal;
  * por ele se a IA errou (§5.1, passo E). Exatamente um dos dois valores é
  * preenchido, espelhando CK_COBS_UM_VALOR.
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CondicaoConfirmadaRequest {
 
     @NotNull(message = "Condição clínica é obrigatória.")
@@ -33,16 +38,4 @@ public class CondicaoConfirmadaRequest {
     private boolean isUmValorPreenchido() {
         return (valorBooleano != null) ^ (valorNumerico != null);
     }
-
-    public Long getCondicaoClinicaId() { return condicaoClinicaId; }
-    public void setCondicaoClinicaId(Long condicaoClinicaId) { this.condicaoClinicaId = condicaoClinicaId; }
-
-    public Boolean getValorBooleano() { return valorBooleano; }
-    public void setValorBooleano(Boolean valorBooleano) { this.valorBooleano = valorBooleano; }
-
-    public BigDecimal getValorNumerico() { return valorNumerico; }
-    public void setValorNumerico(BigDecimal valorNumerico) { this.valorNumerico = valorNumerico; }
-
-    public BigDecimal getConfianca() { return confianca; }
-    public void setConfianca(BigDecimal confianca) { this.confianca = confianca; }
 }

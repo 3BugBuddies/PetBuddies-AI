@@ -2,6 +2,7 @@ package br.com.fiap.petbuddies.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.util.List;
 
@@ -16,6 +17,10 @@ import java.util.List;
  * validação para no primeiro nível e uma dose fora da faixa numa prescrição
  * no meio da lista passaria batido.</p>
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FechamentoAtendimentoRequest {
 
     @NotNull(message = "Registro do atendimento é obrigatório.")
@@ -27,13 +32,4 @@ public class FechamentoAtendimentoRequest {
 
     @Valid
     private List<PrescricaoFechamentoRequest> prescricoes;
-
-    public RegistroAtendimentoFechamentoRequest getRegistroAtendimento() { return registroAtendimento; }
-    public void setRegistroAtendimento(RegistroAtendimentoFechamentoRequest registroAtendimento) { this.registroAtendimento = registroAtendimento; }
-
-    public List<ProcedimentoFechamentoRequest> getProcedimentos() { return procedimentos; }
-    public void setProcedimentos(List<ProcedimentoFechamentoRequest> procedimentos) { this.procedimentos = procedimentos; }
-
-    public List<PrescricaoFechamentoRequest> getPrescricoes() { return prescricoes; }
-    public void setPrescricoes(List<PrescricaoFechamentoRequest> prescricoes) { this.prescricoes = prescricoes; }
 }

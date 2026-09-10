@@ -5,6 +5,7 @@ import br.com.fiap.petbuddies.domain.enums.TipoDesfecho;
 import br.com.fiap.petbuddies.domain.enums.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
 import jakarta.persistence.*;
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +20,10 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "T_PB_ITEM_PLANO_CUIDADO")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemPlanoCuidadoEntity {
 
     @Id
@@ -90,58 +95,9 @@ public class ItemPlanoCuidadoEntity {
     private Long regraAplicadaId;
 
     @Column(name = "AT_UPDATED_AT")
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     @PreUpdate
     private void preUpdate() { updatedAt = LocalDateTime.now(); }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public PlanoCuidadoEntity getPlano() { return plano; }
-    public void setPlano(PlanoCuidadoEntity plano) { this.plano = plano; }
-
-    public Long getRegraProtocoloId() { return regraProtocoloId; }
-    public void setRegraProtocoloId(Long regraProtocoloId) { this.regraProtocoloId = regraProtocoloId; }
-
-    public TipoOrigemItem getOrigem() { return origem; }
-    public void setOrigem(TipoOrigemItem origem) { this.origem = origem; }
-
-    public Long getPrescricaoId() { return prescricaoId; }
-    public void setPrescricaoId(Long prescricaoId) { this.prescricaoId = prescricaoId; }
-
-    public TipoCuidado getTipo() { return tipo; }
-    public void setTipo(TipoCuidado tipo) { this.tipo = tipo; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public LocalDate getDataAlvo() { return dataAlvo; }
-    public void setDataAlvo(LocalDate dataAlvo) { this.dataAlvo = dataAlvo; }
-
-    public StatusItem getStatus() { return status; }
-    public void setStatus(StatusItem status) { this.status = status; }
-
-    public String getObservacao() { return observacao; }
-    public void setObservacao(String observacao) { this.observacao = observacao; }
-
-    public Long getProcedimentoId() { return procedimentoId; }
-    public void setProcedimentoId(Long procedimentoId) { this.procedimentoId = procedimentoId; }
-
-    public LocalDateTime getExecutadoEm() { return executadoEm; }
-    public void setExecutadoEm(LocalDateTime executadoEm) { this.executadoEm = executadoEm; }
-
-    public Long getCheckinId() { return checkinId; }
-    public void setCheckinId(Long checkinId) { this.checkinId = checkinId; }
-
-    public TipoDesfecho getDesfecho() { return desfecho; }
-    public void setDesfecho(TipoDesfecho desfecho) { this.desfecho = desfecho; }
-
-    public BigDecimal getDoseAplicada() { return doseAplicada; }
-    public void setDoseAplicada(BigDecimal doseAplicada) { this.doseAplicada = doseAplicada; }
-
-    public Long getRegraAplicadaId() { return regraAplicadaId; }
-    public void setRegraAplicadaId(Long regraAplicadaId) { this.regraAplicadaId = regraAplicadaId; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

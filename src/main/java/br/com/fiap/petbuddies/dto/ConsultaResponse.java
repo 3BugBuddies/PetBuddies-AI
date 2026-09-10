@@ -3,9 +3,13 @@ package br.com.fiap.petbuddies.dto;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.enums.StatusConsulta;
 import br.com.fiap.petbuddies.domain.enums.TipoConsulta;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ConsultaResponse {
 
     private Long id;
@@ -34,15 +38,4 @@ public class ConsultaResponse {
         dto.updatedAt = entity.getUpdatedAt();
         return dto;
     }
-
-    public Long getId() { return id; }
-    public TipoConsulta getTipo() { return tipo; }
-    public LocalDateTime getDataHora() { return dataHora; }
-    public StatusConsulta getStatus() { return status; }
-    public String getObservacao() { return observacao; }
-    public String getMotivo() { return motivo; }
-    public Long getAnimalId() { return animalId; }
-    public Long getVeterinarioId() { return veterinarioId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
