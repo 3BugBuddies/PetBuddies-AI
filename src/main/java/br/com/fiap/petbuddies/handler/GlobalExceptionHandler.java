@@ -3,9 +3,12 @@ package br.com.fiap.petbuddies.handler;
 import br.com.fiap.petbuddies.dto.ErrorDto;
 import br.com.fiap.petbuddies.exception.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.ClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.CheckinDuplicadoException;
+import br.com.fiap.petbuddies.exception.CheckinNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.CnpjDuplicadoException;
 import br.com.fiap.petbuddies.exception.CodigoCondicaoDuplicadoException;
 import br.com.fiap.petbuddies.exception.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.ConsultaJaRealizadaException;
 import br.com.fiap.petbuddies.exception.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.ConsultaNaoPodeSerFechadaException;
@@ -21,6 +24,7 @@ import br.com.fiap.petbuddies.exception.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.exception.RegraPrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.ResponsavelNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.ItemPlanoCuidadoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.VeterinarioNaoEncontradoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -184,6 +188,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
     public ResponseEntity<ErrorDto> handleRegraPrescricaoIncoerente(RegraPrescricaoIncoerenteException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("REGRA_PRESCRICAO_INCOERENTE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CondicaoObservadaIncoerenteException.class)
+    public ResponseEntity<ErrorDto> handleCondicaoObservadaIncoerente(CondicaoObservadaIncoerenteException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("CONDICAO_OBSERVADA_INCOERENTE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CheckinNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleCheckinNaoEncontrado(CheckinNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("CHECKIN_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ItemPlanoCuidadoNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleItemPlanoCuidadoNaoEncontrado(ItemPlanoCuidadoNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("ITEM_PLANO_CUIDADO_NAO_ENCONTRADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CheckinDuplicadoException.class)
+    public ResponseEntity<ErrorDto> handleCheckinDuplicado(CheckinDuplicadoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("CHECKIN_DUPLICADO", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
