@@ -17,10 +17,10 @@ public class PlanoResponse {
     @Schema(description = "ID do animal no PetBuddies-API (.NET)")
     private Long animalId;
 
-    @Schema(description = "Nome do protocolo aplicado")
-    private String protocoloNome;
+    @Schema(description = "ID do protocolo aplicado no catálogo do serviço .NET. Nulo em plano de tratamento")
+    private Long protocoloId;
 
-    @Schema(description = "Categoria do protocolo (PREVENTIVO, POS_CIRURGICO…)")
+    @Schema(description = "Categoria do plano (PREVENTIVO, POS_CIRURGICO, TRATAMENTO)")
     private String categoria;
 
     @Schema(description = "Status atual do plano (ATIVO, CANCELADO…)")
@@ -42,9 +42,9 @@ public class PlanoResponse {
         PlanoResponse r = new PlanoResponse();
         r.id = plano.getId();
         r.animalId = plano.getAnimalId();
-        // protocolo e nulavel: plano formado so por itens de prescricao nao tem molde
-        r.protocoloNome = plano.getProtocolo() != null ? plano.getProtocolo().getNome() : null;
-        r.categoria = plano.getProtocolo() != null ? plano.getProtocolo().getCategoria().name() : null;
+        // protocoloId e nulavel: plano formado so por itens de prescricao nao tem molde
+        r.protocoloId = plano.getProtocoloId();
+        r.categoria = plano.getCategoria().name();
         r.status = plano.getStatus().name();
         r.instanciadoEm = plano.getCreatedAt();
         r.eventos = plano.getItens().stream()
@@ -73,8 +73,8 @@ public class PlanoResponse {
     public Long getAnimalId() { return animalId; }
     public void setAnimalId(Long v) { this.animalId = v; }
 
-    public String getProtocoloNome() { return protocoloNome; }
-    public void setProtocoloNome(String v) { this.protocoloNome = v; }
+    public Long getProtocoloId() { return protocoloId; }
+    public void setProtocoloId(Long v) { this.protocoloId = v; }
 
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }

@@ -30,10 +30,12 @@ public class ItemPlanoCuidadoEntity {
     @JoinColumn(name = "ID_PLANO_CUIDADO", nullable = false)
     private PlanoCuidadoEntity plano;
 
-    /** Preenchido quando a origem e PROTOCOLO: o molde que gerou este item. */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_REGRA_PROTOCOLO")
-    private RegraProtocoloEntity regraProtocolo;
+    /**
+     * Preenchido quando a origem e PROTOCOLO: o molde que gerou este item.
+     * Referencia solta desde o ADR s3-25 — o catalogo passou ao .NET.
+     */
+    @Column(name = "ID_REGRA_PROTOCOLO")
+    private Long regraProtocoloId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "TP_ORIGEM", nullable = false, length = 20)
@@ -99,8 +101,8 @@ public class ItemPlanoCuidadoEntity {
     public PlanoCuidadoEntity getPlano() { return plano; }
     public void setPlano(PlanoCuidadoEntity plano) { this.plano = plano; }
 
-    public RegraProtocoloEntity getRegraProtocolo() { return regraProtocolo; }
-    public void setRegraProtocolo(RegraProtocoloEntity ep) { this.regraProtocolo = ep; }
+    public Long getRegraProtocoloId() { return regraProtocoloId; }
+    public void setRegraProtocoloId(Long regraProtocoloId) { this.regraProtocoloId = regraProtocoloId; }
 
     public TipoOrigemItem getOrigem() { return origem; }
     public void setOrigem(TipoOrigemItem origem) { this.origem = origem; }

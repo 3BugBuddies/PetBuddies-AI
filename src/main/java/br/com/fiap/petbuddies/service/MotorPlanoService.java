@@ -1,9 +1,7 @@
 package br.com.fiap.petbuddies.service;
 
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
-import br.com.fiap.petbuddies.domain.entity.RegraProtocoloEntity;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
-import br.com.fiap.petbuddies.domain.entity.ProtocoloEntity;
 import br.com.fiap.petbuddies.domain.enums.CategoriaPlano;
 import br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo;
 import br.com.fiap.petbuddies.domain.enums.Especie;
@@ -14,12 +12,14 @@ import br.com.fiap.petbuddies.domain.enums.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.UnidadeTempo;
 import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
-import br.com.fiap.petbuddies.domain.repository.ProtocoloRepository;
 import br.com.fiap.petbuddies.dto.ItemPlanoCuidadoDto;
 import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.PlanoResponse;
 import br.com.fiap.petbuddies.exception.PlanoNaoEncontradoException;
+import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
+import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
+import br.com.fiap.petbuddies.infrastructure.client.RegraCatalogoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,17 +39,24 @@ public class MotorPlanoService {
 
     private final PlanoCuidadoRepository planoRepository;
     private final ItemPlanoCuidadoRepository itemRepository;
-    private final ProtocoloRepository protocoloRepository;
+    private final ProtocoloClient protocoloClient;
 
     public MotorPlanoService(PlanoCuidadoRepository planoRepository,
                              ItemPlanoCuidadoRepository itemRepository,
-                             ProtocoloRepository protocoloRepository) {
+                             ProtocoloClient protocoloClient) {
         this.planoRepository = planoRepository;
         this.itemRepository = itemRepository;
-        this.protocoloRepository = protocoloRepository;
+        this.protocoloClient = protocoloClient;
     }
 
-    @Transactional
+    /**
+     * Sem {@code @Transactional} de proposito: entre a checagem de idempotencia
+     * e a criacao ha uma chamada HTTP ao catalogo do .NET, e ela nao pode ficar
+     * dentro de um bloco transacional — seguraria a conexao do pool pelo tempo
+     * da rede. A checagem eager-carrega os itens (ver o @EntityGraph no
+     * repositorio) e a criacao e um unico save() com cascade, cada uma com a
+     * propria transacao curta.
+     */
     public PlanoResponse instanciarPreventivo(PlanoPreventivoRequest req) {
         Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoAtivoPorCategoria(
@@ -59,7 +66,7 @@ public class MotorPlanoService {
             return PlanoResponse.from(existente.get(), false, "PLANO_JA_EXISTENTE");
         }
 
-        Optional<ProtocoloEntity> protocolo = protocoloAplicavel(
+        Optional<ProtocoloCatalogoDto> protocolo = protocoloAplicavel(
                 CategoriaProtocolo.PREVENTIVO, req.getEspecie());
 
         if (protocolo.isEmpty()) {
@@ -74,7 +81,7 @@ public class MotorPlanoService {
         return PlanoResponse.from(plano, true, null);
     }
 
-    @Transactional
+    /** Ver o javadoc de {@link #instanciarPreventivo(PlanoPreventivoRequest)}. */
     public PlanoResponse instanciarPosCirurgico(PlanoPosCirurgicoRequest req) {
         Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoPorAnimalEConsulta(
@@ -84,7 +91,7 @@ public class MotorPlanoService {
             return PlanoResponse.from(existente.get(), false, "PLANO_JA_EXISTENTE");
         }
 
-        Optional<ProtocoloEntity> protocolo = protocoloAplicavel(
+        Optional<ProtocoloCatalogoDto> protocolo = protocoloAplicavel(
                 CategoriaProtocolo.POS_CIRURGICO, req.getEspecie());
 
         if (protocolo.isEmpty()) {
@@ -129,7 +136,9 @@ public class MotorPlanoService {
     }
 
     /**
-     * O protocolo ativo daquela categoria e especie.
+     * O protocolo ativo daquela categoria e especie, lido do catalogo do .NET
+     * (ADR s3-25). Catalogo fora do ar devolve lista vazia — mesmo efeito de
+     * "nenhum protocolo compativel".
      *
      * <p>Substitui o ProtocoloMatchService, removido no PR-J8. Ele escolhia o
      * "melhor match" por porte, sexo, castracao e faixa de idade — um automatismo
@@ -139,24 +148,23 @@ public class MotorPlanoService {
      * <p>Havendo mais de um candidato, o de menor id vence — determinismo, nao
      * criterio clinico. A escolha deliberada pelo veterinario e o PR-J9.</p>
      */
-    private Optional<ProtocoloEntity> protocoloAplicavel(CategoriaProtocolo categoria,
-                                                         Especie especie) {
-        return protocoloRepository
-                .findByCategoriaAndEspecieAndAtivoTrue(categoria, especie)
+    private Optional<ProtocoloCatalogoDto> protocoloAplicavel(CategoriaProtocolo categoria,
+                                                               Especie especie) {
+        return protocoloClient.buscar(categoria, especie)
                 .stream()
-                .min(Comparator.comparing(ProtocoloEntity::getId));
+                .min(Comparator.comparing(ProtocoloCatalogoDto::id));
     }
 
     private PlanoCuidadoEntity criarPlano(Long animalId, Long consultaId,
-                                                 ProtocoloEntity protocolo) {
+                                                 ProtocoloCatalogoDto protocolo) {
         PlanoCuidadoEntity plano = new PlanoCuidadoEntity();
         plano.setAnimalId(animalId);
         plano.setConsultaId(consultaId);
-        plano.setProtocolo(protocolo);
+        plano.setProtocoloId(protocolo.id());
         // A categoria e COPIADA do protocolo (ADR s3-24 §4b). E ela, e nao o join
         // com protocolo, que a consulta de idempotencia passa a ler — por isso um
         // plano de tratamento, que nao tem molde, deixa de ser invisivel para ela.
-        plano.setCategoria(CategoriaPlano.valueOf(protocolo.getCategoria().name()));
+        plano.setCategoria(CategoriaPlano.valueOf(protocolo.categoria().name()));
         plano.setStatus(StatusPlano.ATIVO);
         return plano;
     }
@@ -173,28 +181,28 @@ public class MotorPlanoService {
      * <p>A ordenacao e feita aqui, sobre a data ja resolvida: deslocamento 2 em
      * MESES e 10 em DIAS nao sao comparaveis antes disso.</p>
      */
-    private void instanciarEventos(PlanoCuidadoEntity plano, ProtocoloEntity protocolo,
+    private void instanciarEventos(PlanoCuidadoEntity plano, ProtocoloCatalogoDto protocolo,
                                     Ancoragem ancoragem) {
         LocalDate limite = ancoragem.instanciacao().plusMonths(HORIZONTE_MESES);
         List<ItemPlanoCuidadoEntity> itens = new ArrayList<>();
 
-        for (RegraProtocoloEntity ep : protocolo.getRegras()) {
-            LocalDate base = ancoragem.resolver(ep.getAncora());
+        for (RegraCatalogoDto ep : protocolo.regras()) {
+            LocalDate base = ancoragem.resolver(ep.dataBase());
             if (base == null) {
                 // ancora sem data disponivel neste fluxo: o molde nao se aplica
                 continue;
             }
 
-            LocalDate primeira = somar(base, ep.getOffset(), ep.getUnidadeOffset());
-            int repeticoes = ep.getRepeticoes() != null ? Math.max(ep.getRepeticoes(), 1) : 1;
+            LocalDate primeira = somar(base, ep.offset(), ep.unidadeOffset());
+            int repeticoes = ep.repeticoes() != null ? Math.max(ep.repeticoes(), 1) : 1;
 
             for (int i = 0; i < repeticoes; i++) {
                 LocalDate alvo = primeira;
                 if (i > 0) {
-                    if (ep.getIntervalo() == null || ep.getUnidadeIntervalo() == null) {
+                    if (ep.intervalo() == null || ep.unidadeIntervalo() == null) {
                         break; // sem recorrencia declarada: ocorrencia unica
                     }
-                    alvo = somar(primeira, ep.getIntervalo() * i, ep.getUnidadeIntervalo());
+                    alvo = somar(primeira, ep.intervalo() * i, ep.unidadeIntervalo());
                 }
                 if (alvo.isAfter(limite)) {
                     break;
@@ -207,14 +215,14 @@ public class MotorPlanoService {
         plano.getItens().addAll(itens);
     }
 
-    private ItemPlanoCuidadoEntity novoItem(PlanoCuidadoEntity plano, RegraProtocoloEntity ep,
+    private ItemPlanoCuidadoEntity novoItem(PlanoCuidadoEntity plano, RegraCatalogoDto ep,
                                         LocalDate dataAlvo) {
         ItemPlanoCuidadoEntity evento = new ItemPlanoCuidadoEntity();
         evento.setPlano(plano);
-        evento.setRegraProtocolo(ep);
+        evento.setRegraProtocoloId(ep.id());
         evento.setOrigem(TipoOrigemItem.PROTOCOLO);
-        evento.setTipo(ep.getTipo());
-        evento.setNome(ep.getNome());
+        evento.setTipo(ep.tipo());
+        evento.setNome(ep.nome());
         evento.setDataAlvo(dataAlvo);
         evento.setStatus(StatusItem.PENDENTE);
         return evento;

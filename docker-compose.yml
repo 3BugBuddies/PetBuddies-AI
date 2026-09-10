@@ -1,0 +1,31 @@
+# Banco de desenvolvimento do serviço de cuidado.
+#
+# Só o Oracle sobe aqui — a aplicação roda no terminal (`mvn spring-boot:run`),
+# onde o log fica visível e o restart é imediato.
+#
+#   docker compose up -d          sobe o banco
+#   docker compose down -v        derruba e APAGA o volume
+#
+# O `-v` é o ciclo normal desta sprint: os bancos são resetados, não migrados
+# (ADR s3-17), e o Flyway recria o schema inteiro a cada subida.
+services:
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: petbuddies-oracle-cuidado
+    ports:
+      - "${ORACLE_PORT:-1521}:1521"
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-oracle}
+      APP_USER: ${ORACLE_USER:-petbuddies}
+      APP_USER_PASSWORD: ${ORACLE_PASSWORD:-petbuddies}
+    volumes:
+      - oracle-cuidado:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+volumes:
+  oracle-cuidado:

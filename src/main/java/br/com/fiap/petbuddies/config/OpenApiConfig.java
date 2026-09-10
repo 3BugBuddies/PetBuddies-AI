@@ -40,12 +40,6 @@ public class OpenApiConfig {
                         .name("autenticação")
                         .description("Login dos dois perfis e emissão do token"),
                 new io.swagger.v3.oas.models.tags.Tag()
-                        .name("catalogo — protocolos")
-                        .description("CRUD e buscas customizadas de protocolos de cuidado"),
-                new io.swagger.v3.oas.models.tags.Tag()
-                        .name("catalogo — eventos de protocolo")
-                        .description("CRUD de eventos vinculados a protocolos de cuidado"),
-                new io.swagger.v3.oas.models.tags.Tag()
                         .name("motor — planos")
                         .description("Instanciação e consulta de planos de cuidado preventivo e pós-cirúrgico"),
                 new io.swagger.v3.oas.models.tags.Tag()
@@ -53,7 +47,34 @@ public class OpenApiConfig {
                         .description("CRUD de clínicas, a raiz do registro clínico"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("registro — responsáveis")
-                        .description("CRUD de tutores, o dono do animal no registro clínico")
+                        .description("CRUD de tutores, o dono do animal no registro clínico"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — veterinários")
+                        .description("CRUD da equipe clínica, quem assina o ato"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — animais")
+                        .description("CRUD de pacientes, o animal do registro clínico"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — consultas")
+                        .description("Agendamento e comparecimento do animal na clínica"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — condições clínicas")
+                        .description("Catálogo de condições que o check-in avalia, por clínica"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — janelas de atendimento")
+                        .description("Agenda do veterinário: slots de 30 minutos, livres ou reservados por uma consulta"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — registros de atendimento")
+                        .description("O que aconteceu na consulta: anamnese, diagnóstico e tratamento"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — procedimentos")
+                        .description("Vacina, exame ou cirurgia executados num atendimento"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — prescrições")
+                        .description("O ato assinado pelo veterinário — imutável depois de criado"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("registro — regras de prescrição")
+                        .description("Condição → ação sobre a dose, com a condição congelada no momento da assinatura")
         ));
     }
 }
