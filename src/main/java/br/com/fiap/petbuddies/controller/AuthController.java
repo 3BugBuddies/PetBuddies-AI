@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.controller;
 
-import br.com.fiap.petbuddies.dto.LoginRequest;
-import br.com.fiap.petbuddies.dto.LoginResponse;
+import br.com.fiap.petbuddies.dto.identidade.LoginRequest;
+import br.com.fiap.petbuddies.dto.identidade.LoginResponse;
 import br.com.fiap.petbuddies.service.AutenticacaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

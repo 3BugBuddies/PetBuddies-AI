@@ -2,7 +2,7 @@ package br.com.fiap.petbuddies.assembler;
 
 import br.com.fiap.petbuddies.controller.AnimalController;
 import br.com.fiap.petbuddies.controller.CheckinController;
-import br.com.fiap.petbuddies.dto.CheckinResponse;
+import br.com.fiap.petbuddies.dto.checkin.CheckinResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

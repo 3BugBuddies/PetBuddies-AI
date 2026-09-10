@@ -1,13 +1,13 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.ConsultaModelAssembler;
-import br.com.fiap.petbuddies.dto.AgendamentoRequest;
-import br.com.fiap.petbuddies.dto.CancelamentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.AgendamentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.CancelamentoRequest;
 import br.com.fiap.petbuddies.assembler.FechamentoAtendimentoModelAssembler;
-import br.com.fiap.petbuddies.dto.ConsultaRequest;
-import br.com.fiap.petbuddies.dto.ConsultaResponse;
-import br.com.fiap.petbuddies.dto.FechamentoAtendimentoRequest;
-import br.com.fiap.petbuddies.dto.FechamentoAtendimentoResponse;
+import br.com.fiap.petbuddies.dto.atendimento.ConsultaRequest;
+import br.com.fiap.petbuddies.dto.atendimento.ConsultaResponse;
+import br.com.fiap.petbuddies.dto.atendimento.FechamentoAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.FechamentoAtendimentoResponse;
 import br.com.fiap.petbuddies.service.ConsultaService;
 import br.com.fiap.petbuddies.service.FechamentoAtendimentoService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.ClinicaModelAssembler;
-import br.com.fiap.petbuddies.dto.ClinicaRequest;
-import br.com.fiap.petbuddies.dto.ClinicaResponse;
+import br.com.fiap.petbuddies.dto.cadastro.ClinicaRequest;
+import br.com.fiap.petbuddies.dto.cadastro.ClinicaResponse;
 import br.com.fiap.petbuddies.service.ClinicaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

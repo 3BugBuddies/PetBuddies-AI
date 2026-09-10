@@ -8,7 +8,7 @@ import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
-import br.com.fiap.petbuddies.dto.PrescricaoRequest;
+import br.com.fiap.petbuddies.dto.prescricao.PrescricaoRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;

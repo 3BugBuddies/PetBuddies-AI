@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.JanelaAtendimentoModelAssembler;
-import br.com.fiap.petbuddies.dto.JanelaAtendimentoRequest;
-import br.com.fiap.petbuddies.dto.JanelaAtendimentoResponse;
+import br.com.fiap.petbuddies.dto.atendimento.JanelaAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.JanelaAtendimentoResponse;
 import br.com.fiap.petbuddies.service.JanelaAtendimentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

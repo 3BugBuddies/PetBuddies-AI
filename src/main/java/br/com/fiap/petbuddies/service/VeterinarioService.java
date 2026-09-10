@@ -4,7 +4,7 @@ import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
-import br.com.fiap.petbuddies.dto.VeterinarioRequest;
+import br.com.fiap.petbuddies.dto.cadastro.VeterinarioRequest;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.cadastro.CrmvDuplicadoException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;

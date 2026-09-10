@@ -7,7 +7,7 @@ import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
-import br.com.fiap.petbuddies.dto.CondicaoClinicaRequest;
+import br.com.fiap.petbuddies.dto.atendimento.CondicaoClinicaRequest;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.CodigoCondicaoDuplicadoException;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;

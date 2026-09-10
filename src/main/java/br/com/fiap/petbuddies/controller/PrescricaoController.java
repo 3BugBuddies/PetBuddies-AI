@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.PrescricaoModelAssembler;
-import br.com.fiap.petbuddies.dto.PrescricaoRequest;
-import br.com.fiap.petbuddies.dto.PrescricaoResponse;
+import br.com.fiap.petbuddies.dto.prescricao.PrescricaoRequest;
+import br.com.fiap.petbuddies.dto.prescricao.PrescricaoResponse;
 import br.com.fiap.petbuddies.service.PrescricaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

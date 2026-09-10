@@ -1,10 +1,10 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.CheckinModelAssembler;
-import br.com.fiap.petbuddies.dto.CheckinExtracaoRequest;
-import br.com.fiap.petbuddies.dto.CheckinExtracaoResponse;
-import br.com.fiap.petbuddies.dto.CheckinRequest;
-import br.com.fiap.petbuddies.dto.CheckinResponse;
+import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoRequest;
+import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoResponse;
+import br.com.fiap.petbuddies.dto.checkin.CheckinRequest;
+import br.com.fiap.petbuddies.dto.checkin.CheckinResponse;
 import br.com.fiap.petbuddies.service.CheckinExtracaoService;
 import br.com.fiap.petbuddies.service.CheckinService;
 import io.swagger.v3.oas.annotations.Operation;

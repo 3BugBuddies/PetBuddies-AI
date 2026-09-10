@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
-import br.com.fiap.petbuddies.dto.ResponsavelRequest;
-import br.com.fiap.petbuddies.dto.ResponsavelResponse;
+import br.com.fiap.petbuddies.dto.cadastro.ResponsavelRequest;
+import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResponse;
 import br.com.fiap.petbuddies.service.ResponsavelService;
 import jakarta.validation.Valid;
 import java.util.List;

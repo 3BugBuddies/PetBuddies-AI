@@ -2,8 +2,8 @@ package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
-import br.com.fiap.petbuddies.dto.VeterinarioRequest;
-import br.com.fiap.petbuddies.dto.VeterinarioResponse;
+import br.com.fiap.petbuddies.dto.cadastro.VeterinarioRequest;
+import br.com.fiap.petbuddies.dto.cadastro.VeterinarioResponse;
 import br.com.fiap.petbuddies.service.ClinicaService;
 import br.com.fiap.petbuddies.service.VeterinarioService;
 import jakarta.validation.Valid;

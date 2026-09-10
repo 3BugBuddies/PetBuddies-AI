@@ -6,7 +6,7 @@ import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.JanelaAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
-import br.com.fiap.petbuddies.dto.JanelaAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.JanelaAtendimentoRequest;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;

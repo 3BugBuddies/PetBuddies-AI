@@ -1,11 +1,11 @@
 package br.com.fiap.petbuddies.controller;
 
-import br.com.fiap.petbuddies.dto.ItemPlanoCuidadoDto;
-import br.com.fiap.petbuddies.dto.PlanoPreventivoRequest;
-import br.com.fiap.petbuddies.dto.PlanoPosCirurgicoRequest;
-import br.com.fiap.petbuddies.dto.PlanoResponse;
-import br.com.fiap.petbuddies.dto.ProtocoloAplicadoResponse;
-import br.com.fiap.petbuddies.dto.SugestaoCuidadoDto;
+import br.com.fiap.petbuddies.dto.cuidado.ItemPlanoCuidadoDto;
+import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
+import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
+import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
+import br.com.fiap.petbuddies.dto.cuidado.ProtocoloAplicadoResponse;
+import br.com.fiap.petbuddies.dto.cuidado.SugestaoCuidadoDto;
 import br.com.fiap.petbuddies.assembler.PlanoModelAssembler;
 import br.com.fiap.petbuddies.assembler.ProtocoloAplicadoModelAssembler;
 import br.com.fiap.petbuddies.assembler.SugestaoCuidadoModelAssembler;

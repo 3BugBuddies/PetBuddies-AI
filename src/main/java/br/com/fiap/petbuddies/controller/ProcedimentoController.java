@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.ProcedimentoModelAssembler;
-import br.com.fiap.petbuddies.dto.ProcedimentoRequest;
-import br.com.fiap.petbuddies.dto.ProcedimentoResponse;
+import br.com.fiap.petbuddies.dto.atendimento.ProcedimentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.ProcedimentoResponse;
 import br.com.fiap.petbuddies.service.ProcedimentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

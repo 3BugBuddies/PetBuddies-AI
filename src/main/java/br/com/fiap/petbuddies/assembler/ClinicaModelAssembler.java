@@ -2,7 +2,7 @@ package br.com.fiap.petbuddies.assembler;
 
 import br.com.fiap.petbuddies.controller.ClinicaController;
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
-import br.com.fiap.petbuddies.dto.ClinicaResponse;
+import br.com.fiap.petbuddies.dto.cadastro.ClinicaResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

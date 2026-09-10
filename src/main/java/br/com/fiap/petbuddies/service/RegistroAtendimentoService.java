@@ -6,7 +6,7 @@ import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
-import br.com.fiap.petbuddies.dto.RegistroAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;

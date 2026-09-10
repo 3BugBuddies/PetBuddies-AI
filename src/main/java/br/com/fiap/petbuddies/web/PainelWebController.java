@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
-import br.com.fiap.petbuddies.dto.ClinicaResponse;
-import br.com.fiap.petbuddies.dto.ConsultaResponse;
+import br.com.fiap.petbuddies.dto.cadastro.ClinicaResponse;
+import br.com.fiap.petbuddies.dto.atendimento.ConsultaResponse;
 import br.com.fiap.petbuddies.service.AnimalService;
 import br.com.fiap.petbuddies.service.ClinicaService;
 import br.com.fiap.petbuddies.service.ConsultaService;

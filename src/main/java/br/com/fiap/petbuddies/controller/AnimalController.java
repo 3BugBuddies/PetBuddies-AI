@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.AnimalModelAssembler;
-import br.com.fiap.petbuddies.dto.AnimalRequest;
-import br.com.fiap.petbuddies.dto.AnimalResponse;
+import br.com.fiap.petbuddies.dto.cadastro.AnimalRequest;
+import br.com.fiap.petbuddies.dto.cadastro.AnimalResponse;
 import br.com.fiap.petbuddies.service.AnimalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

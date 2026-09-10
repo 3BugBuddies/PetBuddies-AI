@@ -4,7 +4,7 @@ import br.com.fiap.petbuddies.controller.ClinicaController;
 import br.com.fiap.petbuddies.controller.CondicaoClinicaController;
 import br.com.fiap.petbuddies.controller.VeterinarioController;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
-import br.com.fiap.petbuddies.dto.CondicaoClinicaResponse;
+import br.com.fiap.petbuddies.dto.atendimento.CondicaoClinicaResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

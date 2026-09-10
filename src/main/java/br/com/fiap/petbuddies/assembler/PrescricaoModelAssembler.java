@@ -5,7 +5,7 @@ import br.com.fiap.petbuddies.controller.PrescricaoController;
 import br.com.fiap.petbuddies.controller.RegistroAtendimentoController;
 import br.com.fiap.petbuddies.controller.VeterinarioController;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
-import br.com.fiap.petbuddies.dto.PrescricaoResponse;
+import br.com.fiap.petbuddies.dto.prescricao.PrescricaoResponse;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

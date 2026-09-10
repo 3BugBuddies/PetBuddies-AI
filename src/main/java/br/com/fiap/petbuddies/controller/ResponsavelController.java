@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.ResponsavelModelAssembler;
-import br.com.fiap.petbuddies.dto.ResponsavelRequest;
-import br.com.fiap.petbuddies.dto.ResponsavelResponse;
+import br.com.fiap.petbuddies.dto.cadastro.ResponsavelRequest;
+import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResponse;
 import br.com.fiap.petbuddies.service.ResponsavelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

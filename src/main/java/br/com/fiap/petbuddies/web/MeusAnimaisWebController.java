@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.web;
 
-import br.com.fiap.petbuddies.dto.AnimalResponse;
-import br.com.fiap.petbuddies.dto.PlanoResponse;
+import br.com.fiap.petbuddies.dto.cadastro.AnimalResponse;
+import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.security.UsuarioPrincipal;
 import br.com.fiap.petbuddies.service.AnimalService;
 import br.com.fiap.petbuddies.service.MotorPlanoService;

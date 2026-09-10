@@ -1,8 +1,8 @@
 package br.com.fiap.petbuddies.controller;
 
 import br.com.fiap.petbuddies.assembler.RegistroAtendimentoModelAssembler;
-import br.com.fiap.petbuddies.dto.RegistroAtendimentoRequest;
-import br.com.fiap.petbuddies.dto.RegistroAtendimentoResponse;
+import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoResponse;
 import br.com.fiap.petbuddies.service.RegistroAtendimentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

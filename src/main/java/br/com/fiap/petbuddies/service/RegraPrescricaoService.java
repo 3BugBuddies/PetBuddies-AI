@@ -7,7 +7,7 @@ import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
-import br.com.fiap.petbuddies.dto.RegraPrescricaoRequest;
+import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoRequest;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;

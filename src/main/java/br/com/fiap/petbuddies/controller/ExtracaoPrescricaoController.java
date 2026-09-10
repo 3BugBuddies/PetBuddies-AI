@@ -1,7 +1,7 @@
 package br.com.fiap.petbuddies.controller;
 
-import br.com.fiap.petbuddies.dto.NarrativaPrescricaoRequest;
-import br.com.fiap.petbuddies.dto.RascunhoPrescricaoResponse;
+import br.com.fiap.petbuddies.dto.prescricao.NarrativaPrescricaoRequest;
+import br.com.fiap.petbuddies.dto.prescricao.RascunhoPrescricaoResponse;
 import br.com.fiap.petbuddies.service.ExtracaoPrescricaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
