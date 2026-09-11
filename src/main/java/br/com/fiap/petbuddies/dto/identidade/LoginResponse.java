@@ -17,14 +17,20 @@ public class LoginResponse {
     private Long usuarioId;
     private Long responsavelId;
     private Long veterinarioId;
+    private String nome;
 
     public static LoginResponse from(UsuarioEntity usuario, String token) {
+        return from(usuario, token, null);
+    }
+
+    public static LoginResponse from(UsuarioEntity usuario, String token, String nome) {
         LoginResponse dto = new LoginResponse();
         dto.token = token;
         dto.perfil = usuario.getPerfil();
         dto.usuarioId = usuario.getId();
         dto.responsavelId = usuario.getResponsavelId();
         dto.veterinarioId = usuario.getVeterinarioId();
+        dto.nome = nome;
         return dto;
     }
 }

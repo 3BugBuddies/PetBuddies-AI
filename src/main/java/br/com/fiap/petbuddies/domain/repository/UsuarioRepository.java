@@ -9,4 +9,6 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long> {
 
     // Filtro por ativo esta aqui, de proposito: usuario inativo devolve o mesmo vazio de login inexistente.
     Optional<UsuarioEntity> findByLoginAndAtivoTrue(String login);
+
+    boolean existsByLoginIgnoreCase(String login);
 }

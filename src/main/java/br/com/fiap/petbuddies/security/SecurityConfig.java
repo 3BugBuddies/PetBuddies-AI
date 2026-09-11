@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(rota -> rota
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/registro").permitAll()
                         // Ato clinico: perfil TUTOR nao autora prescricao.
                         .requestMatchers(HttpMethod.POST, "/api/prescricao/rascunho").hasRole("VET")
                         .anyRequest().authenticated())
