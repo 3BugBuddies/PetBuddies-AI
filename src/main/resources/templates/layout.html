@@ -57,9 +57,14 @@
         </form>
     </aside>
 
-    <main class="conteudo" th:replace="${conteudo}">
-        Conteúdo da página
-    </main>
+    <!-- O respiro vive neste wrapper, e nao no <main> de cada pagina: o th:replace
+         troca o <main> inteiro, entao uma pagina que esquecesse a classe perderia
+         o padding sem dar erro nenhum. -->
+    <div class="conteudo">
+        <main th:replace="${conteudo}">
+            Conteúdo da página
+        </main>
+    </div>
 </div>
 </body>
 </html>

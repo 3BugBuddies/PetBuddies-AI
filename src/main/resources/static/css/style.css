@@ -198,7 +198,7 @@ a:hover { text-decoration: underline; }
 /* ---------- botoes ---------- */
 
 .botao,
-button[type="submit"] {
+button[type="submit"]:not(.botao-link) {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -213,7 +213,7 @@ button[type="submit"] {
     font-family: inherit;
 }
 .botao:hover,
-button[type="submit"]:hover {
+button[type="submit"]:not(.botao-link):hover {
     background: var(--cor-marca-escura);
     border-color: var(--cor-marca-escura);
     text-decoration: none;
@@ -427,7 +427,14 @@ form.formulario :is(input, select, textarea):has(+ .erro-campo) {
     background: var(--cor-erro-fundo);
 }
 
-form.formulario .campo-checkbox input { width: auto; }
+form.formulario .campo-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.95rem;
+}
+form.formulario .campo-checkbox input { width: auto; margin: 0; accent-color: var(--cor-marca); }
+form.formulario .campo-checkbox label { margin: 0; font-weight: 600; }
 
 .erro-campo {
     color: var(--cor-erro);

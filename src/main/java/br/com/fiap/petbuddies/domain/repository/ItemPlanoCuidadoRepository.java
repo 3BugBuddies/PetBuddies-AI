@@ -2,6 +2,7 @@ package br.com.fiap.petbuddies.domain.repository;
 
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import br.com.fiap.petbuddies.domain.enums.cuidado.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import org.springframework.data.domain.Page;
@@ -47,4 +48,23 @@ public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuida
     @Query("SELECT e FROM ItemPlanoCuidadoEntity e WHERE e.plano.animalId = :animalId AND e.tipo IN :tipos")
     List<ItemPlanoCuidadoEntity> findHistoricoPorTipos(
             @Param("animalId") Long animalId, @Param("tipos") List<TipoCuidado> tipos);
+
+    // Vencido e ATRASADO, ou PENDENTE com data-alvo no passado. Espelha a regra de
+    // ItemPlanoCuidadoDto.isVencido -- as duas precisam mudar juntas.
+    @Query("SELECT i FROM ItemPlanoCuidadoEntity i JOIN FETCH i.plano p "
+            + "WHERE p.status = :statusPlano "
+            + "AND (i.status = :atrasado OR (i.status = :pendente AND i.dataAlvo < :hoje)) "
+            + "ORDER BY i.dataAlvo ASC")
+    List<ItemPlanoCuidadoEntity> findVencidosDaClinica(
+            @Param("statusPlano") StatusPlano statusPlano,
+            @Param("atrasado") StatusItem atrasado,
+            @Param("pendente") StatusItem pendente,
+            @Param("hoje") LocalDate hoje);
+
+    @Query("SELECT COUNT(i) FROM ItemPlanoCuidadoEntity i JOIN i.plano p "
+            + "WHERE p.status = :statusPlano AND i.status = :status AND i.dataAlvo >= :desde")
+    long contarPorStatusDesde(
+            @Param("statusPlano") StatusPlano statusPlano,
+            @Param("status") StatusItem status,
+            @Param("desde") LocalDate desde);
 }
