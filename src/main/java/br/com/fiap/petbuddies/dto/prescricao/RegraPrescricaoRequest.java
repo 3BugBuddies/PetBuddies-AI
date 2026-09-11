@@ -10,11 +10,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-/**
- * Sem rótulo, tipo de dado ou fonte: os três são congelados no service a
- * partir da condição clínica no momento da criação (ADR s3-10), nunca
- * recebidos do cliente.
- */
+// Sem rotulo, tipo de dado ou fonte: congelados no service a partir da condicao clinica, nunca recebidos do cliente.
 @Getter
 @Setter
 @NoArgsConstructor

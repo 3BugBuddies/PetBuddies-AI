@@ -14,13 +14,7 @@ public interface RegistroAtendimentoRepository extends JpaRepository<RegistroAte
 
     List<RegistroAtendimentoEntity> findByConsultaId(Long consultaId);
 
-    /**
-     * Traz num JOIN só o animal, a consulta, o veterinário e a clínica do
-     * veterinário — o contexto que a extração da narrativa (J22) precisa antes
-     * de sair para o modelo. Sem isto, ler {@code getAnimal()} ou
-     * {@code getConsulta().getVeterinario()} fora desta chamada explode em
-     * {@code LazyInitializationException} (open-in-view está desligado).
-     */
+    // Traz animal, consulta, veterinario e clinica num JOIN — le-los fora desta chamada explode em LazyInitializationException (open-in-view desligado).
     @Query("SELECT r FROM RegistroAtendimentoEntity r "
             + "JOIN FETCH r.animal "
             + "JOIN FETCH r.consulta c "

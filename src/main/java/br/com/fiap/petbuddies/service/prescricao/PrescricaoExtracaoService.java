@@ -29,14 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Transcreve a narrativa do veterinário para um rascunho de prescrição.
- * Nunca decide clinicamente — só preenche o formulário que o vet revisa.
- *
- * <p>Sem {@code @Transactional} de propósito: o contexto vem de um único
- * JOIN FETCH em {@link RegistroAtendimentoRepository}, já atômico; a chamada
- * ao modelo (rede) roda depois, sem transação aberta.</p>
- */
+// Nunca decide clinicamente — so preenche o formulario que o vet revisa.
+// Sem @Transactional de proposito: contexto vem de JOIN FETCH atomico; a chamada ao modelo roda depois, sem transacao aberta.
 @Service
 public class PrescricaoExtracaoService {
 
@@ -165,10 +159,7 @@ public class PrescricaoExtracaoService {
                 """.formatted(LocalDate.now(), condicoesTexto);
     }
 
-    // --- campos de PrescricaoRequest, um a um, cada um com sua própria validação determinística.
-    // Confiança nunca vem de auto-avaliação do modelo (pedir "dê uma nota de 0 a 1" devolveu 1.0
-    // para tudo em teste real) — é derivada de "trecho" presente + "literal", os dois fatos
-    // verificáveis que o modelo reporta.
+    // Confianca nunca vem de auto-avaliacao do modelo — e derivada de "trecho" presente + "literal", os dois fatos verificaveis que o modelo reporta.
 
     private void aplicarMedicamento(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.medicamento();
@@ -293,9 +284,7 @@ public class PrescricaoExtracaoService {
                 .findFirst()
                 .orElse(null);
         if (condicao == null) {
-            // O modelo inventou (ou reconheceu, mas fora do vocabulário) uma condição
-            // que não existe no catálogo desta clínica (ADR s3-11). A regra é descartada,
-            // nunca gravada com uma condição inexistente.
+            // Condicao que o modelo apontou nao existe no catalogo desta clinica — regra descartada, nunca gravada.
             descartadas.add("O modelo reconheceu \"" + r.condicao()
                     + "\" na narrativa" + trechoEntreParenteses(r)
                     + ", mas essa condição não está cadastrada no catálogo desta clínica; regra descartada.");

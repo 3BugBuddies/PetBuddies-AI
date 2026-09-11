@@ -9,11 +9,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-/**
- * Uma condição que o tutor confirmou, vinda do passo de extração — corrigida
- * por ele se a IA errou (§5.1, passo E). Exatamente um dos dois valores é
- * preenchido, espelhando CK_COBS_UM_VALOR.
- */
+// Corrigida pelo tutor se a IA errou. Exatamente um dos dois valores e preenchido, espelhando CK_COBS_UM_VALOR.
 @Getter
 @Setter
 @NoArgsConstructor

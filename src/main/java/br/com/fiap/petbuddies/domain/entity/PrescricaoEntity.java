@@ -8,12 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Ato assinado pelo veterinário no fechamento do atendimento. Imutável por
- * contrato (ADR s3-09): corrigir significa emitir outra prescrição, não editar
- * esta — {@code @Immutable} é a garantia do ORM, e por isso não há PUT nem
- * DELETE no controller. AT_UPDATED_AT fica sempre nulo.
- */
+// Imutavel por contrato — corrigir e emitir nova prescricao, nao editar esta; sem PUT/DELETE no controller.
 @Entity
 @Immutable
 @Table(name = "T_PB_PRESCRICAO")
@@ -54,7 +49,7 @@ public class PrescricaoEntity {
     @Column(name = "TX_ORIENTACAO")
     private String orientacao;
 
-    /** Aponta para o bulário, que só existe na Sprint 4. Nasce nulo, sem FK. */
+    // Nasce nulo, sem FK.
     @Column(name = "ID_MATERIAL_ORIGEM")
     private Long materialOrigemId;
 

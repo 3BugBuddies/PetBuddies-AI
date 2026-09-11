@@ -7,16 +7,8 @@ import lombok.*;
 
 import java.time.LocalDate;
 
-/**
- * Passo 1 do check-in (§5.1 do documento de IA): só interpreta a narrativa e
- * devolve o que foi entendido. Não grava nada — a confirmação do tutor é o
- * passo seguinte, {@link CheckinRequest}.
- *
- * <p>Sem {@code itemPlanoCuidadoId}: a extração sempre roda contra o
- * vocabulário inteiro em vigor para o animal, relato geral ou por item — é o
- * avaliador, no passo 2, que decide contra qual prescrição a condição
- * confirmada conta.</p>
- */
+// So interpreta a narrativa — nao grava nada; a confirmacao e o passo seguinte, CheckinRequest.
+// Sem itemPlanoCuidadoId: a extracao roda contra o vocabulario inteiro; o avaliador, no passo 2, decide contra qual prescricao a condicao conta.
 @Getter
 @Setter
 @NoArgsConstructor

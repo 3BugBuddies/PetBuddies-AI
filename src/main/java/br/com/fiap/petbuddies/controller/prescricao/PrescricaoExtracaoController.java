@@ -13,11 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * A prescrição narrada (J22): o veterinário fala, a IA devolve um rascunho.
- * Sem envelope HATEOAS — o rascunho não é recurso, não é persistido e não tem
- * {@code self}; ele nasce da narrativa e morre se o vet não confirmar.
- */
+// Sem envelope HATEOAS — o rascunho nao e recurso, nao e persistido e nao tem self; nasce da narrativa e morre se o vet nao confirmar.
 @RestController
 @RequestMapping("/api/prescricao")
 @Tag(name = "ia — prescrição narrada", description = "Transcreve a narrativa do veterinário para um rascunho de prescrição. Perfil VET.")

@@ -5,13 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-/**
- * Uma condição que a IA reconheceu na narrativa, já resolvida contra o
- * catálogo (contrato §9.1). Ausência desta condição na lista devolvida por
- * {@link CheckinExtracaoResponse} é o nulo explícito — o tutor não falou
- * nela. Presente com {@code valorBooleano=false} é "mencionada e negada": os
- * dois nunca colapsam no mesmo valor.
- */
+// Ausencia na lista e o nulo explicito — o tutor nao falou nela. Presente com valorBooleano=false e "mencionada e negada"; os dois nunca colapsam no mesmo valor.
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

@@ -7,11 +7,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 
-/**
- * Uma sugestão de próximo cuidado para o animal, a partir do histórico.
- * Não é gravada em nenhuma tabela — é a mesma escolha do ADR s3-24 §3 para
- * saldo e tier: nada muda até o veterinário aceitar.
- */
+// Nao e gravada em nenhuma tabela — nada muda ate o veterinario aceitar.
 @Schema(description = "Sugestão de próximo cuidado, derivada do histórico do animal")
 @Getter
 @Setter

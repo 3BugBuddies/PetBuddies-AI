@@ -58,14 +58,7 @@ public class MotorPlanoService {
         this.animalRepository = animalRepository;
     }
 
-    /**
-     * Sem {@code @Transactional} de proposito: entre a checagem de idempotencia
-     * e a criacao ha uma chamada HTTP ao catalogo do .NET, e ela nao pode ficar
-     * dentro de um bloco transacional — seguraria a conexao do pool pelo tempo
-     * da rede. A checagem eager-carrega os itens (ver o @EntityGraph no
-     * repositorio) e a criacao e um unico save() com cascade, cada uma com a
-     * propria transacao curta.
-     */
+    // Sem @Transactional de proposito: ha chamada HTTP ao catalogo entre a checagem e a criacao — nao pode segurar conexao do pool durante a rede.
     public PlanoResponse instanciarPreventivo(PlanoPreventivoRequest req) {
         Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoAtivoPorCategoria(
@@ -90,7 +83,7 @@ public class MotorPlanoService {
         return PlanoResponse.from(plano, true, null);
     }
 
-    /** Ver o javadoc de {@link #instanciarPreventivo(PlanoPreventivoRequest)}. */
+    // Sem @Transactional de proposito, pelo mesmo motivo do instanciarPreventivo.
     public PlanoResponse instanciarPosCirurgico(PlanoPosCirurgicoRequest req) {
         Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoPorAnimalEConsulta(
@@ -118,7 +111,6 @@ public class MotorPlanoService {
 
     @Transactional(readOnly = true)
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        // A ordem preserva a precedencia anterior: onde havia preventivo, ele continua vindo.
         for (CategoriaPlano categoria : List.of(
                 CategoriaPlano.PREVENTIVO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.TRATAMENTO)) {
             Optional<PlanoCuidadoEntity> plano = planoRepository
@@ -137,26 +129,13 @@ public class MotorPlanoService {
                 .map(ItemPlanoCuidadoDto::from);
     }
 
-    /**
-     * O que o protocolo já produziu no animal: os planos com molde, e seus itens
-     * separados em realizados, pendentes e vencidos. Leitura 100% local — nenhuma
-     * chamada ao catálogo do .NET. É o que garante que a leitura de um plano já
-     * materializado funciona inteira mesmo com o catálogo fora do ar.
-     */
+    // Leitura 100% local — sem chamada ao catalogo do .NET.
     @Transactional(readOnly = true)
     public List<PlanoCuidadoEntity> buscarProtocoloAplicado(Long animalId) {
         return planoRepository.findComProtocoloPorAnimal(animalId);
     }
 
-    /**
-     * Sugestão por histórico (PR-J9): reforço vencido é leitura local; recorrência
-     * devida e nunca-realizado dependem do catálogo do .NET, e por isso somem
-     * quando ele está fora do ar — a mesma degradação de {@link #protocoloAplicavel}.
-     *
-     * <p>Sem {@code @Transactional} de propósito, pelo mesmo motivo do javadoc de
-     * {@link #instanciarPreventivo(PlanoPreventivoRequest)}: há uma chamada HTTP
-     * no meio, entre duas leituras curtas de banco.</p>
-     */
+    // Sem @Transactional de proposito, pelo mesmo motivo do instanciarPreventivo.
     public List<SugestaoCuidadoDto> sugerirPorHistorico(Long animalId) {
         List<SugestaoCuidadoDto> sugestoes = new ArrayList<>();
 
@@ -172,12 +151,7 @@ public class MotorPlanoService {
         return sugestoes;
     }
 
-    /**
-     * A metade que depende do catálogo: regras do protocolo preventivo ativo
-     * ancoradas em {@code ULTIMA_REALIZACAO}. O pós-cirúrgico fica fora — pela
-     * tabela do ADR s3-24 §2, ele é sempre âncora {@code DATA_CIRURGIA}, ocorrência
-     * única, sem recorrência para sugerir.
-     */
+    // Preventivo ancorado em ULTIMA_REALIZACAO; pos-cirurgico fica fora (ocorrencia unica, sem recorrencia).
     private List<SugestaoCuidadoDto> sugerirPorRecorrencia(Long animalId) {
         Optional<PlanoCuidadoEntity> planoAtivo = planoRepository.findPlanoAtivoPorCategoria(
                 animalId, StatusPlano.ATIVO, CategoriaPlano.PREVENTIVO);
@@ -256,8 +230,7 @@ public class MotorPlanoService {
     public void cancelarPlano(Long planoId, String motivo) {
         PlanoCuidadoEntity plano = planoRepository.findById(planoId)
                 .orElseThrow(() -> new PlanoNaoEncontradoException(planoId));
-        // decisao I: DT_CANCELADO_EM e MT_MOTIVO_CANCELAMENTO sairam do schema da S3.
-        // O motivo continua no contrato do endpoint, mas nao e persistido.
+        // motivo nao e persistido — nao ha campo no schema para isso.
         plano.setStatus(StatusPlano.CANCELADO);
         plano.getItens().stream()
                 .filter(e -> e.getStatus() == StatusItem.PENDENTE)
@@ -265,19 +238,7 @@ public class MotorPlanoService {
         planoRepository.save(plano);
     }
 
-    /**
-     * O protocolo ativo daquela categoria e especie, lido do catalogo do .NET
-     * (ADR s3-25). Catalogo fora do ar devolve lista vazia — mesmo efeito de
-     * "nenhum protocolo compativel".
-     *
-     * <p>Substitui o ProtocoloMatchService, removido no PR-J8. Ele escolhia o
-     * "melhor match" por porte, sexo, castracao e faixa de idade — um automatismo
-     * do tempo em que cadastrar o pet instanciava o plano sozinho (commit 295a543,
-     * 19/05). As cinco colunas sairam do schema no ADR s3-24; sobrou ES_ESPECIE.</p>
-     *
-     * <p>Havendo mais de um candidato, o de menor id vence — determinismo, nao
-     * criterio clinico. A escolha deliberada pelo veterinario e o PR-J9.</p>
-     */
+    // Havendo mais de um candidato, o de menor id vence — determinismo, nao criterio clinico.
     private Optional<ProtocoloCatalogoDto> protocoloAplicavel(CategoriaProtocolo categoria,
                                                                Especie especie) {
         return protocoloClient.buscar(categoria, especie)
@@ -291,26 +252,13 @@ public class MotorPlanoService {
         plano.setAnimalId(animalId);
         plano.setConsultaId(consultaId);
         plano.setProtocoloId(protocolo.id());
-        // A categoria e COPIADA do protocolo (ADR s3-24 §4b). E ela, e nao o join
-        // com protocolo, que a consulta de idempotencia passa a ler — por isso um
-        // plano de tratamento, que nao tem molde, deixa de ser invisivel para ela.
+        // Categoria copiada do protocolo — a consulta de idempotencia le este campo, nao o join.
         plano.setCategoria(CategoriaPlano.valueOf(protocolo.categoria().name()));
         plano.setStatus(StatusPlano.ATIVO);
         return plano;
     }
 
-    /**
-     * Expande cada molde do protocolo nos itens concretos do plano.
-     *
-     * <p>Para cada evento: resolve a ancora, soma o deslocamento na unidade
-     * declarada, e repete o item conforme intervalo e numero de repeticoes. Itens
-     * alem do horizonte de {@value #HORIZONTE_MESES} meses sao descartados — a
-     * recorrencia declara "para sempre" com um numero, mas o plano nao tem fim, e
-     * materializar tudo encheria a tabela sem ninguem ler.</p>
-     *
-     * <p>A ordenacao e feita aqui, sobre a data ja resolvida: deslocamento 2 em
-     * MESES e 10 em DIAS nao sao comparaveis antes disso.</p>
-     */
+    // Ordenado aqui, pela data ja resolvida — offset em unidades diferentes nao e comparavel antes disso.
     private void instanciarEventos(PlanoCuidadoEntity plano, ProtocoloCatalogoDto protocolo,
                                     Ancoragem ancoragem) {
         LocalDate limite = ancoragem.instanciacao().plusMonths(HORIZONTE_MESES);
@@ -366,15 +314,7 @@ public class MotorPlanoService {
         };
     }
 
-    /**
-     * As datas-base disponiveis no fluxo que esta instanciando o plano. Uma
-     * data-base sem valor correspondente faz a regra ser ignorada, em vez de gerar
-     * item numa data inventada.
-     *
-     * <p>ULTIMA_REALIZACAO devolve nulo aqui de proposito: resolve-la exige
-     * consultar o que o animal ja fez, e isso e o PR-J9. Ate la, uma regra
-     * ancorada nela simplesmente nao produz item — falha visivel, nao silenciosa.</p>
-     */
+    // ULTIMA_REALIZACAO devolve nulo de proposito — regra ancorada nela nao produz item.
     private record Ancoragem(LocalDate instanciacao, LocalDate nascimento, LocalDate dataCirurgia) {
         LocalDate resolver(TipoDataBase dataBase) {
             if (dataBase == null) {

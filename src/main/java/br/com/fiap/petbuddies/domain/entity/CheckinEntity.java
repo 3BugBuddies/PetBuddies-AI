@@ -5,14 +5,8 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * O relato do tutor: um por animal e por dia (decisão D), ou um por item
- * quando o relato é sobre um cuidado específico (ADR s3-24 §6).
- *
- * <p>Guarda a TRANSCRIÇÃO, não o áudio (ADR s3-18) — não há coluna de áudio.
- * Sem coluna de status: a linha só nasce quando o tutor confirma o que a IA
- * entendeu (§5.1 do documento de IA, passo E).</p>
- */
+// Guarda a transcricao, nao o audio — nao ha coluna de audio.
+// Sem coluna de status: a linha so nasce quando o tutor confirma.
 @Entity
 @Table(name = "T_PB_CHECKIN")
 @Getter

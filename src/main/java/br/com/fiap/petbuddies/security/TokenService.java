@@ -15,18 +15,12 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/**
- * Formato fixado com o .NET, que valida este mesmo token: HS256, emissor
- * {@code petbuddies-ai}, sujeito com o id do usuario como texto, e as claims
- * {@code perfil}, {@code usuarioId}, <b>exatamente um</b> de
- * {@code veterinarioId} / {@code responsavelId}, e {@code clinicaId} so no
- * perfil VET. Claim que nao se aplica fica <b>ausente</b>, nunca nula.
- * Mudanca aqui aparece do outro lado como 401 generico.
- */
+// Formato fixado com o .NET: claims perfil/usuarioId, exatamente um de veterinarioId/responsavelId, clinicaId so no VET — ausente, nunca nula.
+// Mudanca aqui aparece do outro lado como 401 generico.
 @Service
 public class TokenService {
 
-    /** Emissor do ADR s3-20. O .NET exige este valor exato. */
+    // O .NET exige este valor exato.
     public static final String EMISSOR = "petbuddies-ai";
 
     public static final String CLAIM_PERFIL = "perfil";
@@ -38,7 +32,7 @@ public class TokenService {
     /** Sujeito do token de servico — nao corresponde a nenhuma linha de T_PB_USUARIO. */
     private static final String SUJEITO_SERVICO = "motor-planos";
 
-    /** Tolerancia de relogio combinada com o N4 (README da onda 2). */
+    // Tolerancia de relogio combinada com o .NET — os dois lados usam o mesmo valor.
     private static final long TOLERANCIA_RELOGIO_SEGUNDOS = 30L;
 
     private final SecretKey chave;
@@ -82,12 +76,8 @@ public class TokenService {
         return builder.signWith(chave).compact();
     }
 
-    /**
-     * Token de servico a servico, sem usuario por tras — quem chama e o motor de
-     * planos lendo o catalogo do .NET (ADR s3-25), nao uma sessao de app.
-     * Claim {@code perfil=VET} porque e o unico papel que o endpoint exige;
-     * vida curta porque e emitido de novo a cada chamada, nunca guardado.
-     */
+    // Sem usuario por tras — quem chama e o motor de planos lendo o catalogo do .NET, nao uma sessao de app.
+    // perfil=VET e o unico papel que o endpoint exige; vida curta porque e emitido a cada chamada, nunca guardado.
     public String emitirServico() {
         Instant agora = Instant.now();
         return Jwts.builder()

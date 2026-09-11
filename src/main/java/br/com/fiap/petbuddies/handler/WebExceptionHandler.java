@@ -32,13 +32,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 
-/**
- * Segundo interceptador de exceção, restrito ao pacote {@code web} (J4).
- *
- * <p>{@link GlobalExceptionHandler} é {@code @RestControllerAdvice} sem
- * restrição de pacote — sem este advice, ordenado à frente dele, um erro de
- * domínio dentro de uma tela voltaria como JSON, não como página.</p>
- */
+// Sem este advice, ordenado a frente do GlobalExceptionHandler, um erro de dominio numa tela voltaria como JSON, nao como pagina.
 @ControllerAdvice(basePackages = "br.com.fiap.petbuddies.web")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class WebExceptionHandler {

@@ -15,7 +15,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/** Sem PUT nem DELETE: a prescrição é imutável depois de assinada (ADR s3-09). */
+// Sem PUT nem DELETE: a prescricao e imutavel depois de assinada.
 @RestController
 @RequestMapping("/api/prescricao")
 @Tag(name = "registro — prescrições", description = "O ato assinado pelo veterinário — imutável depois de criado")

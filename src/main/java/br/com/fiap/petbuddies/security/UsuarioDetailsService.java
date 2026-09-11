@@ -8,16 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Carrega o usuario pelo login para o <b>formulario da web</b> — a cadeia de
- * sessao. A cadeia da API nao passa por aqui: o token ja carrega perfil e
- * vinculo, e consultar o banco a cada requisicao anularia o ganho de ser
- * stateless.
- *
- * <p>Devolve {@link UsuarioPrincipal}, nao o {@code User} padrao: e ele que
- * carrega o {@code veterinarioId}/{@code responsavelId} para os controllers
- * de pagina, alem do papel que {@code hasRole(...)} confere.</p>
- */
+// Cadeia da API nao passa por aqui: o token ja carrega perfil e vinculo — consultar o banco a cada requisicao anularia o stateless.
+// Devolve UsuarioPrincipal, nao o User padrao — carrega veterinarioId/responsavelId para os controllers de pagina.
 @Service
 public class UsuarioDetailsService implements UserDetailsService {
 

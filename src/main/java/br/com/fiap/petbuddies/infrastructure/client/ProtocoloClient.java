@@ -15,11 +15,7 @@ import org.springframework.web.client.RestClientException;
 import java.time.Duration;
 import java.util.List;
 
-/**
- * Le o catalogo de protocolos do .NET (ADR s3-25) — a unica dependencia entre
- * os dois servicos. So e chamado ao criar um plano; depois de materializado, o
- * plano nao volta a consulta-lo.
- */
+// A unica dependencia entre os dois servicos — so e chamado ao criar um plano; depois de materializado, o plano nao volta a consulta-lo.
 @Component
 public class ProtocoloClient {
 
@@ -37,11 +33,7 @@ public class ProtocoloClient {
         this.tokenService = tokenService;
     }
 
-    /**
-     * Protocolos ativos da categoria e especie. Lista vazia tanto para "nenhum
-     * protocolo compativel" quanto para "catalogo fora do ar" — as duas viram a
-     * mesma resposta no motor (ADR s3-25): o plano so nao nasce agora.
-     */
+    // Lista vazia tanto para "nenhum protocolo compativel" quanto para "catalogo fora do ar" — as duas viram a mesma resposta: o plano so nao nasce agora.
     public List<ProtocoloCatalogoDto> buscar(CategoriaProtocolo categoria, Especie especie) {
         try {
             ProtocoloCatalogoDto[] resposta = restClient.get()

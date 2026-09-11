@@ -30,10 +30,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Cadastro de pacientes (item 1) e, na ficha, o fluxo 1 da rubrica —
- * instanciar plano de cuidado a partir de protocolo (item 4).
- */
+// Cadastro de pacientes e, na ficha, o fluxo de instanciar plano de cuidado a partir de protocolo.
 @Controller
 @RequestMapping("/pacientes")
 public class PacientesWebController {
@@ -132,7 +129,7 @@ public class PacientesWebController {
         return "pacientes/ficha";
     }
 
-    /** Fluxo 1: instanciar plano de cuidado a partir do protocolo mais específico. */
+    // Instancia plano de cuidado a partir do protocolo mais especifico.
     @PostMapping("/{id}/planos")
     public String instanciarPlano(
             @PathVariable Long id,

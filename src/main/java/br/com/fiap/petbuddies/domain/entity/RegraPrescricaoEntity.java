@@ -11,16 +11,8 @@ import org.hibernate.annotations.Immutable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Condição → ação sobre a dose de uma prescrição. Imutável como a prescrição
- * que a carrega — regra assinada não se corrige, se substitui numa nova
- * prescrição.
- *
- * <p>O rótulo, o tipo de dado e a fonte são copiados da {@link CondicaoClinicaEntity}
- * no momento da criação e nunca mais mudam (ADR s3-10), mesmo que o catálogo
- * mude depois — é o que permite o check-in avaliar a regra sem consultar o
- * catálogo.</p>
- */
+// Imutavel — regra assinada nao se corrige, substitui-se numa nova prescricao.
+// Rotulo, tipo e fonte sao copiados no momento da criacao e nunca mudam — check-in avalia sem consultar o catalogo.
 @Entity
 @Immutable
 @Table(name = "T_PB_REGRA_PRESCRICAO")

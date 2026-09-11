@@ -18,10 +18,7 @@ public interface PlanoCuidadoRepository extends JpaRepository<PlanoCuidadoEntity
     Optional<PlanoCuidadoEntity> findPlanoPorAnimalEStatus(
             @Param("animalId") Long animalId, @Param("status") StatusPlano status);
 
-    // itens vem junto na mesma query: o motor le o resultado fora de transacao
-    // (a chamada ao catalogo do .NET fica entre a checagem e a criacao), e sem o
-    // fetch a colecao lazy dispara LazyInitializationException so quando ja
-    // existe um plano — o caso que menos aparece em teste manual.
+    // Sem o fetch, a colecao lazy dispara LazyInitializationException so quando ja existe um plano — o caso que menos aparece em teste manual.
     @EntityGraph(attributePaths = "itens")
     @Query("SELECT p FROM PlanoCuidadoEntity p WHERE p.animalId = :animalId AND p.status = :status AND p.categoria = :categoria")
     Optional<PlanoCuidadoEntity> findPlanoAtivoPorCategoria(
@@ -34,8 +31,7 @@ public interface PlanoCuidadoRepository extends JpaRepository<PlanoCuidadoEntity
 
     List<PlanoCuidadoEntity> findByStatus(StatusPlano status);
 
-    // protocolo aplicado (PR-J9): todo plano do animal que nasceu de um molde do
-    // catalogo, de qualquer status — inclui o pos-cirurgico concluido, nao so o ativo.
+    // Todo plano do animal que nasceu de um molde do catalogo, de qualquer status — inclui o pos-cirurgico concluido, nao so o ativo.
     @EntityGraph(attributePaths = "itens")
     @Query("SELECT p FROM PlanoCuidadoEntity p WHERE p.animalId = :animalId AND p.protocoloId IS NOT NULL ORDER BY p.createdAt DESC")
     List<PlanoCuidadoEntity> findComProtocoloPorAnimal(@Param("animalId") Long animalId);

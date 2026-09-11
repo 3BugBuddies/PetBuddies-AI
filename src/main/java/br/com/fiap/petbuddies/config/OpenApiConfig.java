@@ -9,12 +9,7 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * O esquema de autorizacao e <b>declarado</b>, e nao exigido globalmente: o
- * login e zona aberta, e marcar toda a API como protegida documentaria o
- * contrato errado. Declarado assim, o botao de autorizar aparece no Swagger e
- * o token vale para as rotas que de fato o pedem.
- */
+// Declarado, nao exigido globalmente: login e zona aberta — marcar tudo como protegido documentaria o contrato errado.
 @OpenAPIDefinition(
     info = @Info(
         title = "PetBuddies AI",
@@ -28,7 +23,7 @@ import org.springframework.context.annotation.Configuration;
     type = SecuritySchemeType.HTTP,
     scheme = "bearer",
     bearerFormat = "JWT",
-    description = "Token emitido por POST /api/auth/login. Vale também no serviço .NET (ADR s3-20)."
+    description = "Token emitido por POST /api/auth/login. Vale também no serviço .NET."
 )
 @Configuration
 public class OpenApiConfig {

@@ -1,6 +1,6 @@
 package br.com.fiap.petbuddies.domain.enums.cuidado;
 
-/** Por que um cuidado aparece na sugestão por histórico (PR-J9). */
+// Por que um cuidado aparece na sugestao por historico.
 public enum MotivoSugestao {
     /** Item já materializado, {@code PENDENTE} ou {@code ATRASADO}, com data-alvo no passado. */
     REFORCO_VENCIDO,
