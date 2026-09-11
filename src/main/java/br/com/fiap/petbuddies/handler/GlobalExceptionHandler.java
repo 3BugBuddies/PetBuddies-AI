@@ -13,7 +13,12 @@ import br.com.fiap.petbuddies.exception.atendimento.ConsultaJaRealizadaException
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
+import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoProvisionadaException;
 import br.com.fiap.petbuddies.exception.cadastro.CrmvDuplicadoException;
+import br.com.fiap.petbuddies.exception.cadastro.EmailResponsavelDuplicadoException;
+import br.com.fiap.petbuddies.exception.cadastro.LoginDuplicadoException;
+import br.com.fiap.petbuddies.exception.cadastro.RegistroIncompletoException;
+import br.com.fiap.petbuddies.exception.cadastro.TelefoneResponsavelDuplicadoException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaNoPassadoException;
@@ -133,6 +138,31 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CnpjDuplicadoException.class)
     public ResponseEntity<ErrorDto> handleCnpjDuplicado(CnpjDuplicadoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto("CNPJ_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(LoginDuplicadoException.class)
+    public ResponseEntity<ErrorDto> handleLoginDuplicado(LoginDuplicadoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("LOGIN_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailResponsavelDuplicadoException.class)
+    public ResponseEntity<ErrorDto> handleEmailResponsavelDuplicado(EmailResponsavelDuplicadoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("EMAIL_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TelefoneResponsavelDuplicadoException.class)
+    public ResponseEntity<ErrorDto> handleTelefoneResponsavelDuplicado(TelefoneResponsavelDuplicadoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto("TELEFONE_DUPLICADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RegistroIncompletoException.class)
+    public ResponseEntity<ErrorDto> handleRegistroIncompleto(RegistroIncompletoException ex) {
+        return ResponseEntity.badRequest().body(new ErrorDto("REGISTRO_INCOMPLETO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ClinicaNaoProvisionadaException.class)
+    public ResponseEntity<ErrorDto> handleClinicaNaoProvisionada(ClinicaNaoProvisionadaException ex) {
+        return ResponseEntity.unprocessableEntity().body(new ErrorDto("CLINICA_NAO_PROVISIONADA", ex.getMessage()));
     }
 
     @ExceptionHandler(CrmvDuplicadoException.class)
