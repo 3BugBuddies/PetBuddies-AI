@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.service.identidade;
 
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
+import br.com.fiap.petbuddies.domain.repository.ResponsavelRepository;
 import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.identidade.LoginRequest;
@@ -27,16 +28,19 @@ public class AutenticacaoService {
 
     private final UsuarioRepository usuarioRepository;
     private final VeterinarioRepository veterinarioRepository;
+    private final ResponsavelRepository responsavelRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
 
     public AutenticacaoService(
             UsuarioRepository usuarioRepository,
             VeterinarioRepository veterinarioRepository,
+            ResponsavelRepository responsavelRepository,
             PasswordEncoder passwordEncoder,
             TokenService tokenService) {
         this.usuarioRepository = usuarioRepository;
         this.veterinarioRepository = veterinarioRepository;
+        this.responsavelRepository = responsavelRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
     }
@@ -49,7 +53,20 @@ public class AutenticacaoService {
         if (!passwordEncoder.matches(request.getSenha(), usuario.getSenhaHash())) {
             throw new CredenciaisInvalidasException();
         }
-        return LoginResponse.from(usuario, tokenService.emitir(usuario, resolverClinica(usuario)));
+        return LoginResponse.from(
+                usuario, tokenService.emitir(usuario, resolverClinica(usuario)), resolverNome(usuario));
+    }
+
+    private String resolverNome(UsuarioEntity usuario) {
+        if (usuario.getVeterinarioId() != null) {
+            return veterinarioRepository.findById(usuario.getVeterinarioId())
+                    .map(v -> v.getNome()).orElse(null);
+        }
+        if (usuario.getResponsavelId() != null) {
+            return responsavelRepository.findById(usuario.getResponsavelId())
+                    .map(r -> r.getNome()).orElse(null);
+        }
+        return null;
     }
 
     // Fica aqui e nao no TokenService, que nao le repositorio. TUTOR devolve

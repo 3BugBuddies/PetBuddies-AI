@@ -8,4 +8,8 @@ import java.util.List;
 public interface ResponsavelRepository extends JpaRepository<ResponsavelEntity, Long> {
 
     List<ResponsavelEntity> findByNomeContainingIgnoreCase(String nome);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByTelefone(String telefone);
 }

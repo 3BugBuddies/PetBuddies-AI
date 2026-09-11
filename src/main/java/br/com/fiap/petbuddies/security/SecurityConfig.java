@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(rota -> rota
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/registro").permitAll()
                         // Primeira restricao de papel em /api/**: o rascunho da prescricao
                         // narrada (J22) e ato clinico, perfil TUTOR nao autora prescricao.
                         .requestMatchers(HttpMethod.POST, "/api/prescricao/rascunho").hasRole("VET")
