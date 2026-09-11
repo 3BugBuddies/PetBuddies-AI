@@ -1,15 +1,5 @@
 -- =============================================================================
--- V2 — PROVISIONAMENTO DO TENANT E DEMONSTRAÇÃO
--- =============================================================================
--- A CLÍNICA É O TENANT, E SÓ NASCE AQUI (ADR s3-28)
---   Não há cadastro de clínica por API: o tenant é provisionado, e as pessoas se
---   registram dentro dele por POST /api/auth/registro. Sem esta migration o
---   registro de veterinário falha com CLINICA_NAO_PROVISIONADA — é o único
---   pré-requisito que sobrou.
---
---   O veterinário, o responsável e os dois usuários abaixo são RESERVA da banca,
---   não pré-requisito: desde o s3-28 o sistema sobe só com a clínica, e tutor e
---   vet entram pelo registro.
+-- V2 — SEED DE DEMONSTRAÇÃO
 -- =============================================================================
 -- Uma clínica, um veterinário, um responsável e os dois usuários que a banca
 -- usa para entrar. Com banco por serviço (ADR s3-25) este schema nasce vazio, e

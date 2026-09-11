@@ -53,7 +53,7 @@ public class AuthController {
     @Operation(
         summary = "Cadastrar tutor ou veterinário e já receber o token",
         description = "Rota aberta. O tipo decide o que nasce: TUTOR cria o responsável, VET cria o "
-            + "veterinário na clínica provisionada. A clínica não se cadastra por aqui (ADR s3-28). "
+            + "veterinário na clínica provisionada. Clínica não se cadastra por esta rota. "
             + "Como o login, a resposta não vem em envelope HATEOAS."
     )
     @ApiResponses({
