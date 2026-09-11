@@ -9,6 +9,8 @@ public interface ClinicaRepository extends JpaRepository<ClinicaEntity, Long> {
 
     Optional<ClinicaEntity> findByCnpj(String cnpj);
 
+    Optional<ClinicaEntity> findFirstByOrderByIdAsc();
+
     boolean existsByCnpj(String cnpj);
 
     boolean existsByCnpjAndIdNot(String cnpj, Long id);

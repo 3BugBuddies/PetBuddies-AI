@@ -19,4 +19,6 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long> {
      * inexistente, e os dois caminhos terminam na mesma mensagem de 401.
      */
     Optional<UsuarioEntity> findByLoginAndAtivoTrue(String login);
+
+    boolean existsByLoginIgnoreCase(String login);
 }
