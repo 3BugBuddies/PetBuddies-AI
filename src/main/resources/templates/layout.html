@@ -4,32 +4,62 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:replace="${titulo}">PetBuddies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Nunito:wght@400;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml"/>
 </head>
 <body>
-<header class="topo">
-    <a class="marca" th:href="@{/}">PetBuddies</a>
-    <nav th:if="${usuario != null}">
+<div class="app">
+    <aside class="lateral" th:if="${usuario != null}">
+        <a class="marca" th:href="@{/}">
+            <span class="marca-pata">&#128062;</span>
+            <span>
+                <span class="marca-nome">PetBuddies</span><br/>
+                <span class="marca-sub" th:text="${usuario.vet} ? 'Clínica' : 'Tutor'">Clínica</span>
+            </span>
+        </a>
+
         <th:block th:if="${usuario.vet}">
-            <a th:href="@{/painel}">Painel</a>
-            <a th:href="@{/agenda}">Agenda</a>
-            <a th:href="@{/pacientes}">Pacientes</a>
-            <a th:href="@{/tutores}">Tutores</a>
-            <a th:href="@{/equipe}">Equipe</a>
-            <a th:href="@{/clinica}">Clínica</a>
+            <nav>
+                <a th:href="@{/painel}" th:classappend="${secao == 'painel'} ? 'atual'"><span class="ic">&#9704;</span>Painel</a>
+            </nav>
+            <div class="grupo">Acompanhamento</div>
+            <nav>
+                <a th:href="@{/pacientes}" th:classappend="${secao == 'pacientes'} ? 'atual'"><span class="ic">&#9636;</span>Pacientes</a>
+                <a th:href="@{/agenda}" th:classappend="${secao == 'agenda'} ? 'atual'"><span class="ic">&#9638;</span>Agenda</a>
+            </nav>
+            <div class="grupo">Pessoas</div>
+            <nav>
+                <a th:href="@{/equipe}" th:classappend="${secao == 'equipe'} ? 'atual'"><span class="ic">&#9673;</span>Equipe</a>
+                <a th:href="@{/tutores}" th:classappend="${secao == 'tutores'} ? 'atual'"><span class="ic">&#9678;</span>Tutores</a>
+            </nav>
+            <div class="grupo">Configuração</div>
+            <nav>
+                <a th:href="@{/clinica}" th:classappend="${secao == 'clinica'} ? 'atual'"><span class="ic">&#8962;</span>Dados da clínica</a>
+            </nav>
         </th:block>
+
         <th:block th:if="${usuario.tutor}">
-            <a th:href="@{/meus-animais}">Meus animais</a>
+            <nav>
+                <a th:href="@{/meus-animais}" th:classappend="${secao == 'meus-animais'} ? 'atual'"><span class="ic">&#9636;</span>Meus animais</a>
+            </nav>
         </th:block>
-    </nav>
-    <form th:if="${usuario != null}" th:action="@{/logout}" method="post" class="form-sair">
-        <span class="usuario-logado" th:text="${usuario.username}">usuario</span>
-        <button type="submit" class="botao-link">Sair</button>
-    </form>
-</header>
-<main class="conteudo" th:replace="${conteudo}">
-    Conteúdo da página
-</main>
-<footer class="rodape">PetBuddies · Challenge FIAP 2026</footer>
+
+        <form class="usuario-logado" th:action="@{/logout}" method="post">
+            <span class="avatar" th:text="${#strings.toUpperCase(#strings.substring(usuario.username, 0, 2))}">AS</span>
+            <span>
+                <span class="usuario-nome" th:text="${usuario.username}">usuario</span>
+            </span>
+            <button type="submit" class="botao-link" title="Sair">&#10148;</button>
+        </form>
+    </aside>
+
+    <main class="conteudo" th:replace="${conteudo}">
+        Conteúdo da página
+    </main>
+</div>
 </body>
 </html>
