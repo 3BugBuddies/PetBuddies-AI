@@ -43,6 +43,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -248,6 +249,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuracaoTratamentoExcedeTetoException.class)
     public ResponseEntity<ErrorDto> handleDuracaoTratamentoExcedeTeto(DuracaoTratamentoExcedeTetoException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("DURACAO_TRATAMENTO_EXCEDE_TETO", ex.getMessage()));
+    }
+
+    // Precede o handleGeneric: recurso estatico ausente e 404, nao falha do servidor.
+    // Sem isto cada /favicon.ico do navegador vira um ERROR com stacktrace inteiro.
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorDto> handleRecursoEstaticoAusente(NoResourceFoundException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("RECURSO_NAO_ENCONTRADO", ex.getResourcePath()));
     }
 
     @ExceptionHandler(Exception.class)

@@ -73,7 +73,7 @@
             <label for="categoria">Categoria do plano</label>
             <select id="categoria" th:field="*{categoria}">
                 <option value="">Selecione</option>
-                <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.CategoriaProtocolo).values()}"
+                <option th:each="valor : ${categoriasProtocolo}"
                         th:value="${valor}" th:text="${valor}">PREVENTIVO</option>
             </select>
             <div class="erro-campo" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">erro</div>

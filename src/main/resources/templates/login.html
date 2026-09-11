@@ -12,7 +12,7 @@
     <p class="subtitulo">Entre com seu e-mail e senha</p>
     <p class="mensagem-erro" th:if="${param.error}">E-mail ou senha inválidos.</p>
     <p class="mensagem-aviso" th:if="${param.logout}">Sessão encerrada.</p>
-    <form th:action="@{/login}" method="post">
+    <form class="formulario" th:action="@{/login}" method="post">
         <label for="username">E-mail</label>
         <input id="username" type="email" name="username" required="required" autofocus="autofocus"/>
         <label for="password">Senha</label>

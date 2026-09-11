@@ -17,7 +17,7 @@
         <label for="especie">Espécie</label>
         <select id="especie" th:field="*{especie}">
             <option value="">Selecione</option>
-            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.Especie).values()}"
+            <option th:each="valor : ${especies}"
                     th:value="${valor}" th:text="${valor}">CACHORRO</option>
         </select>
         <div class="erro-campo" th:if="${#fields.hasErrors('especie')}" th:errors="*{especie}">erro</div>
@@ -29,7 +29,7 @@
         <label for="porte">Porte</label>
         <select id="porte" th:field="*{porte}">
             <option value="">Selecione</option>
-            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.Porte).values()}"
+            <option th:each="valor : ${portes}"
                     th:value="${valor}" th:text="${valor}">MEDIO</option>
         </select>
         <div class="erro-campo" th:if="${#fields.hasErrors('porte')}" th:errors="*{porte}">erro</div>
@@ -37,7 +37,7 @@
         <label for="sexo">Sexo</label>
         <select id="sexo" th:field="*{sexo}">
             <option value="">Selecione</option>
-            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.Sexo).values()}"
+            <option th:each="valor : ${sexos}"
                     th:value="${valor}" th:text="${valor}">MACHO</option>
         </select>
         <div class="erro-campo" th:if="${#fields.hasErrors('sexo')}" th:errors="*{sexo}">erro</div>
