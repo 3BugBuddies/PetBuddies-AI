@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/** Sem atualizar/remover: a prescrição é imutável depois de assinada (ADR s3-09). */
+// Sem atualizar/remover: a prescricao e imutavel depois de assinada.
 @Service
 public class PrescricaoService {
 

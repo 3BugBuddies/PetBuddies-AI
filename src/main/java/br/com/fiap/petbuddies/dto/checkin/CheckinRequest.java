@@ -9,11 +9,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * O check-in confirmado (§5.1, passo E→F): a linha só nasce aqui, depois que
- * o tutor validou o que a IA entendeu. Nenhuma chamada ao modelo acontece
- * neste passo — é determinístico do início ao fim.
- */
+// A linha so nasce aqui, depois que o tutor validou o que a IA entendeu. Nenhuma chamada ao modelo acontece neste passo.
 @Getter
 @Setter
 @NoArgsConstructor

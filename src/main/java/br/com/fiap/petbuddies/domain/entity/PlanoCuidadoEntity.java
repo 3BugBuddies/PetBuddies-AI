@@ -8,21 +8,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * O plano de cuidado vivo de um animal.
- *
- * <p>O protocolo e opcional: um plano formado apenas por itens de prescricao nao
- * nasce de nenhum molde do catalogo. Os ids de animal e consulta apontam para
- * tabelas do servico .NET e usam o mesmo nome que la e a chave primaria.
- * ID_PROTOCOLO segue a mesma forma: o catalogo passou ao .NET no ADR s3-25, e a
- * FK virou referencia solta.</p>
- *
- * <p>A CATEGORIA E PROPRIA DO PLANO, e nao herdada do protocolo (ADR s3-24 §4b).
- * Ao aplicar um protocolo ela e copiada dele; um plano de tratamento tem
- * protocolo nulo e categoria propria. Antes disso a categoria so existia via
- * join com protocolo, e a consulta de idempotencia excluia todo plano sem
- * molde — que e justamente o de tratamento.</p>
- */
 @Entity
 @Table(name = "T_PB_PLANO_CUIDADO")
 @Getter
@@ -42,9 +27,11 @@ public class PlanoCuidadoEntity {
     @Column(name = "ID_CONSULTA")
     private Long consultaId;
 
+    // Nulo quando o plano nao nasce de protocolo (ex.: so prescricao).
     @Column(name = "ID_PROTOCOLO")
     private Long protocoloId;
 
+    // Propria do plano, nao herdada via join com protocolo.
     @Enumerated(EnumType.STRING)
     @Column(name = "TP_CATEGORIA_PLANO", nullable = false, length = 20)
     private CategoriaPlano categoria;

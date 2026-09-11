@@ -37,16 +37,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * O caso de uso do check-in (§5.1 do documento de IA, passo F em diante):
- * recebe a narrativa já confirmada pelo tutor, grava check-in e condições
- * observadas, avalia a regra congelada de cada prescrição afetada, e grava o
- * desfecho no item do plano.
- *
- * <p>Sem chamada ao modelo aqui — isso já aconteceu em
- * {@link CheckinExtracaoService}. Este serviço é determinístico do início ao
- * fim, o que é o que torna o ciclo auditável (guardrail 5 e 8).</p>
- */
+// Sem chamada ao modelo aqui — ja aconteceu em CheckinExtracaoService; deterministico do inicio ao fim.
 @Service
 public class CheckinService {
 
@@ -158,7 +149,7 @@ public class CheckinService {
         return checkinRepository.findById(id).orElseThrow(() -> new CheckinNaoEncontradoException(id));
     }
 
-    /** Item já existe para a prescrição avaliada, e é onde a baixa é gravada. Não instancia item novo (fora da fronteira deste PR). */
+    // Item ja existe para a prescricao avaliada — nao instancia item novo.
     private ItemPlanoCuidadoEntity itemParaGravar(ItemPlanoCuidadoEntity itemRelatado, PrescricaoEntity prescricao, LocalDate referencia) {
         if (itemRelatado != null && prescricao.getId().equals(itemRelatado.getPrescricaoId())) {
             return itemRelatado;
@@ -204,9 +195,7 @@ public class CheckinService {
         }
     }
 
-    // Guardrail 6 (ADR s3-16): sem limiar no catálogo para condição NUMERICO
-    // crítica, então qualquer valor relatado (não nulo) já escala — a
-    // alternativa seria o código julgando gravidade, que é o que o ADR evita.
+    // Sem limiar no catalogo para NUMERICO critica — qualquer valor relatado ja escala; alternativa seria o codigo julgando gravidade.
     private boolean observacaoCritica(CondicaoObservadaEntity observada) {
         if (!observada.getCondicaoClinica().isCritica()) {
             return false;

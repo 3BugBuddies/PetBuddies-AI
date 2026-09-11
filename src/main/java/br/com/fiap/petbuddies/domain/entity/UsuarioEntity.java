@@ -6,14 +6,7 @@ import lombok.*;
 import org.hibernate.type.NumericBooleanConverter;
 import java.time.LocalDateTime;
 
-/**
- * Credencial de acesso, com o perfil e o vinculo com a identidade do registro.
- *
- * <p>Exatamente um dos dois ids de vinculo e preenchido, conforme o perfil: VET
- * aponta para o veterinario, TUTOR para o responsavel. Sao ids soltos, sem
- * relacao JPA — as tabelas de destino sao escritas pelo servico .NET, e a
- * leitura delas passa a existir no PR-J2, por projecao.</p>
- */
+// Sao ids soltos, sem relacao JPA — exatamente um dos dois e preenchido, conforme o perfil.
 @Entity
 @Table(name = "T_PB_USUARIO")
 @Getter

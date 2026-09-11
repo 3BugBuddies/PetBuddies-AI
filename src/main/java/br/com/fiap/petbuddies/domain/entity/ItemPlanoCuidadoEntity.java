@@ -35,10 +35,7 @@ public class ItemPlanoCuidadoEntity {
     @JoinColumn(name = "ID_PLANO_CUIDADO", nullable = false)
     private PlanoCuidadoEntity plano;
 
-    /**
-     * Preenchido quando a origem e PROTOCOLO: o molde que gerou este item.
-     * Referencia solta desde o ADR s3-25 — o catalogo passou ao .NET.
-     */
+    // Preenchido quando origem e PROTOCOLO; referencia solta, sem relacao JPA.
     @Column(name = "ID_REGRA_PROTOCOLO")
     private Long regraProtocoloId;
 
@@ -74,13 +71,7 @@ public class ItemPlanoCuidadoEntity {
     @Column(name = "DT_EXECUTADO_EM")
     private LocalDateTime executadoEm;
 
-    // --- A OUTRA METADE DO PADRAO DE BAIXA (ADR s3-24 §5) --------------------
-    // O item da clinica e baixado por um procedimento (ID_PROCEDIMENTO,
-    // DT_EXECUTADO_EM, acima). O item de casa e baixado por um check-in, e sao
-    // estas quatro colunas: elas eram T_PB_CHECKIN_RESULTADO, que deixou de
-    // existir. Nascem nulaveis porque item de origem PROTOCOLO nao tem dose, e
-    // NINGUEM AS ESCREVE NESTE PR — quem escreve e o PR-J6.
-
+    // Nulaveis: item de origem PROTOCOLO nao tem dose/checkin.
     @Column(name = "ID_CHECKIN")
     private Long checkinId;
 

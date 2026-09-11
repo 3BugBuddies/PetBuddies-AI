@@ -29,12 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Componente A do documento de IA: NLP por structured output (Spring AI +
- * Gemini, ADR s3-13). Só interpreta a narrativa e devolve o que entendeu —
- * nunca grava, nunca decide dose (guardrail 1). A confirmação do tutor é o
- * {@link CheckinService}, num passo separado.
- */
+// So interpreta a narrativa — nunca grava, nunca decide dose. Confirmacao do tutor e o CheckinService, em passo separado.
 @Service
 public class CheckinExtracaoService {
 
@@ -84,12 +79,7 @@ public class CheckinExtracaoService {
         return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), condicoes, redFlags, degradado);
     }
 
-    /**
-     * União de (condições referenciadas por regra de prescrição ativa) com
-     * (toda condição crítica ativa, ADR s3-16 — escala independente de
-     * prescrição). Restrita a {@code TP_FONTE_VALOR=RELATO}: o que vem de
-     * ANIMAL ou HISTORICO não é algo que o tutor narra.
-     */
+    // Uniao de condicoes por regra ativa com toda condicao critica ativa; restrita a RELATO — ANIMAL/HISTORICO nao e algo que o tutor narra.
     private List<CondicaoClinicaEntity> montarVocabulario(Long animalId, LocalDate referencia) {
         List<PrescricaoEntity> ativas = prescricaoAtivaResolver.listar(animalId, referencia);
 
@@ -156,11 +146,7 @@ public class CheckinExtracaoService {
                 """.formatted(itens);
     }
 
-    /**
-     * Degradação determinística (guardrail 4): descarta código fora do
-     * vocabulário oferecido, confiança fora de [0,1], e valor incoerente com
-     * o TP_DADO da condição — nunca deixa o modelo inventar campo.
-     */
+    // Descarta codigo fora do vocabulario, confianca fora de [0,1], e valor incoerente com TP_DADO — nunca deixa o modelo inventar campo.
     private List<CondicaoExtraidaResponse> filtrarEEnriquecer(
             List<CondicaoExtraidaModelo> brutas, List<CondicaoClinicaEntity> vocabulario) {
         Map<String, CondicaoClinicaEntity> porCodigo = vocabulario.stream()
@@ -184,10 +170,7 @@ public class CheckinExtracaoService {
             boolean temNumerico = bruta.valorNumerico() != null;
             boolean valorCoerente = numerico ? (temNumerico && !temBooleano) : (temBooleano && !temNumerico);
             if (!valorCoerente) {
-                // O prompt já instrui o modelo a respeitar TP_DADO, mas quem
-                // garante CK_COBS_UM_VALOR é este filtro — nunca o prompt.
-                // Uma condição NUMERICO nunca vira linha com valorBooleano, e
-                // vice-versa, mesmo que o modelo erre a instrução.
+                // CK_COBS_UM_VALOR e garantido aqui, nao pelo prompt — NUMERICO nunca sai com valorBooleano, e vice-versa.
                 log.warn("[CHECKIN-IA] descartada por tipo incoerente: codigo={} tipoDado={} valorBooleano={} valorNumerico={}",
                         bruta.codigo(), condicao.getTipoDado(), bruta.valorBooleano(), bruta.valorNumerico());
                 continue;
@@ -208,13 +191,7 @@ public class CheckinExtracaoService {
     /** Contrato de structured output do Spring AI — não cruza a borda do controller. */
     public record ExtracaoModelo(List<CondicaoExtraidaModelo> condicoes, List<String> redFlags) {}
 
-    /**
-     * {@code trecho} e {@code literal} não são persistidos (nenhuma tabela
-     * tem coluna pra eles) — servem só para ancorar a confiança no texto e
-     * para a tela de confirmação do tutor mostrar de onde cada campo veio.
-     * Sem eles a confiança sai 1.0 em tudo, verificado contra a API real
-     * (ver corpo do PR).
-     */
+    // trecho e literal nao sao persistidos — servem para ancorar a confianca no texto e a tela de confirmacao mostrar a origem do campo.
     public record CondicaoExtraidaModelo(
             String codigo, Boolean valorBooleano, BigDecimal valorNumerico,
             String trecho, Boolean literal, Double confianca) {}

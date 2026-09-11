@@ -17,8 +17,6 @@ public interface CondicaoClinicaRepository extends JpaRepository<CondicaoClinica
 
     boolean existsByClinicaIdAndCodigoAndIdNot(Long clinicaId, String codigo, Long id);
 
-    // Vocabulario da escalacao (ADR s3-16): escala independente de regra de
-    // prescricao, entao entra no prompt de todo check-in, nao so dos animais
-    // com prescricao ativa.
+    // Escala independente de regra de prescricao — entra no prompt de todo check-in, nao so dos animais com prescricao ativa.
     List<CondicaoClinicaEntity> findByCriticaTrueAndAtivoTrue();
 }

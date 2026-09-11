@@ -43,7 +43,7 @@ public class PrescricaoRequest {
 
     private String orientacao;
 
-    /** Aponta para o bulário, que só existe na Sprint 4. */
+    // Referencia solta — a tabela de destino ainda nao existe.
     private Long materialOrigemId;
 
     private Integer versaoOrigem;

@@ -5,12 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-/**
- * O que o motor decidiu para uma prescrição avaliada neste check-in.
- * {@code itemPlanoCuidadoId} nulo significa que não existe item do dia para
- * esta prescrição — a avaliação acontece e é devolvida aqui, mas não há onde
- * gravar {@code TP_DESFECHO} (ver "o que revisar com atenção" no corpo do PR).
- */
+// itemPlanoCuidadoId nulo: nao existe item do dia para esta prescricao — a avaliacao acontece e e devolvida, mas nao ha onde gravar TP_DESFECHO.
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

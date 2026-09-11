@@ -8,19 +8,8 @@ import org.hibernate.type.NumericBooleanConverter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Uma condição extraída da narrativa pela IA, confirmada pelo tutor: uma
- * linha por condição observada. Aponta para o CATÁLOGO, não para a regra — o
- * tutor pode relatar condição que nenhuma regra de prescrição cobre.
- *
- * <p>Imutável (AT_UPDATED_AT nasce e fica nulo): é o que foi confirmado
- * naquele check-in, não se corrige — um relato incorreto gera um novo
- * check-in.</p>
- *
- * <p>{@code CD_CODIGO_CONGELADO} guarda o código do catálogo no momento da
- * observação, no mesmo espírito do rótulo congelado em
- * {@link RegraPrescricaoEntity} (ADR s3-10).</p>
- */
+// Aponta para o catalogo, nao para a regra — tutor pode relatar condicao que nenhuma regra cobre.
+// Imutavel: relato incorreto gera um novo check-in, nao corrige este.
 @Entity
 @Immutable
 @Table(name = "T_PB_CONDICAO_OBSERVADA")
@@ -56,7 +45,7 @@ public class CondicaoObservadaEntity {
     @Column(name = "NR_VALOR_NUMERICO", precision = 10, scale = 3)
     private BigDecimal valorNumerico;
 
-    // Confianca da extracao por campo, nao uma global (contrato §9.1). CK_COBS_CONFIANCA: entre 0 e 1.
+    // Confianca por campo, nao global. CK_COBS_CONFIANCA: entre 0 e 1.
     @Column(name = "NR_CONFIANCA", nullable = false, precision = 5, scale = 4)
     private BigDecimal confianca;
 

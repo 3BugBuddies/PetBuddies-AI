@@ -10,23 +10,14 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * O motor de regras do check-in (componente B do documento de IA): compara o
- * valor observado com a regra congelada pelo operador congelado e produz a
- * ação. Puro e sem repositório — só enxerga o que {@link CheckinService} já
- * carregou e gravou na transação; nunca lê {@code CondicaoClinicaEntity} para
- * decidir (ADR s3-10: quem avalia usa a cópia congelada, nunca relê o
- * catálogo).
- */
+// Puro, sem repositorio — nunca le CondicaoClinicaEntity; usa sempre a copia congelada, nunca rele o catalogo.
 @Service
 public class AvaliadorRegraService {
 
     public record Resultado(TipoDesfecho desfecho, BigDecimal doseAplicada, Long regraAplicadaId) {}
 
     /**
-     * @param escalarPorCritica guardrail 6 (ADR s3-16): condição crítica
-     *                          observada escala independente de regra de
-     *                          prescrição, avaliada antes de qualquer regra.
+     * @param escalarPorCritica condicao critica observada escala independente de regra, avaliada antes de qualquer regra.
      */
     public Resultado avaliar(
             PrescricaoEntity prescricao, List<RegraPrescricaoEntity> regras,
@@ -81,19 +72,12 @@ public class AvaliadorRegraService {
             case DOSE_MAX -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getDoseMax(), regra.getId());
             case DOSE_PADRAO -> new Resultado(TipoDesfecho.DOSE_CALCULADA, doseBase(prescricao), regra.getId());
             case ACIONAR_CLINICA -> new Resultado(TipoDesfecho.ACIONAR_CLINICA, null, regra.getId());
-            // A prescrição não tem estado "pausada"; SEM_DOSE é o desfecho do
-            // CK_ITEM_DESFECHO_DOSE que não exige NR_DOSE_APLICADA. Decisão de
-            // implementação sem ADR — ver corpo do PR.
+            // Sem estado "pausada" — SEM_DOSE e o desfecho de CK_ITEM_DESFECHO_DOSE, que nao exige NR_DOSE_APLICADA.
             case SUSPENDER -> new Resultado(TipoDesfecho.SEM_DOSE, null, regra.getId());
         };
     }
 
-    /**
-     * Base numérica de DOSE_PADRAO e do "nenhuma regra casou": a prescrição
-     * não tem coluna de dose padrão, só a faixa NR_DOSE_MIN/NR_DOSE_MAX.
-     * NR_DOSE_MIN — o piso da faixa, mais conservador — por decisão de
-     * implementação sem ADR, marcada como pendente no corpo do PR.
-     */
+    // Base de DOSE_PADRAO e do "nenhuma regra casou": sem coluna de dose padrao, so a faixa NR_DOSE_MIN/NR_DOSE_MAX — usa o piso, mais conservador.
     private BigDecimal doseBase(PrescricaoEntity prescricao) {
         return prescricao.getDoseMin();
     }

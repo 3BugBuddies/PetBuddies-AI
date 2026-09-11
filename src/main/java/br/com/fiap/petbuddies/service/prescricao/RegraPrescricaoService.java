@@ -59,7 +59,7 @@ public class RegraPrescricaoService {
         RegraPrescricaoEntity entity = new RegraPrescricaoEntity();
         entity.setPrescricao(prescricao);
         entity.setCondicaoClinica(condicao);
-        // A cópia congelada (ADR s3-10): o que foi assinado, não o que o catálogo diz hoje.
+        // Copia congelada: o que foi assinado, nao o que o catalogo diz hoje.
         entity.setRotuloCongelado(condicao.getRotulo());
         entity.setTipoDadoCongelado(condicao.getTipoDado());
         entity.setFonteValorCongelada(condicao.getFonteValor());

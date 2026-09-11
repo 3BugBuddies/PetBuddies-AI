@@ -19,18 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * O plano TRATAMENTO nasce de prescrição assinada, não de molde do catálogo —
- * ver o javadoc de {@link br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo}.
- * Segue a mesma forma de {@link MotorPlanoService#criarPlano} e
- * {@link MotorPlanoService#instanciarEventos}, sem passar pelo protocolo nem
- * pelo catálogo do .NET.
- */
+// Nasce de prescricao assinada, nao de molde do catalogo — mesma forma de MotorPlanoService.criarPlano/instanciarEventos, sem protocolo nem catalogo do .NET.
 @Service
 public class PlanoTratamentoService {
 
-    /** Uso contínuo não declara fim (§8.1); um valor absurdo no formulário não
-     * pode materializar milhares de linhas na mesma transação. */
+    // Uso continuo nao declara fim; um valor absurdo no formulario nao pode materializar milhares de linhas na mesma transacao.
     private static final int TETO_DURACAO_DIAS = 365;
 
     private final PlanoCuidadoRepository planoRepository;
@@ -49,12 +42,8 @@ public class PlanoTratamentoService {
         return existente.orElseGet(() -> planoRepository.save(criarPlano(animalId)));
     }
 
-    /**
-     * Um item por dia, de {@code dataInicio} até {@code dataInicio + duracaoDias - 1}.
-     * Sem um dos dois campos, a prescrição é de uso contínuo — sem itens, sem erro.
-     * Reprocessar não duplica: {@link ItemPlanoCuidadoRepository#findByPrescricaoIdAndDataAlvo}
-     * é a mesma consulta que o check-in usa para achar o item já gravado.
-     */
+    // Sem dataInicio ou duracaoDias, a prescricao e de uso continuo — sem itens, sem erro.
+    // Reprocessar nao duplica: mesma consulta que o check-in usa para achar o item ja gravado.
     @Transactional
     public void materializarItens(PrescricaoEntity prescricao) {
         LocalDate dataInicio = prescricao.getDataInicio();

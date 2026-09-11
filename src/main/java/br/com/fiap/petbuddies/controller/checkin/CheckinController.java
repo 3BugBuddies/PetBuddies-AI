@@ -18,15 +18,10 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Check-in narrado do tutor, em dois passos (§5.1 do documento de IA):
- * {@code /extracao} interpreta e não grava nada; o {@code POST} raiz grava o
- * que o tutor confirmou e avalia a regra. Nunca o contrário — decidir sem
- * confirmação é o que o guardrail 5 proíbe.
- */
+// Dois passos: /extracao interpreta e nao grava nada; o POST raiz grava o que o tutor confirmou e avalia a regra. Nunca o contrario.
 @RestController
 @RequestMapping("/api/checkin")
-@Tag(name = "cuidado — check-in", description = "Check-in narrado do tutor, com extração por IA (ADR s3-13)")
+@Tag(name = "cuidado — check-in", description = "Check-in narrado do tutor, com extração por IA")
 public class CheckinController {
 
     private final CheckinExtracaoService extracaoService;
