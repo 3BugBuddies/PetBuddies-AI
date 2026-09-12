@@ -1330,7 +1330,38 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"medicamento\": \"Omeprazol\",\n  \"doseMin\": 0.5,\n  \"doseMax\": 1.0,\n  \"unidade\": \"mg/kg\",\n  \"frequenciaDia\": 1,\n  \"duracaoDias\": 10,\n  \"dataInicio\": \"2026-09-15\",\n  \"orientacao\": \"Administrar em jejum, pela manha.\",\n  \"materialOrigemId\": null,\n  \"versaoOrigem\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1,\n  \"registroAtendimentoId\": 1\n}",
+              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 0.5,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Criar duas de uma vez (lote)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 0.5,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    },\n    {\n      \"medicamento\": \"Meloxicam 2mg\",\n      \"doseMin\": 0.1,\n      \"doseMax\": 0.2,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1361,7 +1392,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"medicamento\": \"Omeprazol\",\n  \"doseMin\": 2.0,\n  \"doseMax\": 1.0,\n  \"unidade\": \"mg/kg\",\n  \"frequenciaDia\": 1,\n  \"duracaoDias\": 10,\n  \"dataInicio\": \"2026-09-15\",\n  \"orientacao\": \"Deve ser recusado por CK_PRESCRICAO_FAIXA.\",\n  \"materialOrigemId\": null,\n  \"versaoOrigem\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1,\n  \"registroAtendimentoId\": 1\n}",
+              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 2.0,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Deve ser recusado por CK_PRESCRICAO_FAIXA.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"

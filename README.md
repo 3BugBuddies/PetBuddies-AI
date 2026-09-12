@@ -407,7 +407,7 @@ Respostas de recurso vêm em envelope HATEOAS (`EntityModel` / `CollectionModel`
 
 | Recurso | Rota | Métodos |
 |---|---|---|
-| Prescrições | `/api/prescricao` | `GET`, `GET /{id}`, `POST` — sem `PUT`/`DELETE`, é ato imutável |
+| Prescrições | `/api/prescricao` | `GET`, `GET /{id}`, `POST` — o `POST` recebe `{"prescricoes": [ … ]}` e grava as N do mesmo atendimento numa transação. Sem `PUT`/`DELETE`, é ato imutável |
 | Rascunho por IA | `/api/prescricao/rascunho` | `POST` — interpreta a narrativa da vet e devolve prescrição + regras propostas, sem gravar. Exige `VET` |
 | Regras de prescrição | `/api/regra-prescricao` | `GET`, `GET /{id}`, `POST` — sem `PUT`/`DELETE` |
 

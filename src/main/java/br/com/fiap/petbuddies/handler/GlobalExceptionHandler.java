@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -53,9 +54,12 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    // O caminho do campo entra na mensagem porque em corpo de lista a mensagem sozinha
+    // e ambigua: "Dose minima nao pode ser maior que a dose maxima" nao diz de qual remedio.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDto> handleValidation(MethodArgumentNotValidException ex) {
-        String msg = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        FieldError erro = ex.getBindingResult().getFieldErrors().get(0);
+        String msg = erro.getField() + ": " + erro.getDefaultMessage();
         return ResponseEntity.status(400).body(new ErrorDto("VALIDACAO_INVALIDA", msg));
     }
 
