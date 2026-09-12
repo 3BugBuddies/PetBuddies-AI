@@ -9,13 +9,14 @@
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Nunito:wght@400;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
-    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml"/>
+    <link rel="icon" th:href="@{/favicon.png}" type="image/png"/>
+    <link rel="apple-touch-icon" th:href="@{/apple-touch-icon.png}"/>
 </head>
 <body>
 <div class="app">
     <aside class="lateral" th:if="${usuario != null}">
         <a class="marca" th:href="@{/}">
-            <span class="marca-pata">&#128062;</span>
+            <img class="marca-filo" th:src="@{/images/filo.png}" alt="" width="34" height="31"/>
             <span>
                 <span class="marca-nome">PetBuddies</span><br/>
                 <span class="marca-sub" th:text="${usuario.vet} ? 'Clínica' : 'Tutor'">Clínica</span>

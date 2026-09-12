@@ -9,14 +9,13 @@
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Nunito:wght@400;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
-    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml"/>
+    <link rel="icon" th:href="@{/favicon.png}" type="image/png"/>
+    <link rel="apple-touch-icon" th:href="@{/apple-touch-icon.png}"/>
 </head>
 <body class="pagina-login">
 <main class="caixa-login">
-    <div class="marca">
-        <span class="marca-pata">&#128062;</span>
-        <span class="marca-nome">PetBuddies</span>
-    </div>
+    <img class="logo-login" th:src="@{/images/petbuddies-logo.png}"
+         alt="PetBuddies" width="150" height="156"/>
     <p class="subtitulo">Entre com seu e-mail e senha</p>
 
     <p class="mensagem-erro" th:if="${param.error}" style="text-align:left;margin-top:1.2rem;margin-bottom:0">

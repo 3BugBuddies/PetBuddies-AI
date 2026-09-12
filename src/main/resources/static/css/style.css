@@ -95,16 +95,19 @@ a:hover { text-decoration: underline; }
 }
 .marca:hover { text-decoration: none; }
 
-.marca-pata {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    background: var(--cor-marca);
-    display: grid;
-    place-items: center;
-    color: #fff;
-    font-size: 13px;
+/* A Filo entra por <img> com width/height no HTML: sem eles a lateral
+   salta quando a imagem termina de carregar. */
+.marca-filo {
+    width: 34px;
+    height: auto;
     flex: none;
+}
+
+.logo-login {
+    width: 150px;
+    height: auto;
+    margin: 0 auto 0.2rem;
+    display: block;
 }
 
 .marca-nome {
