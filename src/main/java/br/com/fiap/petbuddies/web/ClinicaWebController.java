@@ -5,7 +5,6 @@ import br.com.fiap.petbuddies.dto.cadastro.ClinicaRequest;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.service.cadastro.ClinicaService;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -53,11 +52,7 @@ public class ClinicaWebController {
     }
 
     private ClinicaEntity clinicaUnica() {
-        List<ClinicaEntity> clinicas = clinicaService.listar();
-        if (clinicas.isEmpty()) {
-            throw new ClinicaNaoEncontradaException(0L);
-        }
-        return clinicas.get(0);
+        return clinicaService.buscarUnica().orElseThrow(ClinicaNaoEncontradaException::new);
     }
 
     private ClinicaRequest paraRequest(ClinicaEntity entity) {

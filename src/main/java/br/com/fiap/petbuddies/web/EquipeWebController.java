@@ -44,7 +44,7 @@ public class EquipeWebController {
     public String novoForm(Model model) {
         if (!model.containsAttribute("veterinarioRequest")) {
             VeterinarioRequest request = new VeterinarioRequest();
-            request.setClinicaId(clinicaUnicaId());
+            request.setClinicaId(clinicaService.buscarUnica().map(ClinicaEntity::getId).orElse(null));
             model.addAttribute("veterinarioRequest", request);
         }
         model.addAttribute("acaoFormulario", "/equipe");
@@ -91,11 +91,6 @@ public class EquipeWebController {
         veterinarioService.atualizar(id, request);
         redirect.addFlashAttribute("sucesso", "Cadastro atualizado.");
         return "redirect:/equipe";
-    }
-
-    private Long clinicaUnicaId() {
-        List<ClinicaEntity> clinicas = clinicaService.listar();
-        return clinicas.isEmpty() ? null : clinicas.get(0).getId();
     }
 
     private VeterinarioRequest paraRequest(VeterinarioEntity entity) {
