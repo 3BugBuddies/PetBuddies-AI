@@ -6,30 +6,100 @@
 </head>
 <body>
 <main>
-    <h1 th:text="${clinica != null ? clinica.nome : 'Painel'}">Painel</h1>
+    <div class="cabecalho-pagina">
+        <div>
+            <h1>Painel</h1>
+            <p class="subtitulo">
+                <span th:text="${clinica != null ? clinica.nome : 'Clínica'}">Clínica</span> ·
+                <span th:text="${#temporals.format(hoje, 'dd ''de'' MMMM ''de'' yyyy')}">11 de setembro de 2026</span>
+            </p>
+        </div>
+        <a class="botao" th:href="@{/agenda/novo}">Agendar consulta</a>
+    </div>
 
-    <section class="bloco grade-painel">
-        <div>
-            <div class="numero-painel" th:text="${totalPacientes}">0</div>
-            <div>pacientes</div>
+    <section class="grade-painel">
+        <div class="indicador">
+            <div class="indicador-rotulo">Planos ativos</div>
+            <div class="numero-painel" th:text="${resumo.planosAtivos}">0</div>
+            <div class="indicador-nota">
+                em <span th:text="${resumo.animaisComPlano}">0</span> animais
+            </div>
         </div>
-        <div>
-            <div class="numero-painel" th:text="${totalTutores}">0</div>
-            <div>tutores</div>
+
+        <div class="indicador" th:classappend="${resumo.itensVencidos > 0} ? 'atencao'">
+            <div class="indicador-rotulo">Itens vencidos</div>
+            <div class="numero-painel" th:text="${resumo.itensVencidos}">0</div>
+            <div class="indicador-nota" th:if="${resumo.itensVencidos > 0}">
+                em <span th:text="${resumo.animaisComVencido}">0</span> animais · esperando você olhar hoje
+            </div>
+            <div class="indicador-nota" th:unless="${resumo.itensVencidos > 0}">
+                nada em atraso
+            </div>
         </div>
-        <div>
-            <div class="numero-painel" th:text="${totalVeterinarios}">0</div>
-            <div>veterinários</div>
+
+        <div class="indicador">
+            <div class="indicador-rotulo">
+                Adesão · <span th:text="${resumo.diasDaJanela}">30</span> dias
+            </div>
+            <th:block th:if="${resumo.adesaoPercentual != null}">
+                <div class="numero-painel"><span th:text="${resumo.adesaoPercentual}">0</span>%</div>
+                <div class="barra">
+                    <span th:style="'width:' + ${resumo.adesaoPercentual} + '%'"></span>
+                </div>
+                <div class="indicador-nota">
+                    <span th:text="${resumo.realizadosNaJanela}">0</span> de
+                    <span th:text="${resumo.previstosNaJanela}">0</span> cuidados em dia
+                </div>
+            </th:block>
+            <th:block th:unless="${resumo.adesaoPercentual != null}">
+                <div class="numero-painel">—</div>
+                <div class="indicador-nota">nenhum cuidado previsto na janela</div>
+            </th:block>
         </div>
-        <div>
+
+        <div class="indicador">
+            <div class="indicador-rotulo">Consultas hoje</div>
             <div class="numero-painel" th:text="${#lists.size(consultasHoje)}">0</div>
-            <div>consultas hoje</div>
+            <div class="indicador-nota">na agenda de hoje</div>
+        </div>
+    </section>
+
+    <section class="bloco destaque" th:if="${!#lists.isEmpty(vencidos)}">
+        <h2>
+            Precisa de atenção
+            <span class="conta"><span th:text="${resumo.itensVencidos}">0</span> vencidos</span>
+            <span class="nota-direita">ordenado por atraso</span>
+        </h2>
+        <div class="lista-eventos">
+            <div class="linha" th:each="item : ${vencidos}">
+                <span class="avatar">&#128062;</span>
+                <span class="linha-corpo">
+                    <span class="linha-titulo">
+                        <span th:text="${item.animalNome}">Filó</span> ·
+                        <span th:text="${item.tutorNome}">Maria Oliveira</span>
+                    </span><br/>
+                    <span class="linha-sub">
+                        <span th:text="${item.cuidado}">Antirrábica</span> ·
+                        venceu em <span th:text="${#temporals.format(item.dataAlvo, 'dd/MM')}">28/08</span>
+                    </span>
+                </span>
+                <span class="selo atencao">
+                    <span th:text="${item.diasAtraso}">14</span>
+                    <span th:text="${item.diasAtraso == 1} ? 'dia' : 'dias'">dias</span>
+                </span>
+                <a class="botao pequeno" th:href="@{/pacientes/{id}(id=${item.animalId})}">Abrir</a>
+            </div>
         </div>
     </section>
 
     <section class="bloco">
-        <h2>Consultas de hoje</h2>
-        <p th:if="${#lists.isEmpty(consultasHoje)}">Nenhuma consulta agendada para hoje.</p>
+        <h2>
+            Consultas de hoje
+            <span class="conta" th:text="${#lists.size(consultasHoje)}">0</span>
+        </h2>
+        <p th:if="${#lists.isEmpty(consultasHoje)}" class="texto-fraco">
+            Nenhuma consulta agendada para hoje.
+        </p>
         <table th:unless="${#lists.isEmpty(consultasHoje)}">
             <thead>
             <tr>
@@ -41,21 +111,22 @@
             </thead>
             <tbody>
             <tr th:each="consulta : ${consultasHoje}">
-                <td th:text="${#temporals.format(consulta.dataHora, 'HH:mm')}">10:00</td>
+                <td class="num" th:text="${#temporals.format(consulta.dataHora, 'HH:mm')}">10:00</td>
                 <td th:text="${consulta.tipo}">ROTINA</td>
-                <td><span class="selo" th:text="${consulta.status}">AGENDADA</span></td>
-                <td><a th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a></td>
+                <td>
+                    <span class="selo"
+                          th:classappend="${consulta.status.name() == 'REALIZADA'} ? 'ativo' :
+                                          (${consulta.status.name() == 'AGENDADA'} ? 'espera' : '')"
+                          th:text="${consulta.status}">AGENDADA</span>
+                </td>
+                <td>
+                    <a th:if="${consulta.status.name() == 'AGENDADA'}"
+                       th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
+                    <span th:unless="${consulta.status.name() == 'AGENDADA'}" class="texto-fraco">—</span>
+                </td>
             </tr>
             </tbody>
         </table>
-    </section>
-
-    <section class="bloco">
-        <h2>Atalhos</h2>
-        <p>
-            <a class="botao" th:href="@{/pacientes}">Pacientes</a>
-            <a class="botao secundario" th:href="@{/agenda}">Agenda</a>
-        </p>
     </section>
 </main>
 </body>

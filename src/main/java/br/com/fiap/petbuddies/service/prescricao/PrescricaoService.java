@@ -60,6 +60,18 @@ public class PrescricaoService {
 
     @Transactional
     public PrescricaoEntity criar(PrescricaoRequest request) {
+        return persistir(request);
+    }
+
+    /** As N prescricoes de um atendimento numa transacao so: se uma falhar, nenhuma fica. */
+    @Transactional
+    public List<PrescricaoEntity> criarEmLote(List<PrescricaoRequest> requests) {
+        return requests.stream().map(this::persistir).toList();
+    }
+
+    // Sem @Transactional, e privado de proposito: chamado por criar e por criarEmLote,
+    // que ja abriram a transacao. Anotado, o proxy nao interceptaria a chamada interna.
+    private PrescricaoEntity persistir(PrescricaoRequest request) {
         AnimalEntity animal = animalRepository.findById(request.getAnimalId())
                 .orElseThrow(() -> new AnimalNaoEncontradoException(request.getAnimalId()));
         VeterinarioEntity veterinario = veterinarioRepository.findById(request.getVeterinarioId())

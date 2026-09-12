@@ -61,7 +61,7 @@
         <label for="procedimentoTipo">Tipo</label>
         <select id="procedimentoTipo" th:field="*{procedimentos[0].tipo}">
             <option value="">Selecione</option>
-            <option th:each="valor : ${T(br.com.fiap.petbuddies.domain.enums.TipoProcedimento).values()}"
+            <option th:each="valor : ${tiposProcedimento}"
                     th:value="${valor}" th:text="${valor}">EXAME_LABORATORIAL</option>
         </select>
         <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].tipo')}"

@@ -54,6 +54,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(rota -> rota
                         .requestMatchers("/login", "/error").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        // Sem isto o icone da aba cai no authenticated() e a tela de
+                        // login pede o proprio login para desenhar o favicon.
+                        .requestMatchers("/favicon.png", "/apple-touch-icon.png").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**",
                                 "/api-docs", "/api-docs/**").permitAll()

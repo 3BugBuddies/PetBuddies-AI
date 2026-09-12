@@ -38,11 +38,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -52,9 +54,12 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    // O caminho do campo entra na mensagem porque em corpo de lista a mensagem sozinha
+    // e ambigua: "Dose minima nao pode ser maior que a dose maxima" nao diz de qual remedio.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDto> handleValidation(MethodArgumentNotValidException ex) {
-        String msg = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        FieldError erro = ex.getBindingResult().getFieldErrors().get(0);
+        String msg = erro.getField() + ": " + erro.getDefaultMessage();
         return ResponseEntity.status(400).body(new ErrorDto("VALIDACAO_INVALIDA", msg));
     }
 
@@ -248,6 +253,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuracaoTratamentoExcedeTetoException.class)
     public ResponseEntity<ErrorDto> handleDuracaoTratamentoExcedeTeto(DuracaoTratamentoExcedeTetoException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("DURACAO_TRATAMENTO_EXCEDE_TETO", ex.getMessage()));
+    }
+
+    // Precede o handleGeneric: recurso estatico ausente e 404, nao falha do servidor.
+    // Sem isto cada /favicon.ico do navegador vira um ERROR com stacktrace inteiro.
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorDto> handleRecursoEstaticoAusente(NoResourceFoundException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto("RECURSO_NAO_ENCONTRADO", ex.getResourcePath()));
     }
 
     @ExceptionHandler(Exception.class)

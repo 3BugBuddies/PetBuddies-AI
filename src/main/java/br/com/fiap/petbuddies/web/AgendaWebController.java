@@ -10,6 +10,8 @@ import br.com.fiap.petbuddies.dto.atendimento.FechamentoAtendimentoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.PrescricaoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.ProcedimentoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoFechamentoRequest;
+import br.com.fiap.petbuddies.domain.enums.atendimento.TipoConsulta;
+import br.com.fiap.petbuddies.domain.enums.atendimento.TipoProcedimento;
 import br.com.fiap.petbuddies.dto.cadastro.VeterinarioResponse;
 import br.com.fiap.petbuddies.service.cadastro.AnimalService;
 import br.com.fiap.petbuddies.service.atendimento.ConsultaService;
@@ -50,6 +52,18 @@ public class AgendaWebController {
         this.animalService = animalService;
         this.veterinarioService = veterinarioService;
         this.fechamentoAtendimentoService = fechamentoAtendimentoService;
+    }
+
+    // Os enums entram pelo Model, e nao por T(FQN) no template: assim o compilador
+    // enxerga a referencia e um rename de pacote nao passa despercebido.
+    @ModelAttribute("tiposConsulta")
+    public TipoConsulta[] tiposConsulta() {
+        return TipoConsulta.values();
+    }
+
+    @ModelAttribute("tiposProcedimento")
+    public TipoProcedimento[] tiposProcedimento() {
+        return TipoProcedimento.values();
     }
 
     @GetMapping

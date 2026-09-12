@@ -3,6 +3,9 @@ package br.com.fiap.petbuddies.web;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Porte;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Sexo;
 import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalRequest;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalResponse;
@@ -49,6 +52,28 @@ public class PacientesWebController {
         this.responsavelService = responsavelService;
         this.consultaService = consultaService;
         this.motorPlanoService = motorPlanoService;
+    }
+
+    // Os enums entram pelo Model, e nao por T(FQN) no template: assim o compilador
+    // enxerga a referencia e um rename de pacote nao passa despercebido.
+    @ModelAttribute("especies")
+    public Especie[] especies() {
+        return Especie.values();
+    }
+
+    @ModelAttribute("portes")
+    public Porte[] portes() {
+        return Porte.values();
+    }
+
+    @ModelAttribute("sexos")
+    public Sexo[] sexos() {
+        return Sexo.values();
+    }
+
+    @ModelAttribute("categoriasProtocolo")
+    public CategoriaProtocolo[] categoriasProtocolo() {
+        return CategoriaProtocolo.values();
     }
 
     @GetMapping
