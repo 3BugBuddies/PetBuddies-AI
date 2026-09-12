@@ -36,8 +36,7 @@ public class PainelWebController {
     @GetMapping
     public String painel(Model model) {
         LocalDate hoje = LocalDate.now();
-        List<ConsultaResponse> consultasHoje = consultaService.listar(null, null).stream()
-                .filter(c -> c.getDataHora() != null && c.getDataHora().toLocalDate().isEqual(hoje))
+        List<ConsultaResponse> consultasHoje = consultaService.listarDoDia(hoje).stream()
                 .map(ConsultaResponse::from)
                 .toList();
 
