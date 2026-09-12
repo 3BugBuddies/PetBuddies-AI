@@ -21,7 +21,6 @@ import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.dto.cuidado.SugestaoCuidadoDto;
-import br.com.fiap.petbuddies.exception.cuidado.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
 import br.com.fiap.petbuddies.infrastructure.client.RegraCatalogoDto;
@@ -224,18 +223,6 @@ public class MotorPlanoService {
     /** Data do "ultima vez que aconteceu": a execucao, quando existe, senao a data-alvo. */
     private static LocalDate dataDeReferencia(ItemPlanoCuidadoEntity item) {
         return item.getExecutadoEm() != null ? item.getExecutadoEm().toLocalDate() : item.getDataAlvo();
-    }
-
-    @Transactional
-    public void cancelarPlano(Long planoId, String motivo) {
-        PlanoCuidadoEntity plano = planoRepository.findById(planoId)
-                .orElseThrow(() -> new PlanoNaoEncontradoException(planoId));
-        // motivo nao e persistido — nao ha campo no schema para isso.
-        plano.setStatus(StatusPlano.CANCELADO);
-        plano.getItens().stream()
-                .filter(e -> e.getStatus() == StatusItem.PENDENTE)
-                .forEach(e -> e.setStatus(StatusItem.CANCELADO));
-        planoRepository.save(plano);
     }
 
     // Havendo mais de um candidato, o de menor id vence — determinismo, nao criterio clinico.
