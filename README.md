@@ -78,6 +78,7 @@ br/com/fiap/petbuddies/
 ├── dto/                     # um subpacote por domínio, flat
 ├── domain/
 │   ├── entity/              # 16 entidades JPA
+│   ├── embeddable/          # 6 valores @Embeddable, gravados nas colunas da entidade dona
 │   ├── enums/               # um subpacote por domínio, @Enumerated(STRING)
 │   └── repository/          # um JpaRepository por entidade
 ├── assembler/               # RepresentationModelAssembler (HATEOAS), um por recurso
@@ -268,6 +269,54 @@ erDiagram
 ```
 
 `PLANO_CUIDADO.protocoloId` referencia um protocolo que vive **no banco do .NET** — por isso é uma coluna escalar, não uma relação JPA.
+
+---
+
+## Diagrama de classes
+
+As 16 entidades JPA em seis pacotes de domínio, com os seis valores `@Embeddable` de `domain/embeddable/`. No código, cada entidade leva o sufixo `Entity`.
+
+| Notação | Significado |
+|---|---|
+| seta cheia `——>` | `@ManyToOne` navegável, com a multiplicidade em cada ponta |
+| losango cheio `◆——` | composição: `PlanoCuidado` e seus itens (`cascade = ALL`) |
+| losango laranja `◆——` | valor `@Embeddable` gravado nas colunas da própria entidade |
+| seta tracejada `- - >` | referência por id: um `Long` sem relação JPA |
+| caixa tracejada `«Pacote» Classe` | classe de outro pacote, apontada a partir deste |
+
+### Pacotes
+
+A seta sai do pacote que referencia, e o número conta as referências.
+
+<img src="assets/diagrama-classes/mapa.png" width="607" alt="Mapa de dependências entre os pacotes: todos apontam para Cadastro">
+
+### Cadastro
+
+<img src="assets/diagrama-classes/cadastro.png" width="812" alt="Pacote Cadastro: Clinica, Veterinario, Responsavel e Animal, com o valor Contato">
+
+### Atendimento
+
+<img src="assets/diagrama-classes/atendimento.png" width="832" alt="Pacote Atendimento: JanelaAtendimento, Consulta, RegistroAtendimento e Procedimento">
+
+### Prescrição
+
+<img src="assets/diagrama-classes/prescricao.png" width="665" alt="Pacote Prescrição: CondicaoClinica, Prescricao e RegraPrescricao, com os valores FaixaDose e CondicaoCongelada">
+
+### Check-in
+
+<img src="assets/diagrama-classes/checkin.png" width="513" alt="Pacote Check-in: Checkin e CondicaoObservada, com o valor ValorObservado">
+
+### Cuidado
+
+<img src="assets/diagrama-classes/cuidado.png" width="992" alt="Pacote Cuidado: PlanoCuidado e ItemPlanoCuidado, com o valor Desfecho">
+
+### Identidade, catálogo e valores comuns
+
+`Auditoria` (`createdAt`, `updatedAt`) é embutida em 14 entidades, e o diagrama a mostra uma vez só. `Protocolo` e `RegraProtocolo` são entidades do `PetBuddies-API`, lidas por HTTP.
+
+<img src="assets/diagrama-classes/identidade.png" width="813" alt="Pacote Identidade: Usuario">
+
+<img src="assets/diagrama-classes/dotnet.png" width="338" alt="Catálogo do PetBuddies-API: Protocolo e RegraProtocolo"> <img src="assets/diagrama-classes/comum.png" width="300" alt="Valor comum: Auditoria">
 
 ---
 
