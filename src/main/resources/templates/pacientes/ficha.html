@@ -53,13 +53,18 @@
         <p th:if="${#lists.isEmpty(consultas)}">Nenhuma consulta registrada.</p>
         <table th:unless="${#lists.isEmpty(consultas)}">
             <thead>
-            <tr><th>Data</th><th>Tipo</th><th>Status</th></tr>
+            <tr><th>Data</th><th>Tipo</th><th>Status</th><th>Ações</th></tr>
             </thead>
             <tbody>
             <tr th:each="consulta : ${consultas}">
                 <td th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
                 <td th:text="${consulta.tipo}">ROTINA</td>
                 <td><span class="selo" th:text="${consulta.status}">AGENDADA</span></td>
+                <td>
+                    <a th:if="${statusFechavel.contains(consulta.status)}"
+                       th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
+                    <span th:unless="${statusFechavel.contains(consulta.status)}" class="texto-fraco">—</span>
+                </td>
             </tr>
             </tbody>
         </table>
@@ -94,12 +99,6 @@
                 <button type="submit">Instanciar plano</button>
             </div>
         </form>
-    </section>
-
-    <section class="bloco">
-        <h2>Fechar atendimento</h2>
-        <p>Em construção — disponível em breve na agenda deste paciente.</p>
-        <a class="botao secundario" th:href="@{/agenda}">Ir para a agenda</a>
     </section>
 </main>
 </body>
