@@ -1,12 +1,16 @@
 package br.com.fiap.petbuddies.exception.cadastro;
 
-public class VeterinarioNaoEncontradoException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class VeterinarioNaoEncontradoException extends RecursoNaoEncontradoException {
+
+    private static final String CODIGO = "VETERINARIO_NAO_ENCONTRADO";
 
     public VeterinarioNaoEncontradoException(Long id) {
-        super("Veterinário não encontrado para o id: " + id);
+        super(CODIGO, "Veterinário não encontrado para o id: " + id);
     }
 
     public VeterinarioNaoEncontradoException(String crmv) {
-        super("Veterinário não encontrado para o CRMV: " + crmv);
+        super(CODIGO, "Veterinário não encontrado para o CRMV: " + crmv);
     }
 }

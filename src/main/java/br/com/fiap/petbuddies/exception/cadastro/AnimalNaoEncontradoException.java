@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.cadastro;
 
-public class AnimalNaoEncontradoException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class AnimalNaoEncontradoException extends RecursoNaoEncontradoException {
     public AnimalNaoEncontradoException(Long id) {
-        super("Animal não encontrado para o id: " + id);
+        super("ANIMAL_NAO_ENCONTRADO", "Animal não encontrado para o id: " + id);
     }
 }

@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.cadastro;
 
-public class TelefoneResponsavelDuplicadoException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.ConflitoException;
+
+public class TelefoneResponsavelDuplicadoException extends ConflitoException {
     public TelefoneResponsavelDuplicadoException(String telefone) {
-        super("Já existe um tutor cadastrado com o telefone: " + telefone);
+        super("TELEFONE_DUPLICADO", "Já existe um tutor cadastrado com o telefone: " + telefone);
     }
 }

@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.cadastro;
 
-public class CnpjDuplicadoException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.ConflitoException;
+
+public class CnpjDuplicadoException extends ConflitoException {
     public CnpjDuplicadoException(String cnpj) {
-        super("Já existe uma clínica cadastrada com o CNPJ: " + cnpj);
+        super("CNPJ_DUPLICADO", "Já existe uma clínica cadastrada com o CNPJ: " + cnpj);
     }
 }

@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.atendimento;
 
-public class ConsultaNaoEncontradaException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class ConsultaNaoEncontradaException extends RecursoNaoEncontradoException {
     public ConsultaNaoEncontradaException(Long id) {
-        super("Consulta não encontrada para o id: " + id);
+        super("CONSULTA_NAO_ENCONTRADA", "Consulta não encontrada para o id: " + id);
     }
 }
