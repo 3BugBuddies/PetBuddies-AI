@@ -25,6 +25,7 @@ import br.com.fiap.petbuddies.dto.checkin.CondicaoObservadaResponse;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinDuplicadoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
@@ -96,6 +97,9 @@ public class CheckinService {
         if (request.getItemPlanoCuidadoId() != null) {
             itemRelatado = itemPlanoCuidadoRepository.findById(request.getItemPlanoCuidadoId())
                     .orElseThrow(() -> new ItemPlanoCuidadoNaoEncontradoException(request.getItemPlanoCuidadoId()));
+            if (!itemRelatado.getPlano().getAnimalId().equals(animal.getId())) {
+                throw new ItemDeOutroAnimalException(itemRelatado.getId(), animal.getId());
+            }
         }
 
         if (checkinRepository.findExistente(animal.getId(), referencia, request.getItemPlanoCuidadoId()).isPresent()) {
@@ -111,7 +115,9 @@ public class CheckinService {
         checkin.setTicUtilizada(request.getTicUtilizada());
         checkin = checkinRepository.save(checkin);
 
-        List<CondicaoObservadaEntity> observadas = gravarCondicoes(checkin, request.getCondicoes());
+        // "condicoes": null explicito no JSON sobrescreve o default da lista vazia do DTO.
+        List<CondicaoConfirmadaRequest> condicoes = request.getCondicoes() == null ? List.of() : request.getCondicoes();
+        List<CondicaoObservadaEntity> observadas = gravarCondicoes(checkin, condicoes);
         boolean escalarPorCritica = observadas.stream().anyMatch(this::observacaoCritica);
 
         List<PrescricaoEntity> prescricoesParaAvaliar = itemRelatado != null

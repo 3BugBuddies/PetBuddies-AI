@@ -14,6 +14,7 @@ import br.com.fiap.petbuddies.domain.enums.cuidado.TipoDataBase;
 import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.cuidado.UnidadeTempo;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
+import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
 import br.com.fiap.petbuddies.dto.cuidado.ItemPlanoCuidadoDto;
@@ -21,6 +22,9 @@ import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.dto.cuidado.SugestaoCuidadoDto;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
 import br.com.fiap.petbuddies.infrastructure.client.RegraCatalogoDto;
@@ -51,19 +55,25 @@ public class MotorPlanoService {
     private final ItemPlanoCuidadoRepository itemRepository;
     private final ProtocoloClient protocoloClient;
     private final AnimalRepository animalRepository;
+    private final ConsultaRepository consultaRepository;
 
     public MotorPlanoService(PlanoCuidadoRepository planoRepository,
                              ItemPlanoCuidadoRepository itemRepository,
                              ProtocoloClient protocoloClient,
-                             AnimalRepository animalRepository) {
+                             AnimalRepository animalRepository,
+                             ConsultaRepository consultaRepository) {
         this.planoRepository = planoRepository;
         this.itemRepository = itemRepository;
         this.protocoloClient = protocoloClient;
         this.animalRepository = animalRepository;
+        this.consultaRepository = consultaRepository;
     }
 
     // Sem @Transactional de proposito: ha chamada HTTP ao catalogo entre a checagem e a criacao — nao pode segurar conexao do pool durante a rede.
     public PlanoResponse instanciarPreventivo(PlanoPreventivoRequest req) {
+        animalRepository.findById(req.getAnimalId())
+                .orElseThrow(() -> new AnimalNaoEncontradoException(req.getAnimalId()));
+
         Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoAtivoPorCategoria(
                         req.getAnimalId(), StatusPlano.ATIVO, CategoriaPlano.PREVENTIVO);
@@ -89,6 +99,16 @@ public class MotorPlanoService {
 
     // Sem @Transactional de proposito, pelo mesmo motivo do instanciarPreventivo.
     public PlanoResponse instanciarPosCirurgico(PlanoPosCirurgicoRequest req) {
+        animalRepository.findById(req.getAnimalId())
+                .orElseThrow(() -> new AnimalNaoEncontradoException(req.getAnimalId()));
+        if (!consultaRepository.existsById(req.getConsultaId())) {
+            throw new ConsultaNaoEncontradaException(req.getConsultaId());
+        }
+        // Entidade chegaria destacada fora de @Transactional: compara por id em vez de navegar consulta.getAnimal().
+        if (!consultaRepository.existsByIdAndAnimalId(req.getConsultaId(), req.getAnimalId())) {
+            throw new ConsultaDeOutroAnimalException(req.getConsultaId(), req.getAnimalId());
+        }
+
         Optional<PlanoCuidadoEntity> existente = planoRepository
                 .findPlanoPorAnimalEConsulta(
                         req.getAnimalId(), req.getConsultaId());

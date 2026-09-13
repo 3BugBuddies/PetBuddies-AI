@@ -3,8 +3,15 @@ package br.com.fiap.petbuddies.service.cadastro;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
+import br.com.fiap.petbuddies.domain.repository.CheckinRepository;
+import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
+import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
+import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
+import br.com.fiap.petbuddies.domain.repository.ProcedimentoRepository;
+import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.ResponsavelRepository;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalRequest;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalComVinculosException;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.cadastro.ResponsavelNaoEncontradoException;
 import org.springframework.stereotype.Service;
@@ -20,10 +27,30 @@ public class AnimalService {
 
     private final AnimalRepository repository;
     private final ResponsavelRepository responsavelRepository;
+    private final ConsultaRepository consultaRepository;
+    private final PlanoCuidadoRepository planoCuidadoRepository;
+    private final CheckinRepository checkinRepository;
+    private final RegistroAtendimentoRepository registroAtendimentoRepository;
+    private final ProcedimentoRepository procedimentoRepository;
+    private final PrescricaoRepository prescricaoRepository;
 
-    public AnimalService(AnimalRepository repository, ResponsavelRepository responsavelRepository) {
+    public AnimalService(
+            AnimalRepository repository,
+            ResponsavelRepository responsavelRepository,
+            ConsultaRepository consultaRepository,
+            PlanoCuidadoRepository planoCuidadoRepository,
+            CheckinRepository checkinRepository,
+            RegistroAtendimentoRepository registroAtendimentoRepository,
+            ProcedimentoRepository procedimentoRepository,
+            PrescricaoRepository prescricaoRepository) {
         this.repository = repository;
         this.responsavelRepository = responsavelRepository;
+        this.consultaRepository = consultaRepository;
+        this.planoCuidadoRepository = planoCuidadoRepository;
+        this.checkinRepository = checkinRepository;
+        this.registroAtendimentoRepository = registroAtendimentoRepository;
+        this.procedimentoRepository = procedimentoRepository;
+        this.prescricaoRepository = prescricaoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -59,6 +86,24 @@ public class AnimalService {
     @Transactional
     public void remover(Long id) {
         encontrarOuFalhar(id);
+        if (consultaRepository.existsByAnimalId(id)) {
+            throw new AnimalComVinculosException(id, "consultas");
+        }
+        if (planoCuidadoRepository.existsByAnimalId(id)) {
+            throw new AnimalComVinculosException(id, "planos de cuidado");
+        }
+        if (checkinRepository.existsByAnimalId(id)) {
+            throw new AnimalComVinculosException(id, "check-ins");
+        }
+        if (registroAtendimentoRepository.existsByAnimalId(id)) {
+            throw new AnimalComVinculosException(id, "registros de atendimento");
+        }
+        if (procedimentoRepository.existsByAnimalId(id)) {
+            throw new AnimalComVinculosException(id, "procedimentos");
+        }
+        if (prescricaoRepository.existsByAnimalId(id)) {
+            throw new AnimalComVinculosException(id, "prescrições");
+        }
         repository.deleteById(id);
     }
 

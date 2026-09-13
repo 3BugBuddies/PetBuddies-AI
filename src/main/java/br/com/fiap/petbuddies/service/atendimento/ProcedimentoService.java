@@ -13,6 +13,7 @@ import br.com.fiap.petbuddies.dto.atendimento.ProcedimentoRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ProcedimentoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +87,9 @@ public class ProcedimentoService {
                 .orElseThrow(() -> new RegistroAtendimentoNaoEncontradoException(request.getRegistroAtendimentoId()));
         AnimalEntity animal = animalRepository.findById(request.getAnimalId())
                 .orElseThrow(() -> new AnimalNaoEncontradoException(request.getAnimalId()));
+        if (!registroAtendimento.getAnimal().getId().equals(animal.getId())) {
+            throw new RegistroDeOutroAnimalException(registroAtendimento.getId(), animal.getId());
+        }
         VeterinarioEntity veterinario = veterinarioRepository.findById(request.getVeterinarioId())
                 .orElseThrow(() -> new VeterinarioNaoEncontradoException(request.getVeterinarioId()));
         entity.setTipo(request.getTipo());

@@ -7,6 +7,7 @@ import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.JanelaAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.atendimento.JanelaAtendimentoRequest;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaJaEmOutraJanelaException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
@@ -62,6 +63,9 @@ public class JanelaAtendimentoService {
         if (repository.existsByVeterinarioIdAndDataHoraInicio(request.getVeterinarioId(), request.getDataHoraInicio())) {
             throw new JanelaConflitanteException(request.getVeterinarioId(), request.getDataHoraInicio());
         }
+        if (request.getConsultaId() != null && repository.existsByConsultaId(request.getConsultaId())) {
+            throw new ConsultaJaEmOutraJanelaException(request.getConsultaId());
+        }
         JanelaAtendimentoEntity entity = new JanelaAtendimentoEntity();
         aplicar(request, entity);
         return repository.save(entity);
@@ -73,6 +77,10 @@ public class JanelaAtendimentoService {
         if (repository.existsByVeterinarioIdAndDataHoraInicioAndIdNot(
                 request.getVeterinarioId(), request.getDataHoraInicio(), id)) {
             throw new JanelaConflitanteException(request.getVeterinarioId(), request.getDataHoraInicio());
+        }
+        // AndIdNot exclui a propria janela: reenviar a mesma consultaId nao pode virar 409.
+        if (request.getConsultaId() != null && repository.existsByConsultaIdAndIdNot(request.getConsultaId(), id)) {
+            throw new ConsultaJaEmOutraJanelaException(request.getConsultaId());
         }
         aplicar(request, entity);
         return repository.save(entity);

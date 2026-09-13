@@ -33,5 +33,5 @@ public class CheckinRequest {
     private String ticUtilizada;
 
     /** Vazia é um check-in válido: "nada a relatar hoje". */
-    private List<@Valid CondicaoConfirmadaRequest> condicoes = List.of();
+    private List<@NotNull @Valid CondicaoConfirmadaRequest> condicoes = List.of();
 }

@@ -29,8 +29,8 @@ public class FechamentoAtendimentoRequest {
     private RegistroAtendimentoFechamentoRequest registroAtendimento;
 
     @Valid
-    private List<ProcedimentoFechamentoRequest> procedimentos;
+    private List<@NotNull @Valid ProcedimentoFechamentoRequest> procedimentos;
 
     @Valid
-    private List<PrescricaoFechamentoRequest> prescricoes;
+    private List<@NotNull @Valid PrescricaoFechamentoRequest> prescricoes;
 }

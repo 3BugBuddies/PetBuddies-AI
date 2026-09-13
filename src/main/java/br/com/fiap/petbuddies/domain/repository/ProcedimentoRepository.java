@@ -10,4 +10,10 @@ public interface ProcedimentoRepository extends JpaRepository<ProcedimentoEntity
     List<ProcedimentoEntity> findByAnimalIdOrderByDataPrevistaInicioDesc(Long animalId);
 
     List<ProcedimentoEntity> findByRegistroAtendimentoId(Long registroAtendimentoId);
+
+    boolean existsByAnimalId(Long animalId);
+
+    boolean existsByVeterinarioId(Long veterinarioId);
+
+    boolean existsByRegistroAtendimentoId(Long registroAtendimentoId);
 }

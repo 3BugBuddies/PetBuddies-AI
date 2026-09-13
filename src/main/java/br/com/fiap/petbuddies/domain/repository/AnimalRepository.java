@@ -18,4 +18,6 @@ public interface AnimalRepository extends JpaRepository<AnimalEntity, Long> {
     // responsavel e LAZY e o nome dele aparece em toda linha da lista.
     @Query("SELECT a FROM AnimalEntity a JOIN FETCH a.responsavel WHERE a.id IN :ids")
     List<AnimalEntity> findComResponsavelPorIds(@Param("ids") Collection<Long> ids);
+
+    boolean existsByResponsavelId(Long responsavelId);
 }

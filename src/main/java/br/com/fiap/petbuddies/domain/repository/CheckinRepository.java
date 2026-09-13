@@ -22,4 +22,6 @@ public interface CheckinRepository extends JpaRepository<CheckinEntity, Long> {
             @Param("animalId") Long animalId,
             @Param("dataReferencia") LocalDate dataReferencia,
             @Param("itemId") Long itemId);
+
+    boolean existsByAnimalId(Long animalId);
 }
