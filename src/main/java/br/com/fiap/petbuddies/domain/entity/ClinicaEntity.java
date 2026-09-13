@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -24,11 +25,8 @@ public class ClinicaEntity {
     @Column(name = "NR_CNPJ", nullable = false, unique = true, length = 14)
     private String cnpj;
 
-    @Column(name = "TL_TELEFONE", nullable = false, length = 20)
-    private String telefone;
-
-    @Column(name = "EM_EMAIL", length = 254)
-    private String email;
+    @Embedded
+    private Contato contato;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)

@@ -22,8 +22,8 @@ public class ClinicaResponse {
         dto.id = entity.getId();
         dto.nome = entity.getNome();
         dto.cnpj = entity.getCnpj();
-        dto.telefone = entity.getTelefone();
-        dto.email = entity.getEmail();
+        dto.telefone = entity.getContato().getTelefone();
+        dto.email = entity.getContato().getEmail();
         dto.createdAt = entity.getCreatedAt();
         dto.updatedAt = entity.getUpdatedAt();
         return dto;

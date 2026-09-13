@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.identidade;
 
+import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
@@ -77,17 +78,16 @@ public class RegistroService {
             throw new RegistroIncompletoException("Telefone é obrigatório para o tipo TUTOR.");
         }
         garantirLoginLivre(request.getEmail());
-        if (responsavelRepository.existsByEmailIgnoreCase(request.getEmail())) {
+        if (responsavelRepository.existsByContatoEmailIgnoreCase(request.getEmail())) {
             throw new EmailResponsavelDuplicadoException(request.getEmail());
         }
-        if (responsavelRepository.existsByTelefone(request.getTelefone())) {
+        if (responsavelRepository.existsByContatoTelefone(request.getTelefone())) {
             throw new TelefoneResponsavelDuplicadoException(request.getTelefone());
         }
 
         ResponsavelEntity responsavel = new ResponsavelEntity();
         responsavel.setNome(request.getNome());
-        responsavel.setTelefone(request.getTelefone());
-        responsavel.setEmail(request.getEmail());
+        responsavel.setContato(new Contato(request.getTelefone(), request.getEmail()));
         responsavelRepository.save(responsavel);
 
         UsuarioEntity usuario = novoUsuario(request, PerfilUsuario.TUTOR);

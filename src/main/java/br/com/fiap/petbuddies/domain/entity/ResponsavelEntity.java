@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -20,11 +21,8 @@ public class ResponsavelEntity {
     @Column(name = "NM_NOME_RESPONSAVEL", nullable = false, length = 150)
     private String nome;
 
-    @Column(name = "TL_TELEFONE", nullable = false, length = 20)
-    private String telefone;
-
-    @Column(name = "EM_EMAIL", length = 254)
-    private String email;
+    @Embedded
+    private Contato contato;
 
     @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)

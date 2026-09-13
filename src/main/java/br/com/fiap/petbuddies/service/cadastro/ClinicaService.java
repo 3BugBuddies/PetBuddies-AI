@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.cadastro;
 
+import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.dto.cadastro.ClinicaRequest;
@@ -75,7 +76,6 @@ public class ClinicaService {
     private void aplicar(ClinicaRequest request, ClinicaEntity entity) {
         entity.setNome(request.getNome());
         entity.setCnpj(request.getCnpj());
-        entity.setTelefone(request.getTelefone());
-        entity.setEmail(request.getEmail());
+        entity.setContato(new Contato(request.getTelefone(), request.getEmail()));
     }
 }

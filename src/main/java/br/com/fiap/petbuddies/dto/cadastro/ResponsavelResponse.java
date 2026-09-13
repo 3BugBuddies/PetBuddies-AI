@@ -20,8 +20,8 @@ public class ResponsavelResponse {
         ResponsavelResponse dto = new ResponsavelResponse();
         dto.id = entity.getId();
         dto.nome = entity.getNome();
-        dto.telefone = entity.getTelefone();
-        dto.email = entity.getEmail();
+        dto.telefone = entity.getContato().getTelefone();
+        dto.email = entity.getContato().getEmail();
         dto.createdAt = entity.getCreatedAt();
         dto.updatedAt = entity.getUpdatedAt();
         return dto;

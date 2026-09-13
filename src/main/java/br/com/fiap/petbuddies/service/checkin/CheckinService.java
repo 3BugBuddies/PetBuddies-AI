@@ -214,7 +214,7 @@ public class CheckinService {
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("");
         String telefone = prescricoes.stream()
-                .map(p -> p.getVeterinario().getClinica().getTelefone())
+                .map(p -> p.getVeterinario().getClinica().getContato().getTelefone())
                 .findFirst()
                 .orElse(null);
         String base = "Sinal de atenção identificado (" + rotulos + "). Procure a clínica";
