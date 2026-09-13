@@ -309,6 +309,14 @@ Duas regras de comportamento que a integração precisa conhecer:
 
 Erro de negócio numa tela devolve página HTML, não JSON — o `WebExceptionHandler` intercepta antes do handler da API.
 
+### Telas
+
+| | |
+|---|---|
+| ![Login com credencial inválida](assets/telas/01-login.png)<br>**Login** · credencial inválida | ![Painel da clínica](assets/telas/02-painel.png)<br>**Painel** · indicadores e consultas de hoje |
+| ![Cadastro de paciente com erro de validação](assets/telas/03-paciente-validacao.png)<br>**Novo paciente** · validação no campo | ![Ficha do paciente com plano e consultas](assets/telas/04-ficha-plano.png)<br>**Ficha** · plano preventivo gerado do catálogo e consultas |
+| ![Fechamento de atendimento](assets/telas/05-fechar-atendimento.png)<br>**Fechar atendimento** · registro, procedimento e prescrição | ![Meus animais](assets/telas/06-meus-animais.png)<br>**Meus animais** · a tutora vê só os dela<br><br>![Acesso negado](assets/telas/07-acesso-negado.png)<br>**Acesso negado** · tutora abrindo `/painel` |
+
 ---
 
 ## Recursos e Rotas
