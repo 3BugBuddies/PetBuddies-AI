@@ -2,6 +2,8 @@ package br.com.fiap.petbuddies.handler;
 
 import br.com.fiap.petbuddies.exception.ConflitoException;
 import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
+import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
 import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.security.UsuarioPrincipal;
@@ -10,10 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.ModelAndView;
 
 // Sem este advice, ordenado a frente do GlobalExceptionHandler, um erro de dominio numa tela voltaria como JSON, nao como pagina.
@@ -41,6 +45,27 @@ public class WebExceptionHandler {
     @ExceptionHandler(CredenciaisInvalidasException.class)
     public ModelAndView handleCredenciaisInvalidas(CredenciaisInvalidasException ex, HttpServletResponse response) {
         return erro(response, HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(DuracaoTratamentoExcedeTetoException.class)
+    public ModelAndView handleDuracaoTratamentoExcedeTeto(DuracaoTratamentoExcedeTetoException ex, HttpServletResponse response) {
+        return erro(response, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConsultaDeOutroAnimalException.class)
+    public ModelAndView handleConsultaDeOutroAnimal(ConsultaDeOutroAnimalException ex, HttpServletResponse response) {
+        return erro(response, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ModelAndView handleParametroInvalido(MethodArgumentTypeMismatchException ex, HttpServletResponse response) {
+        return erro(response, HttpStatus.BAD_REQUEST, "Endereço inválido.");
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ModelAndView handleConflitoDeDados(DataIntegrityViolationException ex, HttpServletResponse response) {
+        log.warn("Violação de integridade não prevista numa tela web", ex);
+        return erro(response, HttpStatus.CONFLICT, "A operação conflita com dados já existentes.");
     }
 
     @ExceptionHandler(Exception.class)

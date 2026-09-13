@@ -3,7 +3,10 @@ package br.com.fiap.petbuddies.handler;
 import br.com.fiap.petbuddies.dto.ErrorDto;
 import br.com.fiap.petbuddies.exception.ConflitoException;
 import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
+import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoProvisionadaException;
 import br.com.fiap.petbuddies.exception.cadastro.RegistroIncompletoException;
@@ -14,9 +17,12 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -128,6 +134,38 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorDto> handleRecursoEstaticoAusente(NoResourceFoundException ex) {
         return ResponseEntity.status(404).body(new ErrorDto("RECURSO_NAO_ENCONTRADO", ex.getResourcePath()));
+    }
+
+    @ExceptionHandler(ItemDeOutroAnimalException.class)
+    public ResponseEntity<ErrorDto> handleItemDeOutroAnimal(ItemDeOutroAnimalException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("ITEM_DE_OUTRO_ANIMAL", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ConsultaDeOutroAnimalException.class)
+    public ResponseEntity<ErrorDto> handleConsultaDeOutroAnimal(ConsultaDeOutroAnimalException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("CONSULTA_DE_OUTRO_ANIMAL", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RegistroDeOutroAnimalException.class)
+    public ResponseEntity<ErrorDto> handleRegistroDeOutroAnimal(RegistroDeOutroAnimalException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("REGISTRO_DE_OUTRO_ANIMAL", ex.getMessage()));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorDto> handleMetodoNaoSuportado(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(405).body(new ErrorDto("METODO_NAO_SUPORTADO", "Método HTTP não suportado nesta rota."));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorDto> handleTipoDeConteudoNaoSuportado(HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity.status(415).body(new ErrorDto("TIPO_DE_CONTEUDO_NAO_SUPORTADO", "Tipo de conteúdo não suportado."));
+    }
+
+    // Rede de seguranca para constraint do banco sem checagem de dominio correspondente; nao substitui nenhuma checagem existente.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorDto> handleConflitoDeDados(DataIntegrityViolationException ex) {
+        log.warn("Violação de integridade não prevista", ex);
+        return ResponseEntity.status(409).body(new ErrorDto("CONFLITO_DE_DADOS", "A operação conflita com dados já existentes."));
     }
 
     @ExceptionHandler(Exception.class)
