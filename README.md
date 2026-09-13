@@ -282,6 +282,8 @@ Duas cadeias de segurança no mesmo processo:
 
 O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `responsavelId`), e é o mesmo aceito pelo `PetBuddies-API` (.NET) — o segredo é compartilhado.
 
+**Rotas por perfil na API:** as escritas são do veterinário — consulta, registro de atendimento, procedimento, prescrição, regra de prescrição, condição clínica, janela, motor de planos e o cadastro clínico (animal, responsável, veterinário, clínica). O check-in é do tutor, porque o relato é de quem convive com o animal. **O portão é por método:** todo `GET` segue aberto a qualquer token válido, e o tutor lê o próprio animal normalmente.
+
 **Rotas por perfil na web:** `/painel`, `/clinica`, `/equipe`, `/tutores`, `/pacientes` e `/agenda` exigem `VET`; `/meus-animais` exige `TUTOR`. O tutor recebe `403` nas rotas da clínica, e a lista dele é escopada pelo `responsavelId` da sessão, nunca por parâmetro na URL.
 
 ---
