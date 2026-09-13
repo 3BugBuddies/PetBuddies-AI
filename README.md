@@ -10,15 +10,7 @@ A veterinária atende, prescreve e monta o plano de cuidado. Em casa, o tutor co
 - **Check-in do tutor:** a IA reconhece no relato as condições clínicas que a veterinária definiu, e um motor determinístico aplica as regras dela para decidir a dose do dia ou acionar a clínica.
 - **Dois perfis:** `VET` e `TUTOR`, com token JWT para o app mobile e sessão para as telas web.
 
-```mermaid
-flowchart LR
-    App["App mobile<br/>vet e tutor"] --> Java
-    Web["Telas Thymeleaf<br/>8 telas"] --> Java
-    Java["petbuddies-ai (Java)<br/>registro, agenda, prescrição, cuidado"]
-    Java -->|"GET /api/protocolo"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
-    Java --> Gemini["Gemini 2.5 Flash<br/>interpreta narrativa"]
-    Java --> Oracle[("Oracle<br/>16 tabelas")]
-```
+<img src="assets/figuras/arquitetura.png" alt="Arquitetura: app mobile e telas da clínica chamam o petbuddies-ai (Java), que tem Oracle próprio, usa o Gemini e lê o catálogo de protocolos do PetBuddies-API (.NET) por HTTP">
 
 ## Links
 
@@ -180,39 +172,25 @@ As 16 entidades JPA em seis pacotes de domínio, com os seis valores `@Embeddabl
 | seta tracejada `- - >` | referência por id: um `Long` sem relação JPA |
 | caixa tracejada `«Pacote» Classe` | classe de outro pacote, apontada a partir deste |
 
-### Pacotes
+Clique numa miniatura para abrir o diagrama inteiro.
 
-A seta sai do pacote que referencia, e o número conta as referências.
-
-<img src="assets/diagrama-classes/mapa.png" width="607" alt="Mapa de dependências entre os pacotes: todos apontam para Cadastro">
-
-### Cadastro
-
-<img src="assets/diagrama-classes/cadastro.png" width="812" alt="Pacote Cadastro: Clinica, Veterinario, Responsavel e Animal, com o valor Contato">
-
-### Atendimento
-
-<img src="assets/diagrama-classes/atendimento.png" width="832" alt="Pacote Atendimento: JanelaAtendimento, Consulta, RegistroAtendimento e Procedimento">
-
-### Prescrição
-
-<img src="assets/diagrama-classes/prescricao.png" width="665" alt="Pacote Prescrição: CondicaoClinica, Prescricao e RegraPrescricao, com os valores FaixaDose e CondicaoCongelada">
-
-### Check-in
-
-<img src="assets/diagrama-classes/checkin.png" width="513" alt="Pacote Check-in: Checkin e CondicaoObservada, com o valor ValorObservado">
-
-### Cuidado
-
-<img src="assets/diagrama-classes/cuidado.png" width="992" alt="Pacote Cuidado: PlanoCuidado e ItemPlanoCuidado, com o valor Desfecho">
-
-### Identidade, catálogo e valores comuns
-
-`Auditoria` (`createdAt`, `updatedAt`) é embutida em 14 entidades, e o diagrama a mostra uma vez só. `Protocolo` e `RegraProtocolo` são entidades do `PetBuddies-API`, lidas por HTTP.
-
-<img src="assets/diagrama-classes/identidade.png" width="813" alt="Pacote Identidade: Usuario">
-
-<img src="assets/diagrama-classes/dotnet.png" width="338" alt="Catálogo do PetBuddies-API: Protocolo e RegraProtocolo"> <img src="assets/diagrama-classes/comum.png" width="300" alt="Valor comum: Auditoria">
+<table>
+<tr>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/mapa.png" alt="Mapa de dependências entre os pacotes: todos apontam para Cadastro"><br><b>Pacotes</b> · a seta sai de quem referencia; o número conta as referências</td>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/cadastro.png" alt="Pacote Cadastro: Clinica, Veterinario, Responsavel e Animal, com o valor Contato"><br><b>Cadastro</b> · clínica, veterinário, responsável e animal</td>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/atendimento.png" alt="Pacote Atendimento: JanelaAtendimento, Consulta, RegistroAtendimento e Procedimento"><br><b>Atendimento</b> · janela, consulta, registro e procedimento</td>
+</tr>
+<tr>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/prescricao.png" alt="Pacote Prescrição: CondicaoClinica, Prescricao e RegraPrescricao, com os valores FaixaDose e CondicaoCongelada"><br><b>Prescrição</b> · condição clínica, prescrição e regra</td>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/checkin.png" alt="Pacote Check-in: Checkin e CondicaoObservada, com o valor ValorObservado"><br><b>Check-in</b> · check-in e condição observada</td>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/cuidado.png" alt="Pacote Cuidado: PlanoCuidado e ItemPlanoCuidado, com o valor Desfecho"><br><b>Cuidado</b> · plano e itens do plano</td>
+</tr>
+<tr>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/identidade.png" alt="Pacote Identidade: Usuario"><br><b>Identidade</b> · usuário, perfil e vínculo</td>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/dotnet.png" alt="Catálogo do PetBuddies-API: Protocolo e RegraProtocolo"><br><b>Catálogo</b> · protocolo e regra, lidos do .NET por HTTP</td>
+<td width="33%" valign="top"><img src="assets/diagrama-classes/comum.png" alt="Valor comum: Auditoria"><br><b>Auditoria</b> · embutida em 14 entidades, mostrada uma vez</td>
+</tr>
+</table>
 
 ---
 
@@ -239,56 +217,15 @@ O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `re
 
 O único fluxo que atravessa os dois serviços.
 
-```mermaid
-sequenceDiagram
-    participant V as Veterinária
-    participant J as petbuddies-ai
-    participant N as PetBuddies-API
-    participant DB as Oracle
-
-    V->>J: POST /api/motor/plano/instanciar-preventivo
-    J->>DB: já existe plano ATIVO para o animal?
-    alt já existe
-        DB-->>J: plano existente
-        J-->>V: 200 — devolve o plano (idempotente)
-    else não existe
-        J->>N: GET /api/protocolo?especie=&categoria=
-        N-->>J: protocolos ativos + regras
-        J->>DB: grava PLANO_CUIDADO e um ITEM por regra
-        J-->>V: 201 — plano com os itens e datas previstas
-    end
-```
+<img src="assets/figuras/fluxo-plano-de-cuidado.png" alt="Fluxo do plano de cuidado em cinco passos: pedido da veterinária, checagem de plano ativo, leitura do catálogo no .NET, gravação do plano e resposta 201">
 
 ### Check-in narrado
 
 A IA interpreta; **o motor determinístico decide a dose**.
 
-```mermaid
-sequenceDiagram
-    participant T as Tutor
-    participant J as petbuddies-ai
-    participant G as Gemini
-    participant DB as Oracle
+<img src="assets/figuras/fluxo-checkin.png" alt="Fluxo do check-in em seis passos: relato do tutor, extração pelo Gemini, confirmação, gravação do check-in, motor de regras e desfecho">
 
-    T->>J: POST /api/checkin/extracao — narrativa em texto livre
-    J->>DB: condições clínicas do vocabulário da clínica
-    J->>G: narrativa + vocabulário (temperature=0)
-    G-->>J: condições reconhecidas, com trecho e confiança
-    J-->>T: 200 — nada é gravado ainda
-
-    Note over T: o tutor confirma o que reconheceu
-
-    T->>J: POST /api/checkin — condições confirmadas
-    J->>DB: grava CHECKIN e CONDICAO_OBSERVADA
-    J->>J: motor percorre as regras assinadas da prescrição ativa
-    J->>DB: grava o desfecho no ITEM_PLANO_CUIDADO
-    J-->>T: 201 — dose calculada, acionar a clínica ou suspender
-```
-
-Duas regras de comportamento que a integração precisa conhecer:
-
-- **Quando nenhuma regra dispara**, a dose devolvida é o piso da faixa prescrita (`doseMin`).
-- **Cada condição vem com `confianca` entre 0 e 1.** Abaixo de `0.7` a leitura é uma inferência do modelo, não algo que o tutor disse — o app deve confirmar antes de seguir.
+Uma regra de comportamento que a integração precisa conhecer: **cada condição vem com `confianca` entre 0 e 1.** Abaixo de `0.7` a leitura é uma inferência do modelo, não algo que o tutor disse — o app deve confirmar antes de seguir.
 
 ---
 
