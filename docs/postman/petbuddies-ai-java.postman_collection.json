@@ -298,8 +298,7 @@
               "query": [
                 {
                   "key": "cnpj",
-                  "value": "12345678000199",
-                  "disabled": true
+                  "value": "12345678000199"
                 }
               ]
             }
@@ -451,8 +450,7 @@
               "query": [
                 {
                   "key": "crmv",
-                  "value": "SP-12345",
-                  "disabled": true
+                  "value": "SP-12345"
                 }
               ]
             }
@@ -1759,13 +1757,11 @@
               "query": [
                 {
                   "key": "clinicaId",
-                  "value": "1",
-                  "disabled": true
+                  "value": "1"
                 },
                 {
                   "key": "codigo",
-                  "value": "FEBRE",
-                  "disabled": true
+                  "value": "FEBRE"
                 }
               ]
             }
