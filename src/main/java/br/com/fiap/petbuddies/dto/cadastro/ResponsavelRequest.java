@@ -27,8 +27,8 @@ public class ResponsavelRequest {
     public static ResponsavelRequest from(ResponsavelEntity entity) {
         ResponsavelRequest request = new ResponsavelRequest();
         request.setNome(entity.getNome());
-        request.setTelefone(entity.getTelefone());
-        request.setEmail(entity.getEmail());
+        request.setTelefone(entity.getContato().getTelefone());
+        request.setEmail(entity.getContato().getEmail());
         return request;
     }
 }

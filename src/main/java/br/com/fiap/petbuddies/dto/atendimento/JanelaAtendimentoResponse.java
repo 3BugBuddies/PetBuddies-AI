@@ -24,8 +24,8 @@ public class JanelaAtendimentoResponse {
         // Só os ids: com open-in-view=false, ler outro campo do proxy LAZY aqui lança LazyInitializationException.
         dto.veterinarioId = entity.getVeterinario() == null ? null : entity.getVeterinario().getId();
         dto.consultaId = entity.getConsulta() == null ? null : entity.getConsulta().getId();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

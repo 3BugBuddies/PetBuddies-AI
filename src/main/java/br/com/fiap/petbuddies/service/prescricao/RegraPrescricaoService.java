@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.prescricao;
 
+import br.com.fiap.petbuddies.domain.embeddable.CondicaoCongelada;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
@@ -60,9 +61,7 @@ public class RegraPrescricaoService {
         entity.setPrescricao(prescricao);
         entity.setCondicaoClinica(condicao);
         // Copia congelada: o que foi assinado, nao o que o catalogo diz hoje.
-        entity.setRotuloCongelado(condicao.getRotulo());
-        entity.setTipoDadoCongelado(condicao.getTipoDado());
-        entity.setFonteValorCongelada(condicao.getFonteValor());
+        entity.setCondicaoCongelada(new CondicaoCongelada(condicao.getRotulo(), condicao.getTipoDado(), condicao.getFonteValor()));
         entity.setOperador(request.getOperador());
         entity.setLimite(request.getLimite());
         entity.setAcaoDose(request.getAcaoDose());

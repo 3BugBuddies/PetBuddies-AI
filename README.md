@@ -1,15 +1,31 @@
 # PetBuddies AI — Challenge FIAP 2026 | Java Advanced
 
-API REST do produto **PetBuddies**, desenvolvida com Spring Boot + Spring AI — Challenge de **Java Advanced (2TDS)**, FIAP 2026.
+API REST e telas web do **PetBuddies**, o cuidado contínuo de pets entre a clínica veterinária e o tutor. Challenge de **Java Advanced (2TDS)**, FIAP 2026.
 
-O serviço cobre o ciclo de cuidado de um animal de estimação: cadastro clínico, agenda, atendimento, prescrição e planos de cuidado. A **IA interpreta narrativa em texto livre** — o relato do tutor no check-in e a descrição da veterinária na prescrição — e um **motor determinístico** decide a dose do dia aplicando as regras que a veterinária assinou. O catálogo de protocolos vem do `PetBuddies-API` (.NET) por HTTP.
+A veterinária atende, prescreve e monta o plano de cuidado. Em casa, o tutor conta em texto livre como o animal está, e o serviço transforma esse relato na conduta que a veterinária deixou assinada.
+
+- **Cadastro e agenda da clínica:** clínica, equipe, tutores, pacientes, janelas de atendimento e consultas.
+- **Atendimento e prescrição:** a consulta fecha com registro, procedimentos e prescrições numa operação só, e a IA monta o rascunho da prescrição a partir da fala da veterinária.
+- **Plano de cuidado:** vacinas, vermífugos e retornos gerados a partir dos protocolos que a clínica configura no `PetBuddies-API` (.NET).
+- **Check-in do tutor:** a IA reconhece no relato as condições clínicas que a veterinária definiu, e um motor determinístico aplica as regras dela para decidir a dose do dia ou acionar a clínica.
+- **Dois perfis:** `VET` e `TUTOR`, com token JWT para o app mobile e sessão para as telas web.
+
+```mermaid
+flowchart LR
+    App["App mobile<br/>vet e tutor"] --> Java
+    Web["Telas Thymeleaf<br/>8 telas"] --> Java
+    Java["petbuddies-ai (Java)<br/>registro, agenda, prescrição, cuidado"]
+    Java -->|"GET /api/protocolo"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
+    Java --> Gemini["Gemini 2.5 Flash<br/>interpreta narrativa"]
+    Java --> Oracle[("Oracle<br/>16 tabelas")]
+```
 
 ## Links
 
 |                               | |
 |-------------------------------|---|
-| Deploy                        | *pendente* |
-| Swagger UI (produção)         | *pendente* |
+| Deploy (telas web)            | http://petbuddies-java-rm563925.eastus.azurecontainer.io:8080 |
+| Swagger UI (produção)         | http://petbuddies-java-rm563925.eastus.azurecontainer.io:8080/swagger-ui.html |
 | Swagger UI (local)            | `http://localhost:8080/swagger-ui.html` |
 | Postman collection            | [`docs/postman/petbuddies-ai-java.postman_collection.json`](docs/postman/petbuddies-ai-java.postman_collection.json) |
 | Vídeo de apresentação         | *pendente* |
@@ -78,6 +94,7 @@ br/com/fiap/petbuddies/
 ├── dto/                     # um subpacote por domínio, flat
 ├── domain/
 │   ├── entity/              # 16 entidades JPA
+│   ├── embeddable/          # 6 valores @Embeddable, gravados nas colunas da entidade dona
 │   ├── enums/               # um subpacote por domínio, @Enumerated(STRING)
 │   └── repository/          # um JpaRepository por entidade
 ├── assembler/               # RepresentationModelAssembler (HATEOAS), um por recurso
@@ -151,123 +168,51 @@ Todas em `.env.example`; `.env` está no `.gitignore`.
 
 ---
 
-## Modelo de Dados
+## Diagrama de classes
 
-16 tabelas, criadas pelo Flyway em `V1__baseline_schema_cuidado.sql`. Enums persistidos como `STRING`; valores monetários e de dose em `BigDecimal`.
+As 16 entidades JPA em seis pacotes de domínio, com os seis valores `@Embeddable` de `domain/embeddable/`. No código, cada entidade leva o sufixo `Entity`.
 
-### Registro clínico
+| Notação | Significado |
+|---|---|
+| seta cheia `——>` | `@ManyToOne` navegável, com a multiplicidade em cada ponta |
+| losango cheio `◆——` | composição: `PlanoCuidado` e seus itens (`cascade = ALL`) |
+| losango laranja `◆——` | valor `@Embeddable` gravado nas colunas da própria entidade |
+| seta tracejada `- - >` | referência por id: um `Long` sem relação JPA |
+| caixa tracejada `«Pacote» Classe` | classe de outro pacote, apontada a partir deste |
 
-```mermaid
-erDiagram
-    CLINICA ||--o{ VETERINARIO : emprega
-    CLINICA ||--o{ CONDICAO_CLINICA : define
-    VETERINARIO ||--o{ CONDICAO_CLINICA : autora
-    RESPONSAVEL ||--o{ ANIMAL : tutela
-    ANIMAL ||--o{ CONSULTA : recebe
-    VETERINARIO ||--o{ CONSULTA : atende
-    VETERINARIO ||--o{ JANELA_ATENDIMENTO : oferece
-    CONSULTA ||--o| JANELA_ATENDIMENTO : ocupa
-    CONSULTA ||--o{ REGISTRO_ATENDIMENTO : gera
-    ANIMAL ||--o{ REGISTRO_ATENDIMENTO : possui
-    REGISTRO_ATENDIMENTO ||--o{ PROCEDIMENTO : executa
-    REGISTRO_ATENDIMENTO ||--o{ PRESCRICAO : assina
-    PRESCRICAO ||--o{ REGRA_PRESCRICAO : condiciona
-    CONDICAO_CLINICA ||--o{ REGRA_PRESCRICAO : compara
+### Pacotes
 
-    CLINICA { long id PK }
-    VETERINARIO {
-        long id PK
-        string crmv
-        long clinicaId FK
-    }
-    RESPONSAVEL {
-        long id PK
-        string cpf
-    }
-    ANIMAL {
-        long id PK
-        string especie
-        long responsavelId FK
-    }
-    CONSULTA {
-        long id PK
-        string status
-        date dataHora
-    }
-    JANELA_ATENDIMENTO {
-        long id PK
-        date dataHora
-    }
-    REGISTRO_ATENDIMENTO {
-        long id PK
-        string diagnostico
-    }
-    PROCEDIMENTO {
-        long id PK
-        string tipo
-        string status
-    }
-    PRESCRICAO {
-        long id PK
-        decimal doseMin
-        decimal doseMax
-    }
-    REGRA_PRESCRICAO {
-        long id PK
-        string operador
-        string acaoDose
-    }
-    CONDICAO_CLINICA {
-        long id PK
-        string codigo
-        string tipoDado
-    }
-    USUARIO {
-        long id PK
-        string login
-        string perfil
-    }
-```
+A seta sai do pacote que referencia, e o número conta as referências.
 
-`USUARIO` guarda o login e aponta para `VETERINARIO` **ou** `RESPONSAVEL` por id, conforme o perfil.
+<img src="assets/diagrama-classes/mapa.png" width="607" alt="Mapa de dependências entre os pacotes: todos apontam para Cadastro">
 
-### Cuidado e check-in
+### Cadastro
 
-```mermaid
-erDiagram
-    PLANO_CUIDADO ||--o{ ITEM_PLANO_CUIDADO : contem
-    ITEM_PLANO_CUIDADO ||--o| CHECKIN : registra
-    ANIMAL ||--o{ CHECKIN : declara
-    CHECKIN ||--o{ CONDICAO_OBSERVADA : observa
-    CONDICAO_CLINICA ||--o{ CONDICAO_OBSERVADA : tipifica
+<img src="assets/diagrama-classes/cadastro.png" width="812" alt="Pacote Cadastro: Clinica, Veterinario, Responsavel e Animal, com o valor Contato">
 
-    PLANO_CUIDADO {
-        long id PK
-        long animalId
-        long protocoloId
-        string status
-    }
-    ITEM_PLANO_CUIDADO {
-        long id PK
-        date dataPrevista
-        string status
-        string tipoDesfecho
-    }
-    CHECKIN {
-        long id PK
-        date data
-        string narrativa
-    }
-    CONDICAO_OBSERVADA {
-        long id PK
-        boolean valorBooleano
-        decimal valorNumerico
-    }
-    ANIMAL { long id PK }
-    CONDICAO_CLINICA { long id PK }
-```
+### Atendimento
 
-`PLANO_CUIDADO.protocoloId` referencia um protocolo que vive **no banco do .NET** — por isso é uma coluna escalar, não uma relação JPA.
+<img src="assets/diagrama-classes/atendimento.png" width="832" alt="Pacote Atendimento: JanelaAtendimento, Consulta, RegistroAtendimento e Procedimento">
+
+### Prescrição
+
+<img src="assets/diagrama-classes/prescricao.png" width="665" alt="Pacote Prescrição: CondicaoClinica, Prescricao e RegraPrescricao, com os valores FaixaDose e CondicaoCongelada">
+
+### Check-in
+
+<img src="assets/diagrama-classes/checkin.png" width="513" alt="Pacote Check-in: Checkin e CondicaoObservada, com o valor ValorObservado">
+
+### Cuidado
+
+<img src="assets/diagrama-classes/cuidado.png" width="992" alt="Pacote Cuidado: PlanoCuidado e ItemPlanoCuidado, com o valor Desfecho">
+
+### Identidade, catálogo e valores comuns
+
+`Auditoria` (`createdAt`, `updatedAt`) é embutida em 14 entidades, e o diagrama a mostra uma vez só. `Protocolo` e `RegraProtocolo` são entidades do `PetBuddies-API`, lidas por HTTP.
+
+<img src="assets/diagrama-classes/identidade.png" width="813" alt="Pacote Identidade: Usuario">
+
+<img src="assets/diagrama-classes/dotnet.png" width="338" alt="Catálogo do PetBuddies-API: Protocolo e RegraProtocolo"> <img src="assets/diagrama-classes/comum.png" width="300" alt="Valor comum: Auditoria">
 
 ---
 
@@ -289,18 +234,6 @@ O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `re
 ---
 
 ## Fluxos Principais
-
-### O contexto
-
-```mermaid
-flowchart LR
-    App["App mobile<br/>vet e tutor"] --> Java
-    Web["Telas Thymeleaf<br/>8 telas"] --> Java
-    Java["petbuddies-ai (Java)<br/>registro, agenda, prescrição, cuidado"]
-    Java -->|"GET /api/protocolo"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
-    Java --> Gemini["Gemini 2.5 Flash<br/>interpreta narrativa"]
-    Java --> Oracle[("Oracle<br/>16 tabelas")]
-```
 
 ### Plano de cuidado a partir de protocolo
 
@@ -392,9 +325,11 @@ Aberta, sem token. Responde `200 {"status":"UP"}` com o banco no ar e `503 {"sta
 
 ### Autenticação
 
-| Método | Rota |
-|---|---|
-| `POST` | `/api/auth/login` |
+| Método | Rota | O que faz |
+|---|---|---|
+| `POST` | `/api/auth/login` | login dos dois perfis, devolve o token |
+| `POST` | `/api/auth/registro` | cadastra tutor ou veterinário e já devolve o token |
+| `POST` | `/api/auth/senha` | troca a senha do usuário do token |
 
 ### Cadastro
 
@@ -409,8 +344,8 @@ Aberta, sem token. Responde `200 {"status":"UP"}` com o banco no ar e `503 {"sta
 
 | Recurso | Rota base | Métodos |
 |---|---|---|
-| Consultas | `/api/consulta` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`, `POST /agendamentos`, `POST /{id}/cancelamento`, `POST /{id}/fechamento` |
-| Janelas de atendimento | `/api/janela-atendimento` | `GET (?veterinarioId=)`, `GET /livres`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
+| Consultas | `/api/consulta` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`, `POST /agendamento`, `POST /{id}/cancelamento`, `POST /{id}/fechamento` |
+| Janelas de atendimento | `/api/janela-atendimento` | `GET (?veterinarioId=)`, `GET /livres?veterinarioId=&data=` (a partir de agora), `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
 | Registros de atendimento | `/api/registro-atendimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
 | Procedimentos | `/api/procedimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
 | Condições clínicas | `/api/condicao-clinica` | `GET (?clinicaId=)`, `GET /buscar?clinicaId=&codigo=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
@@ -443,9 +378,7 @@ Aberta, sem token. Responde `200 {"status":"UP"}` com o banco no ar e `503 {"sta
 | `GET` | `/api/checkin/{id}` | busca por id |
 | `GET` | `/api/checkin?animalId=` | check-ins do animal, do mais recente ao mais antigo |
 
----
-
-## Roteiro do Fluxo Principal
+### Roteiro do Fluxo Principal
 
 Na ordem abaixo, com o usuário `VET` de demonstração:
 
@@ -463,9 +396,7 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 
 > O passo 8 só reconhece condições de uma prescrição ativa. Sem o passo 6, a extração devolve lista vazia — é o escopo do vocabulário funcionando.
 
----
-
-## Validações — respostas de erro
+### Validações — respostas de erro
 
 | Situação | Exemplo | Status |
 |---|---|---|

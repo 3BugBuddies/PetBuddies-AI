@@ -50,10 +50,11 @@ public class JanelaAtendimentoService {
     // a leitura que a tela de agendamento faz primeiro: slots livres de um vet, num dia
     @Transactional(readOnly = true)
     public List<JanelaAtendimentoEntity> listarLivres(Long veterinarioId, LocalDate data) {
-        LocalDateTime inicio = data.atStartOfDay();
-        LocalDateTime fim = inicio.plusDays(1);
-        return repository.findByVeterinarioIdAndConsultaIsNullAndDataHoraInicioBetweenOrderByDataHoraInicioAsc(
-                veterinarioId, inicio, fim);
+        LocalDateTime inicioDoDia = data.atStartOfDay();
+        LocalDateTime agora = LocalDateTime.now();
+        // mesma regra do agendamento, que recusa janela ja iniciada
+        LocalDateTime inicio = inicioDoDia.isAfter(agora) ? inicioDoDia : agora;
+        return repository.findLivresNoPeriodo(veterinarioId, inicio, inicioDoDia.plusDays(1));
     }
 
     @Transactional

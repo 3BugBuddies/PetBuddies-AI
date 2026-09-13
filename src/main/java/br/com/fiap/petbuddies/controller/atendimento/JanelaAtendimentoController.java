@@ -45,8 +45,8 @@ public class JanelaAtendimentoController {
     @GetMapping("/livres")
     @Operation(
         summary = "Lista janelas livres de um veterinário num dia",
-        description = "Slots sem consulta vinculada do veterinário informado, dentro do dia informado, "
-            + "da mais cedo para a mais tarde — a leitura que a tela de agendamento faz primeiro."
+        description = "Slots sem consulta vinculada do veterinário informado, no dia informado e a partir de agora, "
+            + "da mais cedo para a mais tarde. Janela que já começou não aparece, porque não pode ser agendada."
     )
     @ApiResponse(responseCode = "200", description = "Lista de janelas livres")
     public CollectionModel<EntityModel<JanelaAtendimentoResponse>> listarLivres(

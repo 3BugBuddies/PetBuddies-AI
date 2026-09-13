@@ -2,6 +2,8 @@ package br.com.fiap.petbuddies.domain.repository;
 
 import br.com.fiap.petbuddies.domain.entity.JanelaAtendimentoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,9 +18,11 @@ public interface JanelaAtendimentoRepository extends JpaRepository<JanelaAtendim
 
     boolean existsByVeterinarioIdAndDataHoraInicioAndIdNot(Long veterinarioId, LocalDateTime dataHoraInicio, Long id);
 
-    // agenda do dia: só os slots sem consulta vinculada
-    List<JanelaAtendimentoEntity> findByVeterinarioIdAndConsultaIsNullAndDataHoraInicioBetweenOrderByDataHoraInicioAsc(
-            Long veterinarioId, LocalDateTime inicio, LocalDateTime fim);
+    // "< :fim", e nao BETWEEN: BETWEEN inclui a meia-noite do dia seguinte
+    @Query("SELECT j FROM JanelaAtendimentoEntity j WHERE j.veterinario.id = :veterinarioId AND j.consulta IS NULL"
+            + " AND j.dataHoraInicio >= :inicio AND j.dataHoraInicio < :fim ORDER BY j.dataHoraInicio")
+    List<JanelaAtendimentoEntity> findLivresNoPeriodo(
+            @Param("veterinarioId") Long veterinarioId, @Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 
     // devolve o slot ao cancelar — FK_JANELA_CONSULTA é ON DELETE SET NULL e cancelamento não é exclusão
     Optional<JanelaAtendimentoEntity> findByConsultaId(Long consultaId);

@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Porte;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Sexo;
@@ -8,7 +9,6 @@ import lombok.*;
 import org.hibernate.type.NumericBooleanConverter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "T_PB_ANIMAL")
@@ -70,17 +70,13 @@ public class AnimalEntity {
     @JoinColumn(name = "ID_RESPONSAVEL", nullable = false)
     private ResponsavelEntity responsavel;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 
     @PreUpdate
-    private void preUpdate() { updatedAt = LocalDateTime.now(); }
+    private void preUpdate() { auditoria = auditoria.atualizadaAgora(); }
 }

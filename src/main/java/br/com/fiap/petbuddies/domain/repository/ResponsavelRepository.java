@@ -9,7 +9,7 @@ public interface ResponsavelRepository extends JpaRepository<ResponsavelEntity, 
 
     List<ResponsavelEntity> findByNomeContainingIgnoreCase(String nome);
 
-    boolean existsByEmailIgnoreCase(String email);
+    boolean existsByContatoEmailIgnoreCase(String email);
 
-    boolean existsByTelefone(String telefone);
+    boolean existsByContatoTelefone(String telefone);
 }

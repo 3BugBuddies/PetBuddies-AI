@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.cadastro;
 
+import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.domain.repository.ResponsavelRepository;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelRequest;
@@ -57,7 +58,6 @@ public class ResponsavelService {
 
     private void aplicar(ResponsavelRequest request, ResponsavelEntity entity) {
         entity.setNome(request.getNome());
-        entity.setTelefone(request.getTelefone());
-        entity.setEmail(request.getEmail());
+        entity.setContato(new Contato(request.getTelefone(), request.getEmail()));
     }
 }

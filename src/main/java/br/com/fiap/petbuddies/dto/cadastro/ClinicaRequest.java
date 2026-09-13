@@ -33,8 +33,8 @@ public class ClinicaRequest {
         ClinicaRequest request = new ClinicaRequest();
         request.setNome(entity.getNome());
         request.setCnpj(entity.getCnpj());
-        request.setTelefone(entity.getTelefone());
-        request.setEmail(entity.getEmail());
+        request.setTelefone(entity.getContato().getTelefone());
+        request.setEmail(entity.getContato().getEmail());
         return request;
     }
 }

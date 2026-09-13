@@ -48,15 +48,15 @@ public class AvaliadorRegraService {
     }
 
     private boolean casa(RegraPrescricaoEntity regra, CondicaoObservadaEntity observada) {
-        if (regra.getTipoDadoCongelado() == TipoDado.BOOLEANO) {
+        if (regra.getCondicaoCongelada().getTipoDado() == TipoDado.BOOLEANO) {
             // CK_REGRA_COERENCIA: regra BOOLEANO não tem operador nem limite —
             // a própria condição confirmada como verdadeira é o gatilho.
-            return Boolean.TRUE.equals(observada.getValorBooleano());
+            return Boolean.TRUE.equals(observada.getValor().getBooleano());
         }
-        if (observada.getValorNumerico() == null) {
+        if (observada.getValor().getNumerico() == null) {
             return false;
         }
-        int cmp = observada.getValorNumerico().compareTo(regra.getLimite());
+        int cmp = observada.getValor().getNumerico().compareTo(regra.getLimite());
         return switch (regra.getOperador()) {
             case MAIOR_QUE -> cmp > 0;
             case MAIOR_OU_IGUAL -> cmp >= 0;
@@ -68,8 +68,8 @@ public class AvaliadorRegraService {
 
     private Resultado aplicarAcao(PrescricaoEntity prescricao, RegraPrescricaoEntity regra) {
         return switch (regra.getAcaoDose()) {
-            case DOSE_MIN -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getDoseMin(), regra.getId());
-            case DOSE_MAX -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getDoseMax(), regra.getId());
+            case DOSE_MIN -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getFaixaDose().getDoseMin(), regra.getId());
+            case DOSE_MAX -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getFaixaDose().getDoseMax(), regra.getId());
             case DOSE_PADRAO -> new Resultado(TipoDesfecho.DOSE_CALCULADA, doseBase(prescricao), regra.getId());
             case ACIONAR_CLINICA -> new Resultado(TipoDesfecho.ACIONAR_CLINICA, null, regra.getId());
             // Sem estado "pausada" — SEM_DOSE e o desfecho de CK_ITEM_DESFECHO_DOSE, que nao exige NR_DOSE_APLICADA.
@@ -79,6 +79,6 @@ public class AvaliadorRegraService {
 
     // Base de DOSE_PADRAO e do "nenhuma regra casou": sem coluna de dose padrao, so a faixa NR_DOSE_MIN/NR_DOSE_MAX — usa o piso, mais conservador.
     private BigDecimal doseBase(PrescricaoEntity prescricao) {
-        return prescricao.getDoseMin();
+        return prescricao.getFaixaDose().getDoseMin();
     }
 }

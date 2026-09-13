@@ -51,7 +51,7 @@ public class PlanoResponse {
         r.protocoloId = plano.getProtocoloId();
         r.categoria = plano.getCategoria().name();
         r.status = plano.getStatus().name();
-        r.instanciadoEm = plano.getCreatedAt();
+        r.instanciadoEm = plano.getAuditoria().getCreatedAt();
         r.eventos = plano.getItens().stream()
                 .filter(e -> e.getStatus() != StatusItem.CANCELADO)
                 .map(ItemPlanoCuidadoDto::from)
