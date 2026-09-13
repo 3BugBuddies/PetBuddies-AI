@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.cadastro;
 
-public class EmailResponsavelDuplicadoException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.ConflitoException;
+
+public class EmailResponsavelDuplicadoException extends ConflitoException {
     public EmailResponsavelDuplicadoException(String email) {
-        super("Já existe um tutor cadastrado com o e-mail: " + email);
+        super("EMAIL_DUPLICADO", "Já existe um tutor cadastrado com o e-mail: " + email);
     }
 }

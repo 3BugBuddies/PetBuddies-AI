@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.cadastro;
 
-public class ResponsavelNaoEncontradoException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class ResponsavelNaoEncontradoException extends RecursoNaoEncontradoException {
     public ResponsavelNaoEncontradoException(Long id) {
-        super("Responsável não encontrado para o id: " + id);
+        super("RESPONSAVEL_NAO_ENCONTRADO", "Responsável não encontrado para o id: " + id);
     }
 }

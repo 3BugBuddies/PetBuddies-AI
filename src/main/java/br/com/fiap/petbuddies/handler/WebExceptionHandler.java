@@ -1,25 +1,9 @@
 package br.com.fiap.petbuddies.handler;
 
-import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.cadastro.CnpjDuplicadoException;
-import br.com.fiap.petbuddies.exception.atendimento.ConsultaJaRealizadaException;
-import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoPodeSerFechadaException;
-import br.com.fiap.petbuddies.exception.atendimento.CodigoCondicaoDuplicadoException;
-import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.ConflitoException;
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
-import br.com.fiap.petbuddies.exception.cadastro.CrmvDuplicadoException;
-import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
-import br.com.fiap.petbuddies.exception.cuidado.PlanoNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.atendimento.ProcedimentoNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
-import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.cadastro.ResponsavelNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import br.com.fiap.petbuddies.security.UsuarioPrincipal;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -39,33 +23,13 @@ public class WebExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(WebExceptionHandler.class);
 
-    @ExceptionHandler({
-            AnimalNaoEncontradoException.class,
-            ClinicaNaoEncontradaException.class,
-            CondicaoClinicaNaoEncontradaException.class,
-            ConsultaNaoEncontradaException.class,
-            JanelaAtendimentoNaoEncontradaException.class,
-            PlanoNaoEncontradoException.class,
-            PrescricaoNaoEncontradaException.class,
-            ProcedimentoNaoEncontradoException.class,
-            RegistroAtendimentoNaoEncontradoException.class,
-            RegraPrescricaoNaoEncontradaException.class,
-            ResponsavelNaoEncontradoException.class,
-            VeterinarioNaoEncontradoException.class
-    })
-    public ModelAndView handleNaoEncontrado(RuntimeException ex, HttpServletResponse response) {
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ModelAndView handleNaoEncontrado(RecursoNaoEncontradoException ex, HttpServletResponse response) {
         return erro(response, HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler({
-            CnpjDuplicadoException.class,
-            CrmvDuplicadoException.class,
-            CodigoCondicaoDuplicadoException.class,
-            JanelaConflitanteException.class,
-            ConsultaJaRealizadaException.class,
-            ConsultaNaoPodeSerFechadaException.class
-    })
-    public ModelAndView handleConflito(RuntimeException ex, HttpServletResponse response) {
+    @ExceptionHandler(ConflitoException.class)
+    public ModelAndView handleConflito(ConflitoException ex, HttpServletResponse response) {
         return erro(response, HttpStatus.CONFLICT, ex.getMessage());
     }
 

@@ -1,37 +1,15 @@
 package br.com.fiap.petbuddies.handler;
 
 import br.com.fiap.petbuddies.dto.ErrorDto;
-import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.checkin.CheckinDuplicadoException;
-import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.cadastro.CnpjDuplicadoException;
-import br.com.fiap.petbuddies.exception.atendimento.CodigoCondicaoDuplicadoException;
-import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.ConflitoException;
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
-import br.com.fiap.petbuddies.exception.atendimento.ConsultaJaRealizadaException;
-import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoProvisionadaException;
-import br.com.fiap.petbuddies.exception.cadastro.CrmvDuplicadoException;
-import br.com.fiap.petbuddies.exception.cadastro.EmailResponsavelDuplicadoException;
-import br.com.fiap.petbuddies.exception.cadastro.LoginDuplicadoException;
 import br.com.fiap.petbuddies.exception.cadastro.RegistroIncompletoException;
-import br.com.fiap.petbuddies.exception.cadastro.TelefoneResponsavelDuplicadoException;
-import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaNoPassadoException;
-import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.atendimento.ProcedimentoNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
-import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoNaoEncontradaException;
-import br.com.fiap.petbuddies.exception.cadastro.ResponsavelNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.cuidado.PlanoNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
-import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.slf4j.Logger;
@@ -105,59 +83,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(401).body(new ErrorDto("CREDENCIAIS_INVALIDAS", ex.getMessage()));
     }
 
-    @ExceptionHandler(PlanoNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handlePlanoNaoEncontrado(PlanoNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("PLANO_NAO_ENCONTRADO", ex.getMessage()));
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<ErrorDto> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
+        return ResponseEntity.status(404).body(new ErrorDto(ex.getCodigo(), ex.getMessage()));
     }
 
-    @ExceptionHandler(ClinicaNaoEncontradaException.class)
-    public ResponseEntity<ErrorDto> handleClinicaNaoEncontrada(ClinicaNaoEncontradaException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("CLINICA_NAO_ENCONTRADA", ex.getMessage()));
-    }
-
-    @ExceptionHandler(ResponsavelNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleResponsavelNaoEncontrado(ResponsavelNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("RESPONSAVEL_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(VeterinarioNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleVeterinarioNaoEncontrado(VeterinarioNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("VETERINARIO_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(AnimalNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleAnimalNaoEncontrado(AnimalNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("ANIMAL_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(ConsultaNaoEncontradaException.class)
-    public ResponseEntity<ErrorDto> handleConsultaNaoEncontrada(ConsultaNaoEncontradaException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("CONSULTA_NAO_ENCONTRADA", ex.getMessage()));
-    }
-
-    @ExceptionHandler(CondicaoClinicaNaoEncontradaException.class)
-    public ResponseEntity<ErrorDto> handleCondicaoClinicaNaoEncontrada(CondicaoClinicaNaoEncontradaException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("CONDICAO_CLINICA_NAO_ENCONTRADA", ex.getMessage()));
-    }
-
-    @ExceptionHandler(CnpjDuplicadoException.class)
-    public ResponseEntity<ErrorDto> handleCnpjDuplicado(CnpjDuplicadoException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("CNPJ_DUPLICADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(LoginDuplicadoException.class)
-    public ResponseEntity<ErrorDto> handleLoginDuplicado(LoginDuplicadoException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("LOGIN_DUPLICADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(EmailResponsavelDuplicadoException.class)
-    public ResponseEntity<ErrorDto> handleEmailResponsavelDuplicado(EmailResponsavelDuplicadoException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("EMAIL_DUPLICADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(TelefoneResponsavelDuplicadoException.class)
-    public ResponseEntity<ErrorDto> handleTelefoneResponsavelDuplicado(TelefoneResponsavelDuplicadoException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("TELEFONE_DUPLICADO", ex.getMessage()));
+    @ExceptionHandler(ConflitoException.class)
+    public ResponseEntity<ErrorDto> handleConflito(ConflitoException ex) {
+        return ResponseEntity.status(409).body(new ErrorDto(ex.getCodigo(), ex.getMessage()));
     }
 
     @ExceptionHandler(RegistroIncompletoException.class)
@@ -170,59 +103,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.unprocessableEntity().body(new ErrorDto("CLINICA_NAO_PROVISIONADA", ex.getMessage()));
     }
 
-    @ExceptionHandler(CrmvDuplicadoException.class)
-    public ResponseEntity<ErrorDto> handleCrmvDuplicado(CrmvDuplicadoException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("CRMV_DUPLICADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(CodigoCondicaoDuplicadoException.class)
-    public ResponseEntity<ErrorDto> handleCodigoCondicaoDuplicado(CodigoCondicaoDuplicadoException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("CODIGO_CONDICAO_DUPLICADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(JanelaAtendimentoNaoEncontradaException.class)
-    public ResponseEntity<ErrorDto> handleJanelaAtendimentoNaoEncontrada(JanelaAtendimentoNaoEncontradaException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("JANELA_ATENDIMENTO_NAO_ENCONTRADA", ex.getMessage()));
-    }
-
-    @ExceptionHandler(RegistroAtendimentoNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleRegistroAtendimentoNaoEncontrado(RegistroAtendimentoNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("REGISTRO_ATENDIMENTO_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(ProcedimentoNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleProcedimentoNaoEncontrado(ProcedimentoNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("PROCEDIMENTO_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(PrescricaoNaoEncontradaException.class)
-    public ResponseEntity<ErrorDto> handlePrescricaoNaoEncontrada(PrescricaoNaoEncontradaException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("PRESCRICAO_NAO_ENCONTRADA", ex.getMessage()));
-    }
-
-    @ExceptionHandler(RegraPrescricaoNaoEncontradaException.class)
-    public ResponseEntity<ErrorDto> handleRegraPrescricaoNaoEncontrada(RegraPrescricaoNaoEncontradaException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("REGRA_PRESCRICAO_NAO_ENCONTRADA", ex.getMessage()));
-    }
-
-    @ExceptionHandler(JanelaConflitanteException.class)
-    public ResponseEntity<ErrorDto> handleJanelaConflitante(JanelaConflitanteException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("JANELA_CONFLITANTE", ex.getMessage()));
-    }
-
     @ExceptionHandler(JanelaNoPassadoException.class)
     public ResponseEntity<ErrorDto> handleJanelaNoPassado(JanelaNoPassadoException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("JANELA_NO_PASSADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(ConsultaJaRealizadaException.class)
-    public ResponseEntity<ErrorDto> handleConsultaJaRealizada(ConsultaJaRealizadaException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("CONSULTA_JA_REALIZADA", ex.getMessage()));
-    }
-
-    @ExceptionHandler(ConsultaNaoPodeSerFechadaException.class)
-    public ResponseEntity<ErrorDto> handleConsultaNaoPodeSerFechada(ConsultaNaoPodeSerFechadaException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("CONSULTA_NAO_PODE_SER_FECHADA", ex.getMessage()));
     }
 
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
@@ -233,21 +116,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CondicaoObservadaIncoerenteException.class)
     public ResponseEntity<ErrorDto> handleCondicaoObservadaIncoerente(CondicaoObservadaIncoerenteException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("CONDICAO_OBSERVADA_INCOERENTE", ex.getMessage()));
-    }
-
-    @ExceptionHandler(CheckinNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleCheckinNaoEncontrado(CheckinNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("CHECKIN_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(ItemPlanoCuidadoNaoEncontradoException.class)
-    public ResponseEntity<ErrorDto> handleItemPlanoCuidadoNaoEncontrado(ItemPlanoCuidadoNaoEncontradoException ex) {
-        return ResponseEntity.status(404).body(new ErrorDto("ITEM_PLANO_CUIDADO_NAO_ENCONTRADO", ex.getMessage()));
-    }
-
-    @ExceptionHandler(CheckinDuplicadoException.class)
-    public ResponseEntity<ErrorDto> handleCheckinDuplicado(CheckinDuplicadoException ex) {
-        return ResponseEntity.status(409).body(new ErrorDto("CHECKIN_DUPLICADO", ex.getMessage()));
     }
 
     @ExceptionHandler(DuracaoTratamentoExcedeTetoException.class)

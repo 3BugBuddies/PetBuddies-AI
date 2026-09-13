@@ -1,16 +1,20 @@
 package br.com.fiap.petbuddies.exception.cadastro;
 
-public class ClinicaNaoEncontradaException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class ClinicaNaoEncontradaException extends RecursoNaoEncontradoException {
+
+    private static final String CODIGO = "CLINICA_NAO_ENCONTRADA";
 
     public ClinicaNaoEncontradaException() {
-        super("Nenhuma clínica cadastrada.");
+        super(CODIGO, "Nenhuma clínica cadastrada.");
     }
 
     public ClinicaNaoEncontradaException(Long id) {
-        super("Clínica não encontrada para o id: " + id);
+        super(CODIGO, "Clínica não encontrada para o id: " + id);
     }
 
     public ClinicaNaoEncontradaException(String cnpj) {
-        super("Clínica não encontrada para o CNPJ: " + cnpj);
+        super(CODIGO, "Clínica não encontrada para o CNPJ: " + cnpj);
     }
 }

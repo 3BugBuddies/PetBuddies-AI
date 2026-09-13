@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.prescricao;
 
-public class PrescricaoNaoEncontradaException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class PrescricaoNaoEncontradaException extends RecursoNaoEncontradoException {
     public PrescricaoNaoEncontradaException(Long id) {
-        super("Prescrição não encontrada para o id: " + id);
+        super("PRESCRICAO_NAO_ENCONTRADA", "Prescrição não encontrada para o id: " + id);
     }
 }

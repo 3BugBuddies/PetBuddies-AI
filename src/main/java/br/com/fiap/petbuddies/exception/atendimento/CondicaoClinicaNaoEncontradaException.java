@@ -1,12 +1,16 @@
 package br.com.fiap.petbuddies.exception.atendimento;
 
-public class CondicaoClinicaNaoEncontradaException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class CondicaoClinicaNaoEncontradaException extends RecursoNaoEncontradoException {
+
+    private static final String CODIGO = "CONDICAO_CLINICA_NAO_ENCONTRADA";
 
     public CondicaoClinicaNaoEncontradaException(Long id) {
-        super("Condição clínica não encontrada para o id: " + id);
+        super(CODIGO, "Condição clínica não encontrada para o id: " + id);
     }
 
     public CondicaoClinicaNaoEncontradaException(Long clinicaId, String codigo) {
-        super("Condição clínica não encontrada para o código " + codigo + " na clínica " + clinicaId);
+        super(CODIGO, "Condição clínica não encontrada para o código " + codigo + " na clínica " + clinicaId);
     }
 }

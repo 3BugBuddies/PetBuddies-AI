@@ -1,7 +1,9 @@
 package br.com.fiap.petbuddies.exception.atendimento;
 
-public class JanelaAtendimentoNaoEncontradaException extends RuntimeException {
+import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
+
+public class JanelaAtendimentoNaoEncontradaException extends RecursoNaoEncontradoException {
     public JanelaAtendimentoNaoEncontradaException(Long id) {
-        super("Janela de atendimento não encontrada para o id: " + id);
+        super("JANELA_ATENDIMENTO_NAO_ENCONTRADA", "Janela de atendimento não encontrada para o id: " + id);
     }
 }
