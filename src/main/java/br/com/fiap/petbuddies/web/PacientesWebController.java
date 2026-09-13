@@ -192,5 +192,4 @@ public class PacientesWebController {
         model.addAttribute("consultas", consultas);
         motorPlanoService.buscarPlanoAtivo(animal.getId()).ifPresent(p -> model.addAttribute("planoAtivo", p));
     }
-
 }

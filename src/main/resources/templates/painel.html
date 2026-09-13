@@ -120,9 +120,9 @@
                           th:text="${consulta.status}">AGENDADA</span>
                 </td>
                 <td>
-                    <a th:if="${consulta.status.name() == 'AGENDADA'}"
+                    <a th:if="${statusFechavel.contains(consulta.status)}"
                        th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
-                    <span th:unless="${consulta.status.name() == 'AGENDADA'}" class="texto-fraco">—</span>
+                    <span th:unless="${statusFechavel.contains(consulta.status)}" class="texto-fraco">—</span>
                 </td>
             </tr>
             </tbody>

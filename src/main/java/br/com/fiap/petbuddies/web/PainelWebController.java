@@ -45,6 +45,7 @@ public class PainelWebController {
         model.addAttribute("resumo", acompanhamentoService.resumo());
         model.addAttribute("vencidos", acompanhamentoService.vencidos(LIMITE_VENCIDOS));
         model.addAttribute("consultasHoje", consultasHoje);
+        model.addAttribute("statusFechavel", ConsultaService.STATUS_FECHAVEL);
         return "painel";
     }
 }
