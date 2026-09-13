@@ -33,9 +33,9 @@ public class RegraPrescricaoResponse {
         dto.id = entity.getId();
         dto.prescricaoId = entity.getPrescricao() == null ? null : entity.getPrescricao().getId();
         dto.condicaoClinicaId = entity.getCondicaoClinica() == null ? null : entity.getCondicaoClinica().getId();
-        dto.rotuloCongelado = entity.getRotuloCongelado();
-        dto.tipoDadoCongelado = entity.getTipoDadoCongelado();
-        dto.fonteValorCongelada = entity.getFonteValorCongelada();
+        dto.rotuloCongelado = entity.getCondicaoCongelada().getRotulo();
+        dto.tipoDadoCongelado = entity.getCondicaoCongelada().getTipoDado();
+        dto.fonteValorCongelada = entity.getCondicaoCongelada().getFonteValor();
         dto.operador = entity.getOperador();
         dto.limite = entity.getLimite();
         dto.acaoDose = entity.getAcaoDose();

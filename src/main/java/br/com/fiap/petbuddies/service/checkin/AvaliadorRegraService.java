@@ -48,7 +48,7 @@ public class AvaliadorRegraService {
     }
 
     private boolean casa(RegraPrescricaoEntity regra, CondicaoObservadaEntity observada) {
-        if (regra.getTipoDadoCongelado() == TipoDado.BOOLEANO) {
+        if (regra.getCondicaoCongelada().getTipoDado() == TipoDado.BOOLEANO) {
             // CK_REGRA_COERENCIA: regra BOOLEANO não tem operador nem limite —
             // a própria condição confirmada como verdadeira é o gatilho.
             return Boolean.TRUE.equals(observada.getValorBooleano());

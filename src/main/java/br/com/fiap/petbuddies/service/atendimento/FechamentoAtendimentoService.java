@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.atendimento;
 
+import br.com.fiap.petbuddies.domain.embeddable.CondicaoCongelada;
 import br.com.fiap.petbuddies.domain.embeddable.FaixaDose;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
@@ -165,9 +166,7 @@ public class FechamentoAtendimentoService {
             regra.setPrescricao(prescricao);
             regra.setCondicaoClinica(condicao);
             // A cópia congelada: o que foi assinado, não o que o catálogo diz hoje.
-            regra.setRotuloCongelado(condicao.getRotulo());
-            regra.setTipoDadoCongelado(condicao.getTipoDado());
-            regra.setFonteValorCongelada(condicao.getFonteValor());
+            regra.setCondicaoCongelada(new CondicaoCongelada(condicao.getRotulo(), condicao.getTipoDado(), condicao.getFonteValor()));
             regra.setOperador(rg.getOperador());
             regra.setLimite(rg.getLimite());
             regra.setAcaoDose(rg.getAcaoDose());

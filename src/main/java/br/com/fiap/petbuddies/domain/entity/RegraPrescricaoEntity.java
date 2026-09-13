@@ -1,9 +1,8 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.CondicaoCongelada;
 import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
-import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
-import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Immutable;
@@ -35,16 +34,8 @@ public class RegraPrescricaoEntity {
     @JoinColumn(name = "ID_CONDICAO_CLINICA", nullable = false)
     private CondicaoClinicaEntity condicaoClinica;
 
-    @Column(name = "DS_ROTULO_CONGELADO", nullable = false, length = 255)
-    private String rotuloCongelado;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "TP_DADO_CONGELADO", nullable = false, length = 20)
-    private TipoDado tipoDadoCongelado;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "TP_FONTE_VALOR_CONGELADA", nullable = false, length = 20)
-    private TipoFonteValor fonteValorCongelada;
+    @Embedded
+    private CondicaoCongelada condicaoCongelada;
 
     // Nulo quando tipoDadoCongelado é BOOLEANO — CK_REGRA_COERENCIA.
     @Enumerated(EnumType.STRING)
