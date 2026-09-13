@@ -12,6 +12,23 @@ A veterinária atende, prescreve e monta o plano de cuidado. Em casa, o tutor co
 
 <img src="assets/figuras/arquitetura.png" alt="Arquitetura: app mobile e telas da clínica chamam o petbuddies-ai (Java), que tem Oracle próprio, usa o Gemini e lê o catálogo de protocolos do PetBuddies-API (.NET) por HTTP">
 
+## Índice
+
+1. [Integrantes do Grupo](#integrantes-do-grupo)
+2. [Configuração — Spring Initializr](#configuração--spring-initializr)
+3. [Stack](#stack)
+4. [Estrutura do Projeto](#estrutura-do-projeto)
+5. [Como Executar](#como-executar)
+6. [Diagrama de classes](#diagrama-de-classes)
+7. [Autenticação e perfis](#autenticação-e-perfis)
+8. [Fluxos Principais](#fluxos-principais)
+9. [Superfície web (Thymeleaf)](#superfície-web-thymeleaf)
+10. [Recursos e Rotas](#recursos-e-rotas)
+11. [Como Testar](#como-testar)
+12. [Exemplos de Payload](#exemplos-de-payload)
+
+---
+
 ## Links
 
 |                               | |
