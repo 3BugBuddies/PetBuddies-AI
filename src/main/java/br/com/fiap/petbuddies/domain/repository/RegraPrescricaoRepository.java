@@ -9,4 +9,6 @@ public interface RegraPrescricaoRepository extends JpaRepository<RegraPrescricao
 
     // O motor lê as regras de uma prescrição na ordem assinada (IX_REGRA_PRESC_ORDEM).
     List<RegraPrescricaoEntity> findByPrescricaoIdOrderByOrdemAsc(Long prescricaoId);
+
+    boolean existsByCondicaoClinicaId(Long condicaoClinicaId);
 }

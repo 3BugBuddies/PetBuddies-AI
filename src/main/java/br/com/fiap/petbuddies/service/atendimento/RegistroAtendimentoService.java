@@ -5,10 +5,13 @@ import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
+import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
+import br.com.fiap.petbuddies.domain.repository.ProcedimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoComVinculosException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +24,20 @@ public class RegistroAtendimentoService {
     private final RegistroAtendimentoRepository repository;
     private final AnimalRepository animalRepository;
     private final ConsultaRepository consultaRepository;
+    private final ProcedimentoRepository procedimentoRepository;
+    private final PrescricaoRepository prescricaoRepository;
 
     public RegistroAtendimentoService(
             RegistroAtendimentoRepository repository,
             AnimalRepository animalRepository,
-            ConsultaRepository consultaRepository) {
+            ConsultaRepository consultaRepository,
+            ProcedimentoRepository procedimentoRepository,
+            PrescricaoRepository prescricaoRepository) {
         this.repository = repository;
         this.animalRepository = animalRepository;
         this.consultaRepository = consultaRepository;
+        this.procedimentoRepository = procedimentoRepository;
+        this.prescricaoRepository = prescricaoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -64,6 +73,12 @@ public class RegistroAtendimentoService {
     @Transactional
     public void remover(Long id) {
         encontrarOuFalhar(id);
+        if (procedimentoRepository.existsByRegistroAtendimentoId(id)) {
+            throw new RegistroAtendimentoComVinculosException(id, "procedimentos");
+        }
+        if (prescricaoRepository.existsByRegistroAtendimentoId(id)) {
+            throw new RegistroAtendimentoComVinculosException(id, "prescrições");
+        }
         repository.deleteById(id);
     }
 

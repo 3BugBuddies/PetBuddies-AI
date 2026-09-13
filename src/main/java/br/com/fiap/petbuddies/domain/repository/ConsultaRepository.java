@@ -16,4 +16,10 @@ public interface ConsultaRepository extends JpaRepository<ConsultaEntity, Long> 
 
     @Query("SELECT c FROM ConsultaEntity c WHERE c.dataHora >= :inicio AND c.dataHora < :fim ORDER BY c.dataHora")
     List<ConsultaEntity> findNoPeriodo(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    boolean existsByAnimalId(Long animalId);
+
+    boolean existsByVeterinarioId(Long veterinarioId);
+
+    boolean existsByIdAndAnimalId(Long id, Long animalId);
 }

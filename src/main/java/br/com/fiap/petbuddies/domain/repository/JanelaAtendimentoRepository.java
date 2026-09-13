@@ -26,4 +26,10 @@ public interface JanelaAtendimentoRepository extends JpaRepository<JanelaAtendim
 
     // devolve o slot ao cancelar — FK_JANELA_CONSULTA é ON DELETE SET NULL e cancelamento não é exclusão
     Optional<JanelaAtendimentoEntity> findByConsultaId(Long consultaId);
+
+    boolean existsByVeterinarioId(Long veterinarioId);
+
+    boolean existsByConsultaId(Long consultaId);
+
+    boolean existsByConsultaIdAndIdNot(Long consultaId, Long id);
 }

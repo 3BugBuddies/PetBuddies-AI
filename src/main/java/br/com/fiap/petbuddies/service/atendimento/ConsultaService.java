@@ -8,11 +8,14 @@ import br.com.fiap.petbuddies.domain.enums.atendimento.StatusConsulta;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.JanelaAtendimentoRepository;
+import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
+import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.atendimento.AgendamentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.CancelamentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.ConsultaRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaComVinculosException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaJaRealizadaException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
@@ -40,16 +43,22 @@ public class ConsultaService {
     private final AnimalRepository animalRepository;
     private final VeterinarioRepository veterinarioRepository;
     private final JanelaAtendimentoRepository janelaAtendimentoRepository;
+    private final RegistroAtendimentoRepository registroAtendimentoRepository;
+    private final PlanoCuidadoRepository planoCuidadoRepository;
 
     public ConsultaService(
             ConsultaRepository repository,
             AnimalRepository animalRepository,
             VeterinarioRepository veterinarioRepository,
-            JanelaAtendimentoRepository janelaAtendimentoRepository) {
+            JanelaAtendimentoRepository janelaAtendimentoRepository,
+            RegistroAtendimentoRepository registroAtendimentoRepository,
+            PlanoCuidadoRepository planoCuidadoRepository) {
         this.repository = repository;
         this.animalRepository = animalRepository;
         this.veterinarioRepository = veterinarioRepository;
         this.janelaAtendimentoRepository = janelaAtendimentoRepository;
+        this.registroAtendimentoRepository = registroAtendimentoRepository;
+        this.planoCuidadoRepository = planoCuidadoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -93,6 +102,12 @@ public class ConsultaService {
     @Transactional
     public void remover(Long id) {
         encontrarOuFalhar(id);
+        if (registroAtendimentoRepository.existsByConsultaId(id)) {
+            throw new ConsultaComVinculosException(id, "registro de atendimento");
+        }
+        if (planoCuidadoRepository.existsByConsultaId(id)) {
+            throw new ConsultaComVinculosException(id, "planos de cuidado");
+        }
         repository.deleteById(id);
     }
 

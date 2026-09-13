@@ -41,4 +41,8 @@ public interface PlanoCuidadoRepository extends JpaRepository<PlanoCuidadoEntity
     @EntityGraph(attributePaths = "itens")
     @Query("SELECT p FROM PlanoCuidadoEntity p WHERE p.animalId = :animalId AND p.protocoloId IS NOT NULL ORDER BY p.auditoria.createdAt DESC")
     List<PlanoCuidadoEntity> findComProtocoloPorAnimal(@Param("animalId") Long animalId);
+
+    boolean existsByAnimalId(Long animalId);
+
+    boolean existsByConsultaId(Long consultaId);
 }

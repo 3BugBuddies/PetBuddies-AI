@@ -6,10 +6,13 @@ import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
+import br.com.fiap.petbuddies.domain.repository.CondicaoObservadaRepository;
+import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.atendimento.CondicaoClinicaRequest;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.CodigoCondicaoDuplicadoException;
+import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaComVinculosException;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
@@ -23,14 +26,20 @@ public class CondicaoClinicaService {
     private final CondicaoClinicaRepository repository;
     private final ClinicaRepository clinicaRepository;
     private final VeterinarioRepository veterinarioRepository;
+    private final RegraPrescricaoRepository regraPrescricaoRepository;
+    private final CondicaoObservadaRepository condicaoObservadaRepository;
 
     public CondicaoClinicaService(
             CondicaoClinicaRepository repository,
             ClinicaRepository clinicaRepository,
-            VeterinarioRepository veterinarioRepository) {
+            VeterinarioRepository veterinarioRepository,
+            RegraPrescricaoRepository regraPrescricaoRepository,
+            CondicaoObservadaRepository condicaoObservadaRepository) {
         this.repository = repository;
         this.clinicaRepository = clinicaRepository;
         this.veterinarioRepository = veterinarioRepository;
+        this.regraPrescricaoRepository = regraPrescricaoRepository;
+        this.condicaoObservadaRepository = condicaoObservadaRepository;
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +84,12 @@ public class CondicaoClinicaService {
     @Transactional
     public void remover(Long id) {
         encontrarOuFalhar(id);
+        if (regraPrescricaoRepository.existsByCondicaoClinicaId(id)) {
+            throw new CondicaoClinicaComVinculosException(id, "regras de prescrição");
+        }
+        if (condicaoObservadaRepository.existsByCondicaoClinicaId(id)) {
+            throw new CondicaoClinicaComVinculosException(id, "condições observadas");
+        }
         repository.deleteById(id);
     }
 
