@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "PetBuddies · API única (Java)",
-    "description": "Coleção do serviço `petbuddies-ai`, a API única do produto (ADR s3-25).\n\n**Como usar:** suba o serviço (`docker compose up -d --wait` e `mvn spring-boot:run`), rode *Autenticação → Login — vet* e o token fica guardado para as demais requisições.\n\n**Escopo:** reflete os endpoints existentes em `main`. Os casos de uso da onda 5 — fechar atendimento, agendamento e cancelamento, check-in, protocolo aplicado — entram aqui conforme cada PR mergear.\n\nO catálogo de protocolos **não está aqui**: passou ao serviço .NET no PR J17, e o Java o consome por HTTP.",
+    "description": "Coleção do serviço `petbuddies-ai`, a API única do produto.\n\n**Como usar:** suba o serviço, rode *Autenticação → Login — vet* e *Login — tutor*. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.\n\n**Qual token cada pasta usa:** as escritas clínicas exigem perfil VET e herdam `tokenVet`, que é o padrão da coleção. A pasta *Check-in* usa `tokenTutor`, porque registrar check-in é do tutor. Todo `GET` aceita qualquer um dos dois.\n\nO catálogo de protocolos não está aqui: ele é do serviço .NET, e o Java o consome por HTTP.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -9,7 +9,7 @@
     "bearer": [
       {
         "key": "token",
-        "value": "{{token}}",
+        "value": "{{tokenVet}}",
         "type": "string"
       }
     ]
@@ -21,7 +21,12 @@
       "type": "string"
     },
     {
-      "key": "token",
+      "key": "tokenVet",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenTutor",
       "value": "",
       "type": "string"
     }
@@ -71,9 +76,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Guarda o token na variavel da colecao: todas as outras requisicoes o herdam.",
+                  "// Guarda o token do perfil em tokenVet.",
                   "if (pm.response.code === 200) {",
-                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "    pm.collectionVariables.set('tokenVet', pm.response.json().token);",
                   "}"
                 ]
               }
@@ -121,9 +126,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Guarda o token na variavel da colecao: todas as outras requisicoes o herdam.",
+                  "// Guarda o token do perfil em tokenTutor.",
                   "if (pm.response.code === 200) {",
-                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "    pm.collectionVariables.set('tokenTutor', pm.response.json().token);",
                   "}"
                 ]
               }
@@ -162,6 +167,93 @@
             },
             "auth": {
               "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Registro — tutor (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"TUTOR\",\n  \"nome\": \"Joana Ribeiro\",\n  \"email\": \"joana.ribeiro@email.com\",\n  \"senha\": \"Senha@Forte1\",\n  \"telefone\": \"11955554444\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Registro — veterinário (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VET\",\n  \"nome\": \"Carlos Lima\",\n  \"email\": \"carlos.lima@clinica.com\",\n  \"senha\": \"Senha@Forte1\",\n  \"crmv\": \"SP-54321\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Trocar a própria senha (204)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/senha",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "senha"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senhaAtual\": \"petbuddies123\",\n  \"senhaNova\": \"petbuddies123\"\n}"
             }
           }
         }
@@ -206,8 +298,7 @@
               "query": [
                 {
                   "key": "cnpj",
-                  "value": "12345678000199",
-                  "disabled": true
+                  "value": "12345678000199"
                 }
               ]
             }
@@ -359,8 +450,7 @@
               "query": [
                 {
                   "key": "crmv",
-                  "value": "SP-12345",
-                  "disabled": true
+                  "value": "SP-12345"
                 }
               ]
             }
@@ -859,6 +949,89 @@
               ]
             }
           }
+        },
+        {
+          "name": "Agendar numa janela livre (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/agendamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "agendamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"janelaId\": 1,\n  \"animalId\": 1,\n  \"tipo\": \"ROTINA\",\n  \"observacao\": \"Primeira consulta do Rex.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancelar (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/1/cancelamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "1",
+                "cancelamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Tutor pediu para remarcar.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Fechar atendimento (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/1/fechamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "1",
+                "fechamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registroAtendimento\": {\n    \"dataAtendimento\": \"2026-09-10T14:30:00\",\n    \"anamnese\": \"Tutor relata apetite normal.\",\n    \"diagnostico\": \"Gastroenterite leve.\",\n    \"tratamento\": \"Dieta leve por 3 dias.\"\n  },\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Lactulona\",\n      \"doseMin\": 1.0,\n      \"doseMax\": 2.0,\n      \"unidade\": \"ml\",\n      \"frequenciaDia\": 2,\n      \"duracaoDias\": 5,\n      \"dataInicio\": \"2026-09-10\",\n      \"orientacao\": \"Se as fezes estiverem moles, aplicar a dose menor.\",\n      \"regras\": [\n        {\n          \"condicaoClinicaId\": 1,\n          \"acaoDose\": \"DOSE_MIN\",\n          \"ordem\": 1\n        }\n      ]\n    }\n  ]\n}"
+            }
+          }
         }
       ],
       "description": "Status: AGENDADA · CONFIRMADA · REALIZADA · CANCELADA · NAO_COMPARECEU. Tipo: ROTINA · VACINACAO · EXAME · RETORNO · EMERGENCIA."
@@ -885,6 +1058,34 @@
                   "key": "veterinarioId",
                   "value": "1",
                   "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Livres de um veterinário hoje",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/janela-atendimento/livres?veterinarioId=1&data={{hoje}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janela-atendimento",
+                "livres"
+              ],
+              "query": [
+                {
+                  "key": "veterinarioId",
+                  "value": "1"
+                },
+                {
+                  "key": "data",
+                  "value": "{{hoje}}"
                 }
               ]
             }
@@ -1400,6 +1601,33 @@
               }
             }
           }
+        },
+        {
+          "name": "Rascunho a partir da fala da veterinária (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao/rascunho",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao",
+                "rascunho"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registroAtendimentoId\": 1,\n  \"narrativa\": \"Lactulona de 1 a 2 ml, duas vezes ao dia por cinco dias. Se as fezes estiverem moles, dose menor.\"\n}"
+            }
+          }
         }
       ],
       "description": "Ato assinado e imutável (ADR s3-09): não há PUT nem DELETE, e é de propósito."
@@ -1529,13 +1757,11 @@
               "query": [
                 {
                   "key": "clinicaId",
-                  "value": "1",
-                  "disabled": true
+                  "value": "1"
                 },
                 {
                   "key": "codigo",
-                  "value": "FEBRE",
-                  "disabled": true
+                  "value": "FEBRE"
                 }
               ]
             }
@@ -1751,9 +1977,196 @@
               ]
             }
           }
+        },
+        {
+          "name": "Protocolo aplicado ao animal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/plano/1/protocolo-aplicado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "plano",
+                "1",
+                "protocolo-aplicado"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sugestões pelo histórico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/plano/1/sugestoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "plano",
+                "1",
+                "sugestoes"
+              ]
+            }
+          }
         }
       ],
       "description": "Exige autenticação desde o PR de limpeza da onda 4 — a zona aberta existia para um gatilho do .NET que o ADR s3-25 removeu."
+    },
+    {
+      "name": "Check-in",
+      "description": "Registrar check-in é do tutor: esta pasta usa `tokenTutor`. Rode *Login — tutor* antes.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{tokenTutor}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "1 · Extrair condições do relato (200, não grava)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin/extracao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin",
+                "extracao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": 1,\n  \"narrativa\": \"Ele comeu bem hoje, mas as fezes estavam mais moles que o normal.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2 · Registrar o check-in confirmado (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": 1,\n  \"narrativa\": \"Ele comeu bem hoje, mas as fezes estavam mais moles que o normal.\",\n  \"condicoes\": [\n    {\n      \"condicaoClinicaId\": 1,\n      \"valorBooleano\": true,\n      \"confianca\": 0.92\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Buscar por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check-ins do animal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin?animalId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Saúde",
+      "item": [
+        {
+          "name": "Health check (sem token)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Data de hoje no formato AAAA-MM-DD, usada pelas rotas que filtram por dia.",
+          "pm.variables.set('hoje', new Date().toISOString().slice(0, 10));"
+        ]
+      }
     }
   ]
 }
