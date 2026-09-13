@@ -21,7 +21,6 @@ import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.dto.cuidado.SugestaoCuidadoDto;
-import br.com.fiap.petbuddies.exception.cuidado.PlanoNaoEncontradoException;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
 import br.com.fiap.petbuddies.infrastructure.client.RegraCatalogoDto;
@@ -32,8 +31,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,9 @@ public class MotorPlanoService {
 
     /** Ate onde a recorrencia e materializada. O plano nao tem fim; a tabela precisa ter. */
     private static final int HORIZONTE_MESES = 12;
+
+    private static final List<CategoriaPlano> PRIORIDADE_PLANO_ATIVO =
+            List.of(CategoriaPlano.PREVENTIVO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.TRATAMENTO);
 
     private final PlanoCuidadoRepository planoRepository;
     private final ItemPlanoCuidadoRepository itemRepository;
@@ -110,16 +114,23 @@ public class MotorPlanoService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        for (CategoriaPlano categoria : List.of(
-                CategoriaPlano.PREVENTIVO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.TRATAMENTO)) {
-            Optional<PlanoCuidadoEntity> plano = planoRepository
-                    .findPlanoAtivoPorCategoria(animalId, StatusPlano.ATIVO, categoria);
-            if (plano.isPresent()) {
-                return plano.map(PlanoResponse::from);
-            }
+    public Map<Long, PlanoResponse> buscarPlanosAtivos(Collection<Long> animalIds) {
+        if (animalIds.isEmpty()) {
+            return Map.of();
         }
-        return Optional.empty();
+        Comparator<PlanoCuidadoEntity> prioridade = Comparator
+                .comparingInt((PlanoCuidadoEntity p) -> PRIORIDADE_PLANO_ATIVO.indexOf(p.getCategoria()))
+                .thenComparing(PlanoCuidadoEntity::getId);
+
+        return planoRepository.findPorAnimaisEStatus(animalIds, StatusPlano.ATIVO).stream()
+                .collect(Collectors.groupingBy(PlanoCuidadoEntity::getAnimalId,
+                        Collectors.collectingAndThen(Collectors.minBy(prioridade),
+                                plano -> PlanoResponse.from(plano.orElseThrow()))));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
+        return Optional.ofNullable(buscarPlanosAtivos(List.of(animalId)).get(animalId));
     }
 
     @Transactional(readOnly = true)
@@ -224,18 +235,6 @@ public class MotorPlanoService {
     /** Data do "ultima vez que aconteceu": a execucao, quando existe, senao a data-alvo. */
     private static LocalDate dataDeReferencia(ItemPlanoCuidadoEntity item) {
         return item.getExecutadoEm() != null ? item.getExecutadoEm().toLocalDate() : item.getDataAlvo();
-    }
-
-    @Transactional
-    public void cancelarPlano(Long planoId, String motivo) {
-        PlanoCuidadoEntity plano = planoRepository.findById(planoId)
-                .orElseThrow(() -> new PlanoNaoEncontradoException(planoId));
-        // motivo nao e persistido — nao ha campo no schema para isso.
-        plano.setStatus(StatusPlano.CANCELADO);
-        plano.getItens().stream()
-                .filter(e -> e.getStatus() == StatusItem.PENDENTE)
-                .forEach(e -> e.setStatus(StatusItem.CANCELADO));
-        planoRepository.save(plano);
     }
 
     // Havendo mais de um candidato, o de menor id vence — determinismo, nao criterio clinico.

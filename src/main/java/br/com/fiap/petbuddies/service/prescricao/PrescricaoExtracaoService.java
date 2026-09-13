@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 // Nunca decide clinicamente — so preenche o formulario que o vet revisa.
@@ -188,16 +189,20 @@ public class PrescricaoExtracaoService {
         }
     }
 
-    // NR_DOSE_MIN/NR_DOSE_MAX são NUMBER(8,3): no máximo 5 dígitos inteiros e 3 decimais.
-    private BigDecimal doseValida(BigDecimal valor) {
-        if (valor == null || valor.signum() < 0) {
+    private BigDecimal decimalQueCabe(BigDecimal valor, int digitosInteiros) {
+        if (valor == null) {
             return null;
         }
         BigDecimal arredondado = valor.setScale(3, RoundingMode.HALF_UP);
-        if (arredondado.precision() - arredondado.scale() > 5) {
+        if (arredondado.precision() - arredondado.scale() > digitosInteiros) {
             return null;
         }
         return arredondado;
+    }
+
+    // NR_DOSE_MIN/NR_DOSE_MAX são NUMBER(8,3): no máximo 5 dígitos inteiros e 3 decimais.
+    private BigDecimal doseValida(BigDecimal valor) {
+        return valor != null && valor.signum() < 0 ? null : decimalQueCabe(valor, 5);
     }
 
     private void aplicarUnidade(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
@@ -263,7 +268,7 @@ public class PrescricaoExtracaoService {
             List<RegraCondicionalExtraidaIA> extraidas, List<CondicaoClinicaEntity> catalogo, List<String> descartadas) {
         List<RegraPrescricaoRequest> resultado = new ArrayList<>();
         int ordem = 1;
-        for (RegraCondicionalExtraidaIA r : nullSafe(extraidas)) {
+        for (RegraCondicionalExtraidaIA r : Objects.requireNonNullElse(extraidas, List.<RegraCondicionalExtraidaIA>of())) {
             RegraPrescricaoRequest regra = validarRegra(r, catalogo, ordem, descartadas);
             if (regra != null) {
                 resultado.add(regra);
@@ -328,14 +333,7 @@ public class PrescricaoExtracaoService {
 
     // NR_LIMITE é NUMBER(10,3): no máximo 7 dígitos inteiros e 3 decimais.
     private BigDecimal limiteValido(BigDecimal valor) {
-        if (valor == null) {
-            return null;
-        }
-        BigDecimal arredondado = valor.setScale(3, RoundingMode.HALF_UP);
-        if (arredondado.precision() - arredondado.scale() > 7) {
-            return null;
-        }
-        return arredondado;
+        return decimalQueCabe(valor, 7);
     }
 
     private <E extends Enum<E>> E parseEnum(Class<E> tipo, String valor) {
@@ -347,9 +345,5 @@ public class PrescricaoExtracaoService {
         } catch (IllegalArgumentException e) {
             return null;
         }
-    }
-
-    private static <T> List<T> nullSafe(List<T> lista) {
-        return lista == null ? List.of() : lista;
     }
 }

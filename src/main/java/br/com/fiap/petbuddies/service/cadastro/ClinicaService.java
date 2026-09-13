@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ClinicaService {
@@ -27,6 +28,11 @@ public class ClinicaService {
     @Transactional(readOnly = true)
     public ClinicaEntity buscarPorId(Long id) {
         return encontrarOuFalhar(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ClinicaEntity> buscarUnica() {
+        return repository.findFirstByOrderByIdAsc();
     }
 
     @Transactional(readOnly = true)

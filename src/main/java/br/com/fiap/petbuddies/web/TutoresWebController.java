@@ -63,7 +63,7 @@ public class TutoresWebController {
     @GetMapping("/{id}/editar")
     public String editarForm(@PathVariable Long id, Model model) {
         if (!model.containsAttribute("responsavelRequest")) {
-            model.addAttribute("responsavelRequest", paraRequest(responsavelService.buscarPorId(id)));
+            model.addAttribute("responsavelRequest", ResponsavelRequest.from(responsavelService.buscarPorId(id)));
         }
         model.addAttribute("responsavelId", id);
         model.addAttribute("acaoFormulario", "/tutores/" + id);
@@ -85,13 +85,5 @@ public class TutoresWebController {
         responsavelService.atualizar(id, request);
         redirect.addFlashAttribute("sucesso", "Cadastro atualizado.");
         return "redirect:/tutores";
-    }
-
-    private ResponsavelRequest paraRequest(ResponsavelEntity entity) {
-        ResponsavelRequest request = new ResponsavelRequest();
-        request.setNome(entity.getNome());
-        request.setTelefone(entity.getTelefone());
-        request.setEmail(entity.getEmail());
-        return request;
     }
 }

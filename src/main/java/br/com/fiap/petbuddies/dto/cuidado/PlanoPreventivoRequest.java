@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.dto.cuidado;
 
+import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -26,4 +27,12 @@ public class PlanoPreventivoRequest {
     @Schema(description = "Data de nascimento do animal (deve ser no passado)", example = "2020-05-10", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull @Past
     private LocalDate dataNascimento;
+
+    public static PlanoPreventivoRequest from(AnimalEntity animal) {
+        PlanoPreventivoRequest request = new PlanoPreventivoRequest();
+        request.setAnimalId(animal.getId());
+        request.setEspecie(animal.getEspecie());
+        request.setDataNascimento(animal.getDataNascimento());
+        return request;
+    }
 }

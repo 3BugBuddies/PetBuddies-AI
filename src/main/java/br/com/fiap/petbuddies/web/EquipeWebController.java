@@ -44,7 +44,7 @@ public class EquipeWebController {
     public String novoForm(Model model) {
         if (!model.containsAttribute("veterinarioRequest")) {
             VeterinarioRequest request = new VeterinarioRequest();
-            request.setClinicaId(clinicaUnicaId());
+            request.setClinicaId(clinicaService.buscarUnica().map(ClinicaEntity::getId).orElse(null));
             model.addAttribute("veterinarioRequest", request);
         }
         model.addAttribute("acaoFormulario", "/equipe");
@@ -69,7 +69,7 @@ public class EquipeWebController {
     @GetMapping("/{id}/editar")
     public String editarForm(@PathVariable Long id, Model model) {
         if (!model.containsAttribute("veterinarioRequest")) {
-            model.addAttribute("veterinarioRequest", paraRequest(veterinarioService.buscarPorId(id)));
+            model.addAttribute("veterinarioRequest", VeterinarioRequest.from(veterinarioService.buscarPorId(id)));
         }
         model.addAttribute("veterinarioId", id);
         model.addAttribute("acaoFormulario", "/equipe/" + id);
@@ -91,20 +91,5 @@ public class EquipeWebController {
         veterinarioService.atualizar(id, request);
         redirect.addFlashAttribute("sucesso", "Cadastro atualizado.");
         return "redirect:/equipe";
-    }
-
-    private Long clinicaUnicaId() {
-        List<ClinicaEntity> clinicas = clinicaService.listar();
-        return clinicas.isEmpty() ? null : clinicas.get(0).getId();
-    }
-
-    private VeterinarioRequest paraRequest(VeterinarioEntity entity) {
-        VeterinarioRequest request = new VeterinarioRequest();
-        request.setNome(entity.getNome());
-        request.setCrmv(entity.getCrmv());
-        request.setEmail(entity.getEmail());
-        request.setAtivo(entity.isAtivo());
-        request.setClinicaId(entity.getClinica().getId());
-        return request;
     }
 }

@@ -5,7 +5,6 @@ import br.com.fiap.petbuddies.dto.cadastro.ClinicaRequest;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.service.cadastro.ClinicaService;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -31,7 +30,7 @@ public class ClinicaWebController {
         ClinicaEntity clinica = clinicaUnica();
         model.addAttribute("clinicaId", clinica.getId());
         if (!model.containsAttribute("clinicaRequest")) {
-            model.addAttribute("clinicaRequest", paraRequest(clinica));
+            model.addAttribute("clinicaRequest", ClinicaRequest.from(clinica));
         }
         return "clinica/form";
     }
@@ -53,19 +52,6 @@ public class ClinicaWebController {
     }
 
     private ClinicaEntity clinicaUnica() {
-        List<ClinicaEntity> clinicas = clinicaService.listar();
-        if (clinicas.isEmpty()) {
-            throw new ClinicaNaoEncontradaException(0L);
-        }
-        return clinicas.get(0);
-    }
-
-    private ClinicaRequest paraRequest(ClinicaEntity entity) {
-        ClinicaRequest request = new ClinicaRequest();
-        request.setNome(entity.getNome());
-        request.setCnpj(entity.getCnpj());
-        request.setTelefone(entity.getTelefone());
-        request.setEmail(entity.getEmail());
-        return request;
+        return clinicaService.buscarUnica().orElseThrow(ClinicaNaoEncontradaException::new);
     }
 }

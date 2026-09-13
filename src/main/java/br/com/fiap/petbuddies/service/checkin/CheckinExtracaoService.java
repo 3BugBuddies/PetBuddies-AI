@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
@@ -75,7 +76,7 @@ public class CheckinExtracaoService {
         ExtracaoModelo resultadoModelo = retorno.orElseGet(() -> new ExtracaoModelo(List.of(), List.of()));
 
         List<CondicaoExtraidaResponse> condicoes = filtrarEEnriquecer(resultadoModelo.condicoes(), vocabulario);
-        List<String> redFlags = nullSafe(resultadoModelo.redFlags());
+        List<String> redFlags = Objects.requireNonNullElse(resultadoModelo.redFlags(), List.of());
         return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), condicoes, redFlags, degradado);
     }
 
@@ -153,7 +154,7 @@ public class CheckinExtracaoService {
                 .collect(Collectors.toMap(CondicaoClinicaEntity::getCodigo, c -> c));
 
         List<CondicaoExtraidaResponse> resultado = new ArrayList<>();
-        for (CondicaoExtraidaModelo bruta : nullSafe(brutas)) {
+        for (CondicaoExtraidaModelo bruta : Objects.requireNonNullElse(brutas, List.<CondicaoExtraidaModelo>of())) {
             if (bruta == null || bruta.codigo() == null) {
                 continue;
             }
@@ -182,10 +183,6 @@ public class CheckinExtracaoService {
                     condicao.isCritica(), bruta.trecho(), Boolean.TRUE.equals(bruta.literal())));
         }
         return resultado;
-    }
-
-    private static <T> List<T> nullSafe(List<T> list) {
-        return list == null ? List.of() : list;
     }
 
     /** Contrato de structured output do Spring AI — não cruza a borda do controller. */

@@ -1,6 +1,5 @@
 package br.com.fiap.petbuddies.web;
 
-import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.dto.cadastro.ClinicaResponse;
 import br.com.fiap.petbuddies.dto.atendimento.ConsultaResponse;
 import br.com.fiap.petbuddies.service.cadastro.ClinicaService;
@@ -36,19 +35,17 @@ public class PainelWebController {
 
     @GetMapping
     public String painel(Model model) {
-        List<ClinicaEntity> clinicas = clinicaService.listar();
         LocalDate hoje = LocalDate.now();
-        List<ConsultaResponse> consultasHoje = consultaService.listar(null, null).stream()
-                .filter(c -> c.getDataHora() != null && c.getDataHora().toLocalDate().isEqual(hoje))
+        List<ConsultaResponse> consultasHoje = consultaService.listarDoDia(hoje).stream()
                 .map(ConsultaResponse::from)
                 .toList();
 
-        ClinicaResponse clinica = clinicas.isEmpty() ? null : ClinicaResponse.from(clinicas.get(0));
-        model.addAttribute("clinica", clinica);
+        model.addAttribute("clinica", clinicaService.buscarUnica().map(ClinicaResponse::from).orElse(null));
         model.addAttribute("hoje", hoje);
         model.addAttribute("resumo", acompanhamentoService.resumo());
         model.addAttribute("vencidos", acompanhamentoService.vencidos(LIMITE_VENCIDOS));
         model.addAttribute("consultasHoje", consultasHoje);
+        model.addAttribute("statusFechavel", ConsultaService.STATUS_FECHAVEL);
         return "painel";
     }
 }

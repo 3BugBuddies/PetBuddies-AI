@@ -23,6 +23,7 @@ import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoExcepti
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.List;
@@ -65,6 +66,11 @@ public class ConsultaService {
     @Transactional(readOnly = true)
     public ConsultaEntity buscarPorId(Long id) {
         return encontrarOuFalhar(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConsultaEntity> listarDoDia(LocalDate dia) {
+        return repository.findNoPeriodo(dia.atStartOfDay(), dia.plusDays(1).atStartOfDay());
     }
 
     @Transactional

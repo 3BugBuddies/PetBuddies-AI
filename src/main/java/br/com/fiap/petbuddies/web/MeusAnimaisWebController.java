@@ -5,7 +5,6 @@ import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.security.UsuarioPrincipal;
 import br.com.fiap.petbuddies.service.cadastro.AnimalService;
 import br.com.fiap.petbuddies.service.cuidado.MotorPlanoService;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,10 +36,8 @@ public class MeusAnimaisWebController {
                 ? List.of()
                 : animalService.listar(responsavelId, null).stream().map(AnimalResponse::from).toList();
 
-        Map<Long, PlanoResponse> planosPorAnimal = new LinkedHashMap<>();
-        for (AnimalResponse animal : animais) {
-            motorPlanoService.buscarPlanoAtivo(animal.getId()).ifPresent(p -> planosPorAnimal.put(animal.getId(), p));
-        }
+        Map<Long, PlanoResponse> planosPorAnimal =
+                motorPlanoService.buscarPlanosAtivos(animais.stream().map(AnimalResponse::getId).toList());
 
         model.addAttribute("animais", animais);
         model.addAttribute("planosPorAnimal", planosPorAnimal);
