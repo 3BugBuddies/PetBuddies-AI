@@ -9,6 +9,7 @@ import br.com.fiap.petbuddies.service.identidade.RegistroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @SecurityRequirements
     @Operation(
         summary = "Autenticar e receber o token",
         description = "Único login dos dois perfis. O token carrega perfil e vínculo, e serve nas duas APIs. "
@@ -50,6 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/registro")
+    @SecurityRequirements
     @Operation(
         summary = "Cadastrar tutor ou veterinário e já receber o token",
         description = "Rota aberta. O tipo decide o que nasce: TUTOR cria o responsável, VET cria o "

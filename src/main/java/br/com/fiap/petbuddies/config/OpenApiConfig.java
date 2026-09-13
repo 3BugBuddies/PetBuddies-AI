@@ -4,19 +4,20 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-// Declarado, nao exigido globalmente: login e zona aberta — marcar tudo como protegido documentaria o contrato errado.
 @OpenAPIDefinition(
     info = @Info(
         title = "PetBuddies AI",
         version = "1.0.0",
         description = "Motor de cuidado contínuo: catálogo de protocolos e planos por animal.",
         contact = @Contact(name = "FIAP 2TDS 2026 — PetBuddies", email = "spbiel18@gmail.com")
-    )
+    ),
+    security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(
     name = "bearerAuth",
