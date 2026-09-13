@@ -309,6 +309,23 @@ Duas regras de comportamento que a integração precisa conhecer:
 
 Erro de negócio numa tela devolve página HTML, não JSON — o `WebExceptionHandler` intercepta antes do handler da API.
 
+### Telas
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="assets/telas/01-login.png" alt="Login com credencial inválida"><br><b>Login</b> · credencial inválida</td>
+<td width="50%" valign="top"><img src="assets/telas/02-painel.png" alt="Painel da clínica"><br><b>Painel</b> · indicadores e consultas de hoje</td>
+</tr>
+<tr>
+<td valign="top"><img src="assets/telas/03-paciente-validacao.png" alt="Cadastro de paciente com erro de validação"><br><b>Novo paciente</b> · validação no campo</td>
+<td valign="top"><img src="assets/telas/04-ficha-plano.png" alt="Ficha do paciente com plano e consultas"><br><b>Ficha</b> · plano preventivo gerado do catálogo e consultas</td>
+</tr>
+<tr>
+<td valign="top"><img src="assets/telas/05-fechar-atendimento.png" alt="Fechamento de atendimento"><br><b>Fechar atendimento</b> · registro, procedimento e prescrição</td>
+<td valign="top"><img src="assets/telas/06-meus-animais.png" alt="Meus animais"><br><b>Meus animais</b> · a tutora vê só os dela<br><br><img src="assets/telas/07-acesso-negado.png" alt="Acesso negado"><br><b>Acesso negado</b> · tutora abrindo <code>/painel</code></td>
+</tr>
+</table>
+
 ---
 
 ## Recursos e Rotas
