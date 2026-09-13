@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "PetBuddies · API única (Java)",
-    "description": "Coleção do serviço `petbuddies-ai`, a API do PetBuddies.\n\n**Como usar:** suba o serviço e rode *01 · Autenticação → Entrar como veterinária* e *Entrar como tutora*. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.\n\n**A ordem das pastas é a ordem de uso:** autenticar, cadastrar a clínica e a equipe, abrir janelas, cadastrar tutores e animais, agendar e fechar a consulta, prescrever, gerar o plano de cuidado e registrar o check-in.\n\n**Qual token cada pasta usa:** as escritas clínicas exigem perfil VET e herdam `tokenVet`, que é o padrão da coleção. A pasta *14 · Check-in* usa `tokenTutor`. Todo `GET` aceita qualquer um dos dois.",
+    "description": "Coleção do serviço `petbuddies-ai`, a API do PetBuddies.\n\n**Como usar:** suba o serviço e rode *01 · Autenticação → Entrar como veterinária* e *Entrar como tutora*. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.\n\n**A ordem das pastas é a ordem de uso:** autenticar, cadastrar a clínica e a equipe, abrir janelas, cadastrar tutores e animais, agendar e fechar a consulta, prescrever, gerar o plano de cuidado e registrar o check-in.\n\n**Qual token cada pasta usa:** as pastas herdam `tokenVet`, que é o padrão da coleção, e a pasta *14 · Check-in* usa `tokenTutor`. A API aceita qualquer um dos dois tokens em todas as rotas.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

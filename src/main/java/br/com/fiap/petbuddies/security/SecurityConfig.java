@@ -20,25 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /**
-     * As rotas cujo POST, PUT e DELETE sao ato clinico. O rascunho de prescricao
-     * nao precisa entrar: /api/prescricao ja cobre ele por prefixo.
-     */
-    private static final String[] ESCRITAS_CLINICAS = {
-            "/api/consulta/**", "/api/consulta",
-            "/api/registro-atendimento/**", "/api/registro-atendimento",
-            "/api/procedimento/**", "/api/procedimento",
-            "/api/prescricao/**", "/api/prescricao",
-            "/api/regra-prescricao/**", "/api/regra-prescricao",
-            "/api/condicao-clinica/**", "/api/condicao-clinica",
-            "/api/janela-atendimento/**", "/api/janela-atendimento",
-            "/api/motor/plano/**",
-            "/api/animal/**", "/api/animal",
-            "/api/responsavel/**", "/api/responsavel",
-            "/api/veterinario/**", "/api/veterinario",
-            "/api/clinica/**", "/api/clinica"
-    };
-
     // Ponto de entrada explicito: sem ele, cadeia sem formulario nem basic recusa com 403 em vez de 401.
     @Bean
     @Order(1)
@@ -53,21 +34,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(rota -> rota
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/registro").permitAll()
-
-                        // O relato do dia e do tutor, e so dele: quem escreve check-in
-                        // e quem convive com o animal.
-                        .requestMatchers(HttpMethod.POST, "/api/checkin", "/api/checkin/extracao").hasRole("TUTOR")
-
-                        // Precisa vir antes da regra geral de DELETE; o dono do animal e conferido no AnimalService.
-                        .requestMatchers(HttpMethod.DELETE, "/api/animal/**").hasAnyRole("VET", "TUTOR")
-
-                        // Ato clinico: o TUTOR nao autora, nao agenda e nao fecha atendimento.
-                        // A regra e por metodo, nao por rota — os GET seguem abertos a
-                        // qualquer token, porque o tutor precisa ler o proprio animal.
-                        .requestMatchers(HttpMethod.POST, ESCRITAS_CLINICAS).hasRole("VET")
-                        .requestMatchers(HttpMethod.PUT, ESCRITAS_CLINICAS).hasRole("VET")
-                        .requestMatchers(HttpMethod.DELETE, ESCRITAS_CLINICAS).hasRole("VET")
-
                         .anyRequest().authenticated())
                 .exceptionHandling(erro -> erro
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
