@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.dto.cadastro;
 
+import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,4 +29,14 @@ public class VeterinarioRequest {
 
     @NotNull(message = "Clínica é obrigatória.")
     private Long clinicaId;
+
+    public static VeterinarioRequest from(VeterinarioEntity entity) {
+        VeterinarioRequest request = new VeterinarioRequest();
+        request.setNome(entity.getNome());
+        request.setCrmv(entity.getCrmv());
+        request.setEmail(entity.getEmail());
+        request.setAtivo(entity.isAtivo());
+        request.setClinicaId(entity.getClinica().getId());
+        return request;
+    }
 }

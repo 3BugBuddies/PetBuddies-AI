@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.dto.cadastro;
 
+import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -27,4 +28,13 @@ public class ClinicaRequest {
     @Email(message = "E-mail inválido.")
     @Size(max = 254, message = "E-mail deve ter no máximo 254 caracteres.")
     private String email;
+
+    public static ClinicaRequest from(ClinicaEntity entity) {
+        ClinicaRequest request = new ClinicaRequest();
+        request.setNome(entity.getNome());
+        request.setCnpj(entity.getCnpj());
+        request.setTelefone(entity.getTelefone());
+        request.setEmail(entity.getEmail());
+        return request;
+    }
 }

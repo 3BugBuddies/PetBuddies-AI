@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.dto.cadastro;
 
+import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Porte;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Sexo;
@@ -60,4 +61,22 @@ public class AnimalRequest {
 
     @NotNull(message = "Responsável é obrigatório.")
     private Long responsavelId;
+
+    public static AnimalRequest from(AnimalEntity animal) {
+        AnimalRequest request = new AnimalRequest();
+        request.setNome(animal.getNome());
+        request.setEspecie(animal.getEspecie());
+        request.setRaca(animal.getRaca());
+        request.setPorte(animal.getPorte());
+        request.setSexo(animal.getSexo());
+        request.setDataNascimento(animal.getDataNascimento());
+        request.setPeso(animal.getPeso());
+        request.setCondicaoCronica(animal.isCondicaoCronica());
+        request.setCastrado(animal.isCastrado());
+        request.setFoto(animal.getFoto());
+        request.setAlergias(animal.getAlergias());
+        request.setObservacoes(animal.getObservacoes());
+        request.setResponsavelId(animal.getResponsavel().getId());
+        return request;
+    }
 }

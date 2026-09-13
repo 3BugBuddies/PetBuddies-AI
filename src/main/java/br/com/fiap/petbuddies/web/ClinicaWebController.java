@@ -30,7 +30,7 @@ public class ClinicaWebController {
         ClinicaEntity clinica = clinicaUnica();
         model.addAttribute("clinicaId", clinica.getId());
         if (!model.containsAttribute("clinicaRequest")) {
-            model.addAttribute("clinicaRequest", paraRequest(clinica));
+            model.addAttribute("clinicaRequest", ClinicaRequest.from(clinica));
         }
         return "clinica/form";
     }
@@ -53,14 +53,5 @@ public class ClinicaWebController {
 
     private ClinicaEntity clinicaUnica() {
         return clinicaService.buscarUnica().orElseThrow(ClinicaNaoEncontradaException::new);
-    }
-
-    private ClinicaRequest paraRequest(ClinicaEntity entity) {
-        ClinicaRequest request = new ClinicaRequest();
-        request.setNome(entity.getNome());
-        request.setCnpj(entity.getCnpj());
-        request.setTelefone(entity.getTelefone());
-        request.setEmail(entity.getEmail());
-        return request;
     }
 }

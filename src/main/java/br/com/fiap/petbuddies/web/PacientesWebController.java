@@ -1,7 +1,6 @@
 package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
-import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Porte;
@@ -118,7 +117,7 @@ public class PacientesWebController {
     @GetMapping("/{id}/editar")
     public String editarForm(@PathVariable Long id, Model model) {
         if (!model.containsAttribute("animalRequest")) {
-            model.addAttribute("animalRequest", paraRequest(animalService.buscarPorId(id)));
+            model.addAttribute("animalRequest", AnimalRequest.from(animalService.buscarPorId(id)));
         }
         model.addAttribute("animalId", id);
         model.addAttribute("responsaveis", listaResponsaveis());
@@ -169,8 +168,9 @@ public class PacientesWebController {
         }
 
         PlanoResponse resposta = form.getCategoria() == CategoriaProtocolo.POS_CIRURGICO
-                ? motorPlanoService.instanciarPosCirurgico(paraRequestPosCirurgico(animal, form.getConsultaId()))
-                : motorPlanoService.instanciarPreventivo(paraRequestPreventivo(animal));
+                ? motorPlanoService.instanciarPosCirurgico(
+                        PlanoPosCirurgicoRequest.from(animal, consultaService.buscarPorId(form.getConsultaId())))
+                : motorPlanoService.instanciarPreventivo(PlanoPreventivoRequest.from(animal));
 
         redirect.addFlashAttribute("planoResposta", resposta);
         return "redirect:/pacientes/" + id;
@@ -193,39 +193,4 @@ public class PacientesWebController {
         motorPlanoService.buscarPlanoAtivo(animal.getId()).ifPresent(p -> model.addAttribute("planoAtivo", p));
     }
 
-    private AnimalRequest paraRequest(AnimalEntity animal) {
-        AnimalRequest request = new AnimalRequest();
-        request.setNome(animal.getNome());
-        request.setEspecie(animal.getEspecie());
-        request.setRaca(animal.getRaca());
-        request.setPorte(animal.getPorte());
-        request.setSexo(animal.getSexo());
-        request.setDataNascimento(animal.getDataNascimento());
-        request.setPeso(animal.getPeso());
-        request.setCondicaoCronica(animal.isCondicaoCronica());
-        request.setCastrado(animal.isCastrado());
-        request.setFoto(animal.getFoto());
-        request.setAlergias(animal.getAlergias());
-        request.setObservacoes(animal.getObservacoes());
-        request.setResponsavelId(animal.getResponsavel().getId());
-        return request;
-    }
-
-    private PlanoPreventivoRequest paraRequestPreventivo(AnimalEntity animal) {
-        PlanoPreventivoRequest request = new PlanoPreventivoRequest();
-        request.setAnimalId(animal.getId());
-        request.setEspecie(animal.getEspecie());
-        request.setDataNascimento(animal.getDataNascimento());
-        return request;
-    }
-
-    private PlanoPosCirurgicoRequest paraRequestPosCirurgico(AnimalEntity animal, Long consultaId) {
-        ConsultaEntity consulta = consultaService.buscarPorId(consultaId);
-        PlanoPosCirurgicoRequest request = new PlanoPosCirurgicoRequest();
-        request.setAnimalId(animal.getId());
-        request.setConsultaId(consultaId);
-        request.setEspecie(animal.getEspecie());
-        request.setDataRealizacao(consulta.getDataHora());
-        return request;
-    }
 }
