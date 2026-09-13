@@ -10,6 +10,7 @@ import br.com.fiap.petbuddies.domain.repository.ProcedimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoComVinculosException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
@@ -91,6 +92,9 @@ public class RegistroAtendimentoService {
                 .orElseThrow(() -> new AnimalNaoEncontradoException(request.getAnimalId()));
         ConsultaEntity consulta = consultaRepository.findById(request.getConsultaId())
                 .orElseThrow(() -> new ConsultaNaoEncontradaException(request.getConsultaId()));
+        if (!consulta.getAnimal().getId().equals(animal.getId())) {
+            throw new ConsultaDeOutroAnimalException(consulta.getId(), animal.getId());
+        }
         entity.setDataAtendimento(request.getDataAtendimento());
         entity.setAnamnese(request.getAnamnese());
         entity.setDiagnostico(request.getDiagnostico());

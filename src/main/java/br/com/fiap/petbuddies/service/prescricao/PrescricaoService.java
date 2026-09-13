@@ -13,6 +13,7 @@ import br.com.fiap.petbuddies.dto.prescricao.PrescricaoRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import br.com.fiap.petbuddies.service.cuidado.PlanoTratamentoService;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,9 @@ public class PrescricaoService {
                 .orElseThrow(() -> new VeterinarioNaoEncontradoException(request.getVeterinarioId()));
         RegistroAtendimentoEntity registroAtendimento = registroAtendimentoRepository.findById(request.getRegistroAtendimentoId())
                 .orElseThrow(() -> new RegistroAtendimentoNaoEncontradoException(request.getRegistroAtendimentoId()));
+        if (!registroAtendimento.getAnimal().getId().equals(animal.getId())) {
+            throw new RegistroDeOutroAnimalException(registroAtendimento.getId(), animal.getId());
+        }
 
         PrescricaoEntity entity = new PrescricaoEntity();
         entity.setMedicamento(request.getMedicamento());

@@ -25,6 +25,7 @@ import br.com.fiap.petbuddies.dto.checkin.CondicaoObservadaResponse;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinDuplicadoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
@@ -96,6 +97,9 @@ public class CheckinService {
         if (request.getItemPlanoCuidadoId() != null) {
             itemRelatado = itemPlanoCuidadoRepository.findById(request.getItemPlanoCuidadoId())
                     .orElseThrow(() -> new ItemPlanoCuidadoNaoEncontradoException(request.getItemPlanoCuidadoId()));
+            if (!itemRelatado.getPlano().getAnimalId().equals(animal.getId())) {
+                throw new ItemDeOutroAnimalException(itemRelatado.getId(), animal.getId());
+            }
         }
 
         if (checkinRepository.findExistente(animal.getId(), referencia, request.getItemPlanoCuidadoId()).isPresent()) {
