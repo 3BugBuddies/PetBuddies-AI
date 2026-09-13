@@ -115,7 +115,9 @@ public class CheckinService {
         checkin.setTicUtilizada(request.getTicUtilizada());
         checkin = checkinRepository.save(checkin);
 
-        List<CondicaoObservadaEntity> observadas = gravarCondicoes(checkin, request.getCondicoes());
+        // "condicoes": null explicito no JSON sobrescreve o default da lista vazia do DTO.
+        List<CondicaoConfirmadaRequest> condicoes = request.getCondicoes() == null ? List.of() : request.getCondicoes();
+        List<CondicaoObservadaEntity> observadas = gravarCondicoes(checkin, condicoes);
         boolean escalarPorCritica = observadas.stream().anyMatch(this::observacaoCritica);
 
         List<PrescricaoEntity> prescricoesParaAvaliar = itemRelatado != null

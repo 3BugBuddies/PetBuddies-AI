@@ -53,6 +53,7 @@ public class PrescricaoFechamentoRequest {
 
     private Long materialOrigemId;
 
+    @Max(value = 9999, message = "Versão de origem excede a precisão NUMBER(4).")
     private Integer versaoOrigem;
 
     @Valid
