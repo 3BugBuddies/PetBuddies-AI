@@ -49,8 +49,8 @@ public class AnimalResponse {
         dto.observacoes = entity.getObservacoes();
         // Só o id: com open-in-view=false, ler outro campo do proxy LAZY aqui lança LazyInitializationException.
         dto.responsavelId = entity.getResponsavel() == null ? null : entity.getResponsavel().getId();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

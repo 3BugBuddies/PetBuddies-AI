@@ -27,7 +27,7 @@ public class CondicaoObservadaResponse {
         dto.valorBooleano = entity.getValor().getBooleano();
         dto.valorNumerico = entity.getValor().getNumerico();
         dto.confianca = entity.getConfianca();
-        dto.createdAt = entity.getCreatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
         return dto;
     }
 }

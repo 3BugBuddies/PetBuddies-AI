@@ -40,8 +40,8 @@ public class RegraPrescricaoResponse {
         dto.limite = entity.getLimite();
         dto.acaoDose = entity.getAcaoDose();
         dto.ordem = entity.getOrdem();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

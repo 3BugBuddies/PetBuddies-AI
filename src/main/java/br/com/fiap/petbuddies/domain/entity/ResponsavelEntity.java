@@ -1,9 +1,9 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "T_PB_RESPONSAVEL")
@@ -24,17 +24,13 @@ public class ResponsavelEntity {
     @Embedded
     private Contato contato;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 
     @PreUpdate
-    private void preUpdate() { updatedAt = LocalDateTime.now(); }
+    private void preUpdate() { auditoria = auditoria.atualizadaAgora(); }
 }

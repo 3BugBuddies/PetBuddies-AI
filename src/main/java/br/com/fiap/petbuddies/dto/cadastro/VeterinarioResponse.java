@@ -27,8 +27,8 @@ public class VeterinarioResponse {
         dto.ativo = entity.isAtivo();
         // Só o id: com open-in-view=false, ler outro campo do proxy LAZY aqui lança LazyInitializationException.
         dto.clinicaId = entity.getClinica() == null ? null : entity.getClinica().getId();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

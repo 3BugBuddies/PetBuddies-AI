@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.embeddable.CondicaoCongelada;
 import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
@@ -8,7 +9,6 @@ import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 // Imutavel — regra assinada nao se corrige, substitui-se numa nova prescricao.
 // Rotulo, tipo e fonte sao copiados no momento da criacao e nunca mudam — check-in avalia sem consultar o catalogo.
@@ -52,14 +52,10 @@ public class RegraPrescricaoEntity {
     @Column(name = "NR_ORDEM", nullable = false)
     private Integer ordem;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 }

@@ -57,7 +57,7 @@ public class ProtocoloAplicadoResponse {
         r.protocoloId = plano.getProtocoloId();
         r.categoria = plano.getCategoria().name();
         r.statusPlano = plano.getStatus().name();
-        r.instanciadoEm = plano.getCreatedAt();
+        r.instanciadoEm = plano.getAuditoria().getCreatedAt();
 
         List<ItemPlanoCuidadoEntity> itensDoProtocolo = plano.getItens().stream()
             .filter(e -> e.getOrigem() == TipoOrigemItem.PROTOCOLO)

@@ -22,8 +22,8 @@ public class ResponsavelResponse {
         dto.nome = entity.getNome();
         dto.telefone = entity.getContato().getTelefone();
         dto.email = entity.getContato().getEmail();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

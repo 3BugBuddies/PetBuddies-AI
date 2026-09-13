@@ -41,8 +41,8 @@ public class ProcedimentoResponse {
         dto.registroAtendimentoId = entity.getRegistroAtendimento() == null ? null : entity.getRegistroAtendimento().getId();
         dto.animalId = entity.getAnimal() == null ? null : entity.getAnimal().getId();
         dto.veterinarioId = entity.getVeterinario() == null ? null : entity.getVeterinario().getId();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

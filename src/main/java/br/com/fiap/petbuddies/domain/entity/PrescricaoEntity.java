@@ -1,13 +1,12 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.embeddable.FaixaDose;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Immutable;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 // Imutavel por contrato — corrigir e emitir nova prescricao, nao editar esta; sem PUT/DELETE no controller.
 @Entity
@@ -63,14 +62,10 @@ public class PrescricaoEntity {
     @JoinColumn(name = "ID_REGISTRO_ATENDIMENTO", nullable = false)
     private RegistroAtendimentoEntity registroAtendimento;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 }

@@ -38,8 +38,8 @@ public class CondicaoClinicaResponse {
         // Só os ids: com open-in-view=false, ler outro campo do proxy LAZY aqui lança LazyInitializationException.
         dto.clinicaId = entity.getClinica() == null ? null : entity.getClinica().getId();
         dto.veterinarioAutorId = entity.getAutor() == null ? null : entity.getAutor().getId();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

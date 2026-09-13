@@ -1,12 +1,12 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.embeddable.ValorObservado;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 // Aponta para o catalogo, nao para a regra — tutor pode relatar condicao que nenhuma regra cobre.
 // Imutavel: relato incorreto gera um novo check-in, nao corrige este.
@@ -42,14 +42,10 @@ public class CondicaoObservadaEntity {
     @Column(name = "NR_CONFIANCA", nullable = false, precision = 5, scale = 4)
     private BigDecimal confianca;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 }
