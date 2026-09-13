@@ -133,7 +133,7 @@ public class CheckinService {
 
             desfechos.add(CheckinDesfechoResponse.of(
                     prescricao.getId(), prescricao.getMedicamento(), item == null ? null : item.getId(),
-                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getUnidade(), resultado.regraAplicadaId()));
+                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId()));
         }
 
         if (escalarPorCritica) {
@@ -234,7 +234,7 @@ public class CheckinService {
                     return CheckinDesfechoResponse.of(
                             item.getPrescricaoId(), prescricao == null ? null : prescricao.getMedicamento(),
                             item.getId(), item.getDesfecho(), item.getDoseAplicada(),
-                            prescricao == null ? null : prescricao.getUnidade(), item.getRegraAplicadaId());
+                            prescricao == null ? null : prescricao.getFaixaDose().getUnidade(), item.getRegraAplicadaId());
                 })
                 .toList();
 

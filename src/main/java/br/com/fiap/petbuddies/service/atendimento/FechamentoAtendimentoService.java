@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.atendimento;
 
+import br.com.fiap.petbuddies.domain.embeddable.FaixaDose;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
@@ -134,9 +135,7 @@ public class FechamentoAtendimentoService {
         for (PrescricaoFechamentoRequest pr : nullSafe(requests)) {
             PrescricaoEntity prescricao = new PrescricaoEntity();
             prescricao.setMedicamento(pr.getMedicamento());
-            prescricao.setDoseMin(pr.getDoseMin());
-            prescricao.setDoseMax(pr.getDoseMax());
-            prescricao.setUnidade(pr.getUnidade());
+            prescricao.setFaixaDose(new FaixaDose(pr.getDoseMin(), pr.getDoseMax(), pr.getUnidade()));
             prescricao.setFrequenciaDia(pr.getFrequenciaDia());
             prescricao.setDuracaoDias(pr.getDuracaoDias());
             prescricao.setDataInicio(pr.getDataInicio());

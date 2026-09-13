@@ -68,8 +68,8 @@ public class AvaliadorRegraService {
 
     private Resultado aplicarAcao(PrescricaoEntity prescricao, RegraPrescricaoEntity regra) {
         return switch (regra.getAcaoDose()) {
-            case DOSE_MIN -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getDoseMin(), regra.getId());
-            case DOSE_MAX -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getDoseMax(), regra.getId());
+            case DOSE_MIN -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getFaixaDose().getDoseMin(), regra.getId());
+            case DOSE_MAX -> new Resultado(TipoDesfecho.DOSE_CALCULADA, prescricao.getFaixaDose().getDoseMax(), regra.getId());
             case DOSE_PADRAO -> new Resultado(TipoDesfecho.DOSE_CALCULADA, doseBase(prescricao), regra.getId());
             case ACIONAR_CLINICA -> new Resultado(TipoDesfecho.ACIONAR_CLINICA, null, regra.getId());
             // Sem estado "pausada" — SEM_DOSE e o desfecho de CK_ITEM_DESFECHO_DOSE, que nao exige NR_DOSE_APLICADA.
@@ -79,6 +79,6 @@ public class AvaliadorRegraService {
 
     // Base de DOSE_PADRAO e do "nenhuma regra casou": sem coluna de dose padrao, so a faixa NR_DOSE_MIN/NR_DOSE_MAX — usa o piso, mais conservador.
     private BigDecimal doseBase(PrescricaoEntity prescricao) {
-        return prescricao.getDoseMin();
+        return prescricao.getFaixaDose().getDoseMin();
     }
 }

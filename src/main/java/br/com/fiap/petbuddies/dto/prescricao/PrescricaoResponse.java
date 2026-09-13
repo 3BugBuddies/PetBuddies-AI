@@ -33,9 +33,9 @@ public class PrescricaoResponse {
         PrescricaoResponse dto = new PrescricaoResponse();
         dto.id = entity.getId();
         dto.medicamento = entity.getMedicamento();
-        dto.doseMin = entity.getDoseMin();
-        dto.doseMax = entity.getDoseMax();
-        dto.unidade = entity.getUnidade();
+        dto.doseMin = entity.getFaixaDose().getDoseMin();
+        dto.doseMax = entity.getFaixaDose().getDoseMax();
+        dto.unidade = entity.getFaixaDose().getUnidade();
         dto.frequenciaDia = entity.getFrequenciaDia();
         dto.duracaoDias = entity.getDuracaoDias();
         dto.dataInicio = entity.getDataInicio();
