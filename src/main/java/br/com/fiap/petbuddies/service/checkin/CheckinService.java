@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.checkin;
 
+import br.com.fiap.petbuddies.domain.embeddable.ValorObservado;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
@@ -175,8 +176,7 @@ public class CheckinService {
             entity.setCheckin(checkin);
             entity.setCondicaoClinica(condicao);
             entity.setCodigoCongelado(condicao.getCodigo());
-            entity.setValorBooleano(confirmada.getValorBooleano());
-            entity.setValorNumerico(confirmada.getValorNumerico());
+            entity.setValor(new ValorObservado(confirmada.getValorBooleano(), confirmada.getValorNumerico()));
             entity.setConfianca(confirmada.getConfianca().setScale(4, RoundingMode.HALF_UP));
             observadas.add(condicaoObservadaRepository.save(entity));
         }
@@ -200,10 +200,10 @@ public class CheckinService {
         if (!observada.getCondicaoClinica().isCritica()) {
             return false;
         }
-        if (observada.getValorBooleano() != null) {
-            return observada.getValorBooleano();
+        if (observada.getValor().getBooleano() != null) {
+            return observada.getValor().getBooleano();
         }
-        return observada.getValorNumerico() != null;
+        return observada.getValor().getNumerico() != null;
     }
 
     private String montarObservacaoEscalacao(List<CondicaoObservadaEntity> observadas, List<PrescricaoEntity> prescricoes) {

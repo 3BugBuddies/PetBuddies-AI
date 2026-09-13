@@ -51,12 +51,12 @@ public class AvaliadorRegraService {
         if (regra.getCondicaoCongelada().getTipoDado() == TipoDado.BOOLEANO) {
             // CK_REGRA_COERENCIA: regra BOOLEANO não tem operador nem limite —
             // a própria condição confirmada como verdadeira é o gatilho.
-            return Boolean.TRUE.equals(observada.getValorBooleano());
+            return Boolean.TRUE.equals(observada.getValor().getBooleano());
         }
-        if (observada.getValorNumerico() == null) {
+        if (observada.getValor().getNumerico() == null) {
             return false;
         }
-        int cmp = observada.getValorNumerico().compareTo(regra.getLimite());
+        int cmp = observada.getValor().getNumerico().compareTo(regra.getLimite());
         return switch (regra.getOperador()) {
             case MAIOR_QUE -> cmp > 0;
             case MAIOR_OU_IGUAL -> cmp >= 0;
