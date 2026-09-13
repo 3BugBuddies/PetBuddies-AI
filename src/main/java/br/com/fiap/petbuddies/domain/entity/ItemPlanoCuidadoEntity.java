@@ -1,12 +1,11 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Desfecho;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
-import br.com.fiap.petbuddies.domain.enums.checkin.TipoDesfecho;
 import br.com.fiap.petbuddies.domain.enums.cuidado.TipoCuidado;
 import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -71,19 +70,9 @@ public class ItemPlanoCuidadoEntity {
     @Column(name = "DT_EXECUTADO_EM")
     private LocalDateTime executadoEm;
 
-    // Nulaveis: item de origem PROTOCOLO nao tem dose/checkin.
-    @Column(name = "ID_CHECKIN")
-    private Long checkinId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "TP_DESFECHO", length = 30)
-    private TipoDesfecho desfecho;
-
-    @Column(name = "NR_DOSE_APLICADA", precision = 8, scale = 3)
-    private BigDecimal doseAplicada;
-
-    @Column(name = "ID_REGRA_APLICADA")
-    private Long regraAplicadaId;
+    // Nulo enquanto o item nao passa por check-in: item de origem PROTOCOLO nao tem dose/checkin.
+    @Embedded
+    private Desfecho desfecho;
 
     @Column(name = "AT_UPDATED_AT")
     @Setter(AccessLevel.NONE)

@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.checkin;
 
+import br.com.fiap.petbuddies.domain.embeddable.Desfecho;
 import br.com.fiap.petbuddies.domain.embeddable.ValorObservado;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
@@ -125,10 +126,7 @@ public class CheckinService {
 
             ItemPlanoCuidadoEntity item = itemParaGravar(itemRelatado, prescricao, referencia);
             if (item != null) {
-                item.setCheckinId(checkin.getId());
-                item.setDesfecho(resultado.desfecho());
-                item.setDoseAplicada(resultado.doseAplicada());
-                item.setRegraAplicadaId(resultado.regraAplicadaId());
+                item.setDesfecho(new Desfecho(checkin.getId(), resultado.desfecho(), resultado.doseAplicada(), resultado.regraAplicadaId()));
                 itemPlanoCuidadoRepository.save(item);
             }
 
@@ -227,14 +225,18 @@ public class CheckinService {
 
         // Só reconstitui o que foi de fato gravado no item — prescrição
         // avaliada sem item na hora do POST não deixa rastro para o GET.
-        List<CheckinDesfechoResponse> desfechos = itemPlanoCuidadoRepository.findByCheckinId(checkin.getId()).stream()
+        List<CheckinDesfechoResponse> desfechos = itemPlanoCuidadoRepository.findByDesfechoCheckinId(checkin.getId()).stream()
                 .map(item -> {
                     PrescricaoEntity prescricao = item.getPrescricaoId() == null
                             ? null : prescricaoRepository.findById(item.getPrescricaoId()).orElse(null);
+                    // Desfecho so vem nulo pra item de origem PROTOCOLO — nao acontece aqui, mas o Hibernate devolve o embeddable inteiro nulo quando todas as colunas sao nulas.
+                    Desfecho desfecho = item.getDesfecho();
                     return CheckinDesfechoResponse.of(
                             item.getPrescricaoId(), prescricao == null ? null : prescricao.getMedicamento(),
-                            item.getId(), item.getDesfecho(), item.getDoseAplicada(),
-                            prescricao == null ? null : prescricao.getFaixaDose().getUnidade(), item.getRegraAplicadaId());
+                            item.getId(), desfecho == null ? null : desfecho.getTipo(),
+                            desfecho == null ? null : desfecho.getDoseAplicada(),
+                            prescricao == null ? null : prescricao.getFaixaDose().getUnidade(),
+                            desfecho == null ? null : desfecho.getRegraAplicadaId());
                 })
                 .toList();
 
