@@ -976,6 +976,35 @@
               ]
             }
           }
+        },
+        {
+          "name": "Remover o próprio animal como tutora",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animal/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animal",
+                "1"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTutor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "O tutor remove só os animais dele. No animal de outro tutor, 403 ANIMAL_DE_OUTRO_TUTOR; com histórico clínico, 409."
+          }
         }
       ]
     },

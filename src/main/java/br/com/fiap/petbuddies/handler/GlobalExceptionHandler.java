@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.handler;
 
 import br.com.fiap.petbuddies.dto.ErrorDto;
+import br.com.fiap.petbuddies.exception.AcessoNegadoException;
 import br.com.fiap.petbuddies.exception.ConflitoException;
 import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
@@ -97,6 +98,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflitoException.class)
     public ResponseEntity<ErrorDto> handleConflito(ConflitoException ex) {
         return ResponseEntity.status(409).body(new ErrorDto(ex.getCodigo(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<ErrorDto> handleAcessoNegado(AcessoNegadoException ex) {
+        return ResponseEntity.status(403).body(new ErrorDto(ex.getCodigo(), ex.getMessage()));
     }
 
     @ExceptionHandler(RegistroIncompletoException.class)
