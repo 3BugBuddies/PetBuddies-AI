@@ -440,9 +440,10 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 
 Importe `docs/postman/petbuddies-ai-java.postman_collection.json`, com `baseUrl` em `http://localhost:8080`.
 
-1. Rode **Autenticação → Login — vet** e **Login — tutor**. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.
-2. As pastas herdam `tokenVet`, porque as escritas clínicas exigem perfil `VET`. A pasta **Check-in** usa `tokenTutor`, e todo `GET` aceita qualquer um dos dois.
-3. **Saúde** chama `GET /actuator/health`, sem token.
+1. Rode **01 · Autenticação → Entrar como veterinária** e **Entrar como tutora**. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.
+2. As pastas estão numeradas na ordem de uso: clínica e equipe, janelas, tutores e animais, consultas e fechamento, prescrição, plano de cuidado e check-in.
+3. As pastas herdam `tokenVet`, porque as escritas clínicas exigem perfil `VET`. A pasta **14 · Check-in** usa `tokenTutor`, e todo `GET` aceita qualquer um dos dois.
+4. **15 · Saúde** chama `GET /actuator/health`, sem token.
 
 A coleção cobre todas as rotas da API, inclusive agendamento, cancelamento e fechamento de consulta, janelas livres, rascunho de prescrição, protocolo aplicado, sugestões e check-in.
 
