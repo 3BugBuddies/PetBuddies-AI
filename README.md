@@ -25,8 +25,8 @@ procurar a clínica.
 
 ## 1. Problema e abordagem
 
-A consulta termina, mas o tratamento continua em casa. A prescrição diz "de 1 a 2 ml; se as fezes estiverem moles,
-a menor dose", e no quarto dia quem escolhe a dose é o tutor, sem formação para isso. A clínica não fica sabendo, e o
+A consulta termina, mas o tratamento continua em casa. A prescrição diz "de 1 a 2 ml; se ela comer pouco, a menor
+dose", e no quarto dia quem escolhe a dose é o tutor, sem formação para isso. A clínica não fica sabendo, e o
 que o tutor observa não chega ao prontuário.
 
 **Abordagem: NLP com LLM e saída estruturada, sobre um vocabulário fechado, mais um motor de regras.**
@@ -62,8 +62,93 @@ e `service/prescricao/PrescricaoExtracaoService.java` (prompts e validação) e 
 
 ![Check-in do tutor e prescrição da veterinária](assets/ia/demonstracao.png)
 
-`POST /api/checkin/extracao` devolve o que a IA entendeu, sem gravar. O tutor confirma, `POST /api/checkin` grava e o
-motor aplica a regra. `POST /api/prescricao/rascunho` faz o mesmo com a fala da veterinária.
+Cenário: a veterinária prescreveu Lactulona de 1 a 2 ml com a regra **apetite baixo → menor dose**, e a clínica marca
+**sem comer há 24 h** como condição crítica. Os JSON abaixo são respostas reais da API com o Gemini, resumidas aos campos que importam.
+
+| Tela | Requisição | O que a API devolve |
+|---|---|---|
+| A tutora conta como a Luna passou | `POST /api/checkin/extracao` | as condições que a IA reconheceu, com trecho e confiança; nada é gravado |
+| A dose de hoje | `POST /api/checkin` | o desfecho da regra: `DOSE_CALCULADA`, 1 ml |
+| Relato preocupante | `POST /api/checkin` | `ACIONAR_CLINICA`, sem dose, com o telefone da clínica |
+| A veterinária dita a prescrição | `POST /api/prescricao/rascunho` | o formulário preenchido e as regras propostas, para revisar e assinar |
+
+<details>
+<summary><b>Extração</b>: "Dei o remédio às 20h, mas ela não quis o jantar."</summary>
+
+```json
+{
+  "condicoes": [
+    {
+      "codigo": "APETITE_BAIXO",
+      "rotulo": "Comeu pouco ou recusou a refeição",
+      "valorBooleano": true,
+      "confianca": 0.95,
+      "critica": false,
+      "trecho": "não quis o jantar",
+      "literal": true
+    }
+  ],
+  "redFlags": [],
+  "degradado": false
+}
+```
+</details>
+
+<details>
+<summary><b>Check-in confirmado</b>: a regra devolve a menor dose</summary>
+
+```json
+{
+  "condicoesObservadas": [{ "codigoCongelado": "APETITE_BAIXO", "valorBooleano": true, "confianca": 0.95 }],
+  "desfechos": [
+    { "medicamento": "Lactulona", "desfecho": "DOSE_CALCULADA", "doseAplicada": 1, "unidade": "ml", "regraAplicadaId": 1 }
+  ],
+  "escalado": false
+}
+```
+</details>
+
+<details>
+<summary><b>Relato preocupante</b>: "Ela não comeu nada desde ontem de manhã e está muito parada."</summary>
+
+Extração: a condição crítica foi inferida (`literal: false`), e o que não está no vocabulário vira observação em texto.
+
+```json
+{
+  "condicoes": [
+    { "codigo": "APETITE_BAIXO", "valorBooleano": true, "confianca": 0.95, "critica": false, "trecho": "não comeu nada", "literal": true },
+    { "codigo": "SEM_COMER_24H", "valorBooleano": true, "confianca": 0.8, "critica": true, "trecho": "não comeu nada desde ontem de manhã", "literal": false }
+  ],
+  "redFlags": ["está muito parada"]
+}
+```
+
+Check-in: a condição crítica escala antes de qualquer regra.
+
+```json
+{
+  "observacoesGerais": "Sinal de atenção identificado (Passou 24 horas ou mais sem comer). Procure a clínica: 1140028922.",
+  "desfechos": [{ "medicamento": "Lactulona", "desfecho": "ACIONAR_CLINICA", "doseAplicada": null }],
+  "escalado": true
+}
+```
+</details>
+
+<details>
+<summary><b>Rascunho de prescrição</b>: "Lactulona, de 1 a 2 ml, uma vez ao dia, por 14 dias, começando hoje. Se ela comer pouco, usar a dose mínima."</summary>
+
+`dataInicio` vale 0,6 porque "começando hoje" foi resolvido pelo modelo, não dito como data.
+
+```json
+{
+  "extracaoDisponivel": true,
+  "prescricao": { "medicamento": "Lactulona", "doseMin": 1.0, "doseMax": 2.0, "unidade": "ml", "frequenciaDia": 1, "duracaoDias": 14, "dataInicio": "2026-09-13" },
+  "confiancaPorCampo": { "medicamento": 1.0, "doseMin": 1.0, "doseMax": 1.0, "unidade": 1.0, "frequenciaDia": 1.0, "duracaoDias": 1.0, "dataInicio": 0.6 },
+  "regrasPropostas": [{ "condicaoClinicaId": 1, "acaoDose": "DOSE_MIN", "ordem": 1 }],
+  "condicoesDescartadas": []
+}
+```
+</details>
 
 ## 4. Resultados parciais
 
@@ -100,18 +185,18 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 Para o Oracle FIAP, preencha `ORACLE_USER` (RM) e `ORACLE_PASSWORD` no `.env` e rode só o `mvn`.
 
-### Testando a IA pelo Swagger
+### Testando a IA pelo Postman
 
-Usuários do seed, senha `petbuddies123`: `ana@clinica.com` (`VET`) e `maria@email.com` (`TUTOR`).
+Com Docker, o banco e a API sobem juntos (`.env` com `GEMINI_API_KEY` e `PETBUDDIES_JWT_SECRET`):
 
-1. **Como `VET`:** cadastre o animal, uma condição clínica (ex. `FEZES_MOLES`, `BOOLEANO`), uma janela e uma consulta,
-   e feche o atendimento com uma prescrição de 1 a 2 ml e a regra `FEZES_MOLES → DOSE_MIN`, com início hoje.
-2. **Como `VET`:** `POST /api/prescricao/rascunho` com a fala da veterinária.
-3. **Como `TUTOR`:** `POST /api/checkin/extracao`:
-   ```json
-   { "animalId": 1, "narrativa": "Dei o remédio às 20h, mas as fezes tavam moles de novo." }
-   ```
-4. **Como `TUTOR`:** `POST /api/checkin` com as condições confirmadas; a resposta traz o desfecho e a dose.
+```bash
+docker compose -f docker-compose.demo.yml up -d --build
+```
+
+Importe `docs/postman/petbuddies-ai-java.postman_collection.json` e rode a pasta **Demo IA** (Run folder). Ela prepara
+o cenário como veterinária (`ana@clinica.com`), gera o rascunho de prescrição, faz o check-in como tutora
+(`maria@email.com`) e termina no relato crítico. Os ids e tokens passam de uma requisição para a outra sozinhos. Senha
+dos dois usuários: `petbuddies123`.
 
 **Tecnologias:** Java 21 · Spring Boot 3.4.5 · Spring AI 1.1.6 · Gemini 2.5 Flash · Spring Data JPA · Oracle ·
 Flyway · Spring Security (JWT) · Springdoc OpenAPI

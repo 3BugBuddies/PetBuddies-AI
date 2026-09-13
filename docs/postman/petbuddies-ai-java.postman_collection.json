@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "PetBuddies · API única (Java)",
-    "description": "Coleção do serviço `petbuddies-ai`, a API única do produto (ADR s3-25).\n\n**Como usar:** suba o serviço (`docker compose up -d --wait` e `mvn spring-boot:run`), rode *Autenticação → Login — vet* e o token fica guardado para as demais requisições.\n\n**Escopo:** reflete os endpoints existentes em `main`. Os casos de uso da onda 5 — fechar atendimento, agendamento e cancelamento, check-in, protocolo aplicado — entram aqui conforme cada PR mergear.\n\nO catálogo de protocolos **não está aqui**: passou ao serviço .NET no PR J17, e o Java o consome por HTTP.",
+    "description": "Coleção do serviço `petbuddies-ai`, a API única do produto (ADR s3-25).\n\n**Demo da IA:** rode a pasta *Demo IA* inteira (Run folder), com o ambiente de `docker-compose.demo.yml` no ar.\n\n**Demo da IA:** rode a pasta *Demo IA* inteira (Run folder), com o ambiente de `docker-compose.demo.yml` no ar.\n\n**Como usar:** suba o serviço (`docker compose up -d --wait` e `mvn spring-boot:run`), rode *Autenticação → Login — vet* e o token fica guardado para as demais requisições.\n\n**Escopo:** reflete os endpoints existentes em `main`. Os casos de uso da onda 5 — fechar atendimento, agendamento e cancelamento, check-in, protocolo aplicado — entram aqui conforme cada PR mergear.\n\nO catálogo de protocolos **não está aqui**: passou ao serviço .NET no PR J17, e o Java o consome por HTTP.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -24,9 +24,871 @@
       "key": "token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "tokenVet",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenTutor",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "animalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "condicaoApetiteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "condicaoCriticaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "janelaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "consultaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "registroAtendimentoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "extraidas",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "confirmadas",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "extraidasCriticas",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "confirmadasCriticas",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "hoje",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "amanha",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "agora",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "daquiUmaHora",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
+    {
+      "name": "Demo IA",
+      "description": "Roteiro da demonstração do componente de IA, para rodar em ordem (Run folder).\n\nSuba o ambiente com `docker compose -f docker-compose.demo.yml up -d --build`. Cada requisição guarda o que a próxima precisa (tokens, ids, datas) nas variáveis da coleção.",
+      "item": [
+        {
+          "name": "1. Preparação (veterinária)",
+          "item": [
+            {
+              "name": "1.1 Login da veterinária",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"ana@clinica.com\",\n  \"senha\": \"petbuddies123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Datas no formato que a API espera, no fuso da máquina.",
+                      "const pad = n => String(n).padStart(2, '0');",
+                      "const dia = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;",
+                      "const hora = d => `${dia(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;",
+                      "const agora = new Date();",
+                      "pm.collectionVariables.set('hoje', dia(agora));",
+                      "pm.collectionVariables.set('amanha', dia(new Date(agora.getTime() + 86400000)));",
+                      "pm.collectionVariables.set('agora', hora(agora));",
+                      "pm.collectionVariables.set('daquiUmaHora', hora(new Date(agora.getTime() + 3600000 + Math.floor(Math.random() * 3000000))));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                      "pm.collectionVariables.set('tokenVet', pm.response.json().token);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "1.2 Cadastrar a Luna",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/animal",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "animal"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nome\": \"Luna\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"SRD\",\n  \"porte\": \"MEDIO\",\n  \"sexo\": \"FEMEA\",\n  \"dataNascimento\": \"2021-03-15\",\n  \"peso\": 12.4,\n  \"castrado\": true,\n  \"responsavelId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenVet}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                      "pm.collectionVariables.set('animalId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "1.3 Condição: apetite baixo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/condicao-clinica",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "condicao-clinica"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"APETITE_BAIXO\",\n  \"rotulo\": \"Comeu pouco ou recusou a refeição\",\n  \"tipoDado\": \"BOOLEANO\",\n  \"critica\": false,\n  \"clinicaId\": 1,\n  \"veterinarioAutorId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenVet}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Entra no vocabulário que a IA pode preencher."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201 ou 409', () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));",
+                      "if (pm.response.code === 201) {",
+                      "    pm.collectionVariables.set('condicaoApetiteId', pm.response.json().id);",
+                      "} else {",
+                      "    // Já cadastrada numa execução anterior: busca pelo código.",
+                      "    pm.sendRequest({",
+                      "        url: pm.collectionVariables.get('baseUrl') + '/api/condicao-clinica/buscar?clinicaId=1&codigo=APETITE_BAIXO',",
+                      "        header: { Authorization: 'Bearer ' + pm.collectionVariables.get('tokenVet') }",
+                      "    }, (err, res) => pm.collectionVariables.set('condicaoApetiteId', res.json().id));",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "1.4 Condição crítica: sem comer 24h",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/condicao-clinica",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "condicao-clinica"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"SEM_COMER_24H\",\n  \"rotulo\": \"Passou 24 horas ou mais sem comer\",\n  \"tipoDado\": \"BOOLEANO\",\n  \"critica\": true,\n  \"clinicaId\": 1,\n  \"veterinarioAutorId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenVet}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Crítica: escala para a clínica antes de qualquer regra."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201 ou 409', () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));",
+                      "if (pm.response.code === 201) {",
+                      "    pm.collectionVariables.set('condicaoCriticaId', pm.response.json().id);",
+                      "} else {",
+                      "    // Já cadastrada numa execução anterior: busca pelo código.",
+                      "    pm.sendRequest({",
+                      "        url: pm.collectionVariables.get('baseUrl') + '/api/condicao-clinica/buscar?clinicaId=1&codigo=SEM_COMER_24H',",
+                      "        header: { Authorization: 'Bearer ' + pm.collectionVariables.get('tokenVet') }",
+                      "    }, (err, res) => pm.collectionVariables.set('condicaoCriticaId', res.json().id));",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "1.5 Abrir janela na agenda",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/janela-atendimento",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "janela-atendimento"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"dataHoraInicio\": \"{{daquiUmaHora}}\",\n  \"veterinarioId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenVet}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                      "pm.collectionVariables.set('janelaId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "1.6 Agendar consulta",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/consulta/agendamento",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "consulta",
+                    "agendamento"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"janelaId\": {{janelaId}},\n  \"animalId\": {{animalId}},\n  \"tipo\": \"ROTINA\",\n  \"observacao\": \"Retorno de gastroenterite\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenVet}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                      "pm.collectionVariables.set('consultaId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "1.7 Fechar atendimento com prescrição e regra",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/consulta/{{consultaId}}/fechamento",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "consulta",
+                    "{{consultaId}}",
+                    "fechamento"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"registroAtendimento\": {\n    \"dataAtendimento\": \"{{agora}}\",\n    \"anamnese\": \"Tutora relata apetite oscilando.\",\n    \"diagnostico\": \"Gastroenterite leve.\",\n    \"tratamento\": \"Lactulona por 14 dias.\"\n  },\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Lactulona\",\n      \"doseMin\": 1,\n      \"doseMax\": 2,\n      \"unidade\": \"ml\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 14,\n      \"dataInicio\": \"{{hoje}}\",\n      \"orientacao\": \"Dar à noite, depois do jantar.\",\n      \"regras\": [\n        { \"condicaoClinicaId\": {{condicaoApetiteId}}, \"acaoDose\": \"DOSE_MIN\", \"ordem\": 1 }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenVet}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "A regra assinada: apetite baixo → menor dose da faixa (1 ml)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                      "pm.collectionVariables.set('registroAtendimentoId', pm.response.json().registroAtendimento.id);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "2. IA na prescrição",
+          "item": [
+            {
+              "name": "2.1 Rascunho da prescrição pela fala (IA)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/prescricao/rascunho",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "prescricao",
+                    "rascunho"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"registroAtendimentoId\": {{registroAtendimentoId}},\n  \"narrativa\": \"Lactulona, de 1 a 2 ml, uma vez ao dia, por 14 dias, começando hoje. Se ela comer pouco, usar a dose mínima.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenVet}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Nada é gravado: a veterinária revisa e assina."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                      "const r = pm.response.json();",
+                      "pm.test('a IA preencheu o formulário', () => pm.expect(r.extracaoDisponivel).to.be.true);",
+                      "pm.test('propôs a regra do catálogo', () => pm.expect(r.regrasPropostas.map(x => x.acaoDose)).to.include('DOSE_MIN'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "3. IA no check-in",
+          "item": [
+            {
+              "name": "3.1 Login da tutora",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"login\": \"maria@email.com\",\n  \"senha\": \"petbuddies123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                      "pm.collectionVariables.set('tokenTutor', pm.response.json().token);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3.2 Extrair o relato (IA)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/checkin/extracao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "checkin",
+                    "extracao"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"animalId\": {{animalId}},\n  \"narrativa\": \"Dei o remédio às 20h, mas ela não quis o jantar.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenTutor}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Não grava nada: devolve o que a IA entendeu, com trecho e confiança."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                      "const r = pm.response.json();",
+                      "pm.test('não degradou', () => pm.expect(r.degradado).to.be.false);",
+                      "pm.test('reconheceu APETITE_BAIXO', () => pm.expect(r.condicoes.map(c => c.codigo)).to.include('APETITE_BAIXO'));",
+                      "pm.collectionVariables.set('extraidas', JSON.stringify(r.condicoes));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "3.3 Confirmar o check-in → dose do dia",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/checkin",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "checkin"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"animalId\": {{animalId}},\n  \"narrativa\": \"Dei o remédio às 20h, mas ela não quis o jantar.\",\n  \"condicoes\": {{confirmadas}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenTutor}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// O tutor confirma o que a IA entendeu: reaproveita as condições extraídas.",
+                      "const extraidas = JSON.parse(pm.collectionVariables.get('extraidas') || '[]');",
+                      "const confirmadas = extraidas.map(c => ({ condicaoClinicaId: c.condicaoClinicaId, valorBooleano: c.valorBooleano, valorNumerico: c.valorNumerico, confianca: c.confianca }));",
+                      "pm.collectionVariables.set('confirmadas', JSON.stringify(confirmadas));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                      "const d = pm.response.json().desfechos[0];",
+                      "pm.test('dose calculada pela regra', () => pm.expect(d.desfecho).to.eql('DOSE_CALCULADA'));",
+                      "pm.test('menor dose da faixa: 1 ml', () => pm.expect(Number(d.doseAplicada)).to.eql(1));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "4. Condição crítica",
+          "item": [
+            {
+              "name": "4.1 Extrair um relato preocupante (IA)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/checkin/extracao",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "checkin",
+                    "extracao"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"animalId\": {{animalId}},\n  \"dataReferencia\": \"{{amanha}}\",\n  \"narrativa\": \"Ela não comeu nada desde ontem de manhã e está muito parada.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenTutor}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Dia seguinte, para não colidir com o check-in de hoje."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                      "const r = pm.response.json();",
+                      "pm.test('reconheceu a condição crítica', () => pm.expect(r.condicoes.some(c => c.critica)).to.be.true);",
+                      "pm.collectionVariables.set('extraidasCriticas', JSON.stringify(r.condicoes));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "4.2 Confirmar o check-in → acionar a clínica",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/checkin",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "checkin"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"animalId\": {{animalId}},\n  \"dataReferencia\": \"{{amanha}}\",\n  \"narrativa\": \"Ela não comeu nada desde ontem de manhã e está muito parada.\",\n  \"condicoes\": {{confirmadasCriticas}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenTutor}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// O tutor confirma o que a IA entendeu: reaproveita as condições extraídas.",
+                      "const extraidas = JSON.parse(pm.collectionVariables.get('extraidasCriticas') || '[]');",
+                      "const confirmadas = extraidas.map(c => ({ condicaoClinicaId: c.condicaoClinicaId, valorBooleano: c.valorBooleano, valorNumerico: c.valorNumerico, confianca: c.confianca }));",
+                      "pm.collectionVariables.set('confirmadasCriticas', JSON.stringify(confirmadas));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('responde 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                      "const r = pm.response.json();",
+                      "pm.test('escalou sem dose', () => { pm.expect(r.escalado).to.be.true; pm.expect(r.desfechos[0].desfecho).to.eql('ACIONAR_CLINICA'); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Autenticação",
       "item": [

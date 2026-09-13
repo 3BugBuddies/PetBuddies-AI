@@ -1,0 +1,43 @@
+# Demonstração local da IA: o Oracle e a API Java, os dois em container.
+#
+#   docker compose -f docker-compose.demo.yml up -d --build   sobe tudo (a primeira build demora)
+#   docker compose -f docker-compose.demo.yml logs -f api      acompanha a API
+#   docker compose -f docker-compose.demo.yml down -v          derruba e apaga o banco
+#
+# Lê GEMINI_API_KEY e PETBUDDIES_JWT_SECRET do .env na raiz do projeto.
+# O banco nasce vazio a cada `down -v`: o Flyway recria o schema e o seed dos dois usuários.
+services:
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-oracle}
+      APP_USER: PETBUDDIES
+      APP_USER_PASSWORD: ${ORACLE_PASSWORD:-petbuddies}
+    ports:
+      - "${ORACLE_PORT:-1521}:1521"
+    volumes:
+      - oracle-demo:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  api:
+    build: .
+    environment:
+      ORACLE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      ORACLE_USER: PETBUDDIES
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:-petbuddies}
+      PETBUDDIES_JWT_SECRET: ${PETBUDDIES_JWT_SECRET:?defina PETBUDDIES_JWT_SECRET no .env}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?defina GEMINI_API_KEY no .env}
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      oracle:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+volumes:
+  oracle-demo:
