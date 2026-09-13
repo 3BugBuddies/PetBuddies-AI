@@ -539,9 +539,13 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 
 ### Via Postman
 
-Importe `docs/postman/petbuddies-ai-java.postman_collection.json`. A coleção traz Bearer no nível da collection (variável `token`) e `baseUrl` em `http://localhost:8080`: faça o login, copie o token para a variável e as pastas seguintes já saem autenticadas.
+Importe `docs/postman/petbuddies-ai-java.postman_collection.json`, com `baseUrl` em `http://localhost:8080`.
 
-A coleção ainda não cobre `POST /api/consulta/{id}/cancelamento`, `GET /api/janela-atendimento/livres`, `GET /api/motor/plano/{animalId}/protocolo-aplicado`, `GET /api/motor/plano/{animalId}/sugestoes`, `POST /api/prescricao/rascunho` e a pasta de check-in — use o Swagger para essas.
+1. Rode **Autenticação → Login — vet** e **Login — tutor**. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.
+2. As pastas herdam `tokenVet`, porque as escritas clínicas exigem perfil `VET`. A pasta **Check-in** usa `tokenTutor`, e todo `GET` aceita qualquer um dos dois.
+3. **Saúde** chama `GET /actuator/health`, sem token.
+
+A coleção cobre todas as rotas da API, inclusive agendamento, cancelamento e fechamento de consulta, janelas livres, rascunho de prescrição, protocolo aplicado, sugestões e check-in.
 
 ---
 
