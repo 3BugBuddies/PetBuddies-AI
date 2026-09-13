@@ -1,18 +1,18 @@
-# PetBuddies AI — Challenge FIAP 2026 | Java Advanced
+# PetBuddies — Componente de IA | Disruptive Architectures: IoT, IoB & Generative IA
 
-API REST do produto **PetBuddies**, desenvolvida com Spring Boot + Spring AI — Challenge de **Java Advanced (2TDS)**, FIAP 2026.
+Challenge FIAP 2026 · Clyvo Vet · 2TDS · Sprint 3
 
-O serviço cobre o ciclo de cuidado de um animal de estimação: cadastro clínico, agenda, atendimento, prescrição e planos de cuidado. A **IA interpreta narrativa em texto livre** — o relato do tutor no check-in e a descrição da veterinária na prescrição — e um **motor determinístico** decide a dose do dia aplicando as regras que a veterinária assinou. O catálogo de protocolos vem do `PetBuddies-API` (.NET) por HTTP.
+**O tutor conta. A IA entende. A veterinária decide.** O PetBuddies usa um LLM para transformar a fala livre do tutor
+e da veterinária em dados estruturados, e um motor de regras em Java para decidir, a partir desses dados, o que a
+veterinária assinou: a dose do dia ou a orientação de procurar a clínica.
 
-## Links
+| | |
+|---|---|
+| Vídeo de apresentação | *link do YouTube (não listado)* |
+| Swagger UI (local) | `http://localhost:8080/swagger-ui.html` |
 
-|                               | |
-|-------------------------------|---|
-| Deploy                        | *pendente* |
-| Swagger UI (produção)         | *pendente* |
-| Swagger UI (local)            | `http://localhost:8080/swagger-ui.html` |
-| Postman collection            | [`docs/postman/petbuddies-ai-java.postman_collection.json`](docs/postman/petbuddies-ai-java.postman_collection.json) |
-| Vídeo de apresentação         | *pendente* |
+> Esta branch reúne a entrega da disciplina de IA. O código é o mesmo da `main`; o README da `main` descreve a API
+> para a disciplina de Java Advanced.
 
 ---
 
@@ -27,66 +27,163 @@ O serviço cobre o ciclo de cuidado de um animal de estimação: cadastro clíni
 
 ---
 
-## Configuração — Spring Initializr
+## 1. O problema
 
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring Web | WEB | controllers REST e MVC no mesmo processo |
-| Spring HATEOAS | WEB | `_links` / `_embedded` em toda resposta de recurso |
-| Thymeleaf | WEB | as 8 telas server-rendered, vet e tutor |
-| Spring Data JPA | SQL | 16 entidades JPA, um repositório por agregado |
-| Oracle Driver (`ojdbc11`) | SQL | Oracle 23 local (`gvenzl/oracle-free`) ou Oracle FIAP |
-| Flyway (`flyway-core` + `flyway-database-oracle`) | SQL | dono do schema — `V1` cria as 16 tabelas, `ddl-auto=validate` |
-| Spring Security | SEGURANÇA | duas cadeias: API com Bearer JWT, web com formulário e sessão |
-| jjwt (`api`/`impl`/`jackson`) | SEGURANÇA | emissão e validação do token HS256 |
-| Spring AI (`spring-ai-starter-model-openai`) | AI | Gemini 2.5 Flash via camada de compatibilidade OpenAI |
-| Bean Validation | I/O | validação de DTOs com anotações Jakarta |
-| Spring Boot Actuator | OPS | `GET /actuator/health` aberto, com o status da aplicação e do banco |
-| Springdoc OpenAPI | DEV | Swagger UI com tags por domínio |
-| Lombok | DEV | `@Getter @Setter @NoArgsConstructor @AllArgsConstructor` em entidades e DTOs |
-| spring-dotenv | DEV | carrega `.env` em desenvolvimento local |
+A consulta termina, mas o tratamento continua em casa. A veterinária prescreve uma faixa de dose com condições
+("de 1 a 2 ml; se as fezes estiverem moles, a menor dose; se não evacuar em 48 horas, procure a clínica"). A partir
+daí, na jornada de cuidado:
 
----
+- **o tutor decide sozinho** qual dose dar, sem formação para isso;
+- **a clínica não fica sabendo**: recebe ligações repetidas ou, pior, não recebe nenhuma, e a adesão cai sem ninguém ver;
+- **o sinal clínico se perde**: o que o tutor observa entre uma consulta e outra não chega ao prontuário.
 
-## Stack
+A IA entra num ponto só: a ponte entre **o que o tutor observa, em linguagem de tutor**, e **o que a veterinária
+assinou, em linguagem clínica**.
 
-- **Java 21** · Spring Boot 3.4.5
-- **Spring AI 1.1.6** — Gemini `gemini-2.5-flash`, `temperature=0`
-- **Spring Data JPA + Hibernate** sobre **Oracle** (23 local via `gvenzl/oracle-free`, ou FIAP)
-- **Flyway** — dono do schema (`ddl-auto=validate`, nunca `update`)
-- **Spring Security** — duas cadeias (API com Bearer, web com formulário) e JWT via `jjwt`
-- **Spring HATEOAS** — respostas em `EntityModel`/`CollectionModel`, com assemblers dedicados
-- **Spring Boot Actuator** — só o `health` exposto
-- **Bean Validation** (Jakarta) · **Springdoc OpenAPI 2.8.8** · **Lombok**
+## 2. Abordagem de IA e justificativa
 
----
+**NLP com LLM e saída estruturada, sobre um vocabulário fechado, combinado com um motor de regras.**
 
-## Estrutura do Projeto
+| Etapa | Abordagem | O que faz | O que decide |
+|---|---|---|---|
+| Entender a fala | NLP com LLM (Gemini 2.5 Flash via Spring AI) | transforma a narrativa livre em JSON tipado, só com códigos do catálogo da clínica | nada |
+| Decidir | motor de regras em Java | aplica a regra que a veterinária assinou para aquele paciente | dose dentro da faixa, acionar a clínica ou suspender |
 
+**Por que um LLM para entender a fala.** Uma regra não converte "ele comeu pouco e as fezes tavam moles de manhã" em
+campos estruturados: há negação, gíria, ordem livre e número falado. Essa é a única etapa em que um modelo é
+insubstituível, e ela não toma nenhuma decisão clínica.
+
+**Por que não um modelo preditivo treinado.** Não existe base aberta de dose veterinária que justifique treinar, e
+prescrever dose é ato privativo do médico-veterinário (Resolução CFMV nº 1.465/2022). O conhecimento de dose do
+sistema é o que a veterinária assina, paciente por paciente.
+
+**Por que não um chatbot.** Conversa aberta deixaria o modelo orientar conduta. Aqui ele só preenche um schema.
+
+**Por que Spring AI e Gemini.** O Spring AI entrega saída estruturada (`ChatClient` com `.entity(...)`, que devolve a
+resposta no formato de um `record` Java) no mesmo processo do motor de regras, sem outro runtime. O Gemini 2.5 Flash
+é acessado pela camada compatível com a API da OpenAI.
+
+- `temperature=0`: sem ela a confiança por campo não calibra (medido em 108 chamadas).
+- Até 3 tentativas, com backoff exponencial de 2 s a 10 s.
+
+## 3. Como a IA contribui
+
+| Eixo | Como |
+|---|---|
+| **Apoio à decisão** | O tutor conta como o pet passou; a dose do dia volta calculada pela regra assinada, com o motivo. |
+| **Personalização** | O vocabulário enviado ao modelo e as regras são do paciente: a mesma narrativa gera respostas diferentes conforme a prescrição. Na validação, relatos de "passou mal" viraram dose em 13 quadros clínicos e "acionar a clínica" em 5. |
+| **Priorização** | Condição marcada como crítica no catálogo da clínica escala antes de qualquer cálculo de dose, sem dose. |
+
+A mesma camada serve a veterinária: ela narra a prescrição e recebe um rascunho do formulário (medicamento, faixa,
+frequência, duração e regras "se → então") para revisar e assinar.
+
+## 4. Dados
+
+| Dado | Origem | Estrutura | Quem usa |
+|---|---|---|---|
+| Narrativa do tutor ou da veterinária | app (corpo da requisição) | texto livre, até 4.000 caracteres | **o modelo** |
+| Vocabulário de condições clínicas | `T_PB_CONDICAO_CLINICA` | código, rótulo, tipo (booleano ou numérico), unidade, crítica | **o modelo**, só as condições das regras da prescrição ativa mais as críticas |
+| Prescrição (medicamento) | `T_PB_PRESCRICAO` | medicamento, dose mínima e máxima, unidade, frequência, duração | o motor de regras |
+| Regras da prescrição | `T_PB_REGRA_PRESCRICAO` | condição, operador, limite, ação (`DOSE_MIN`, `DOSE_MAX`, `DOSE_PADRAO`, `ACIONAR_CLINICA`, `SUSPENDER`) | o motor de regras |
+| Perfil do pet | `T_PB_ANIMAL` | espécie, raça, porte, sexo, nascimento, peso, castração | contexto da veterinária ao prescrever |
+| Consultas e histórico clínico | `T_PB_CONSULTA`, `T_PB_REGISTRO_ATENDIMENTO` | data, veterinário, anamnese, diagnóstico, tratamento | contexto da veterinária ao prescrever |
+| Vacinas e preventivos | `T_PB_PLANO_CUIDADO`, `T_PB_ITEM_PLANO_CUIDADO` | itens com tipo, data prevista e status | plano do tutor; recebe o desfecho do dia |
+| Comportamento e sintomas | narrativa do check-in | apetite, fezes, apatia, febre medida | **o modelo**, via vocabulário |
+| Check-in e condições observadas | `T_PB_CHECKIN`, `T_PB_CONDICAO_OBSERVADA` | fala crua, canal utilizado, valor confirmado e confiança | registro no prontuário |
+
+O modelo **não** recebe o prontuário inteiro: só a narrativa e o vocabulário que a regra do paciente precisa. A
+solução não usa base externa de dose nem dados de terceiros para treino.
+
+## 5. Arquitetura e fluxo de dados
+
+```mermaid
+flowchart LR
+    App["App mobile<br/>tutor e veterinária"] -->|"HTTPS + JWT"| Ctrl
+    subgraph Java["API Java · petbuddies-ai"]
+        Ctrl["Controller REST"] --> Svc["Service de domínio<br/>monta o vocabulário e valida"]
+        Svc --> Ext["ExtratorIA"]
+        Ext --> CC["Spring AI ChatClient"]
+        Svc --> Motor["AvaliadorRegraService<br/>motor de regras"]
+    end
+    CC -->|"prompt + narrativa"| Gemini["Gemini 2.5 Flash"]
+    Gemini -->|"JSON estruturado"| CC
+    Svc <--> Oracle[("Oracle<br/>16 tabelas")]
+    Java -.->|"catálogo de protocolos,<br/>só ao criar plano de cuidado"| Net["API .NET"]
 ```
-br/com/fiap/petbuddies/
-├── controller/              # REST — um subpacote por domínio
-│   ├── identidade/          # AuthController
-│   ├── cadastro/            # Clinica, Veterinario, Responsavel, Animal
-│   ├── atendimento/         # Consulta, JanelaAtendimento, RegistroAtendimento, Procedimento, CondicaoClinica
-│   ├── prescricao/          # Prescricao, RegraPrescricao, ExtracaoPrescricao
-│   ├── cuidado/             # MotorPlanoController
-│   └── checkin/             # CheckinController
-├── web/                     # 8 telas Thymeleaf
-│   └── form/                # objeto de formulário quando o DTO de request não cobre a tela
-├── service/                 # regra de negócio — mesmos subpacotes do controller
-├── dto/                     # um subpacote por domínio, flat
-├── domain/
-│   ├── entity/              # 16 entidades JPA
-│   ├── enums/               # um subpacote por domínio, @Enumerated(STRING)
-│   └── repository/          # um JpaRepository por entidade
-├── assembler/               # RepresentationModelAssembler (HATEOAS), um por recurso
-├── infrastructure/client/   # ProtocoloClient — a chamada ao .NET
-├── security/                # SecurityConfig, TokenService, TokenAuthenticationFilter, UsuarioPrincipal
-├── exception/               # exceções de domínio — mesmos subpacotes do controller
-├── handler/                 # GlobalExceptionHandler (API) e WebExceptionHandler (telas)
-└── config/                  # OpenApiConfig, CuidadoPersistenceConfig
+
+### Check-in do tutor
+
+```mermaid
+sequenceDiagram
+    participant T as Tutor
+    participant J as API Java
+    participant G as Gemini
+    participant DB as Oracle
+
+    T->>J: POST /api/checkin/extracao (narrativa)
+    J->>DB: prescrição ativa, regras e condições críticas
+    alt vocabulário vazio
+        J-->>T: 200, lista vazia (o modelo não é chamado)
+    else
+        J->>G: vocabulário + narrativa (temperature 0)
+        G-->>J: condições com trecho, literal e confiança
+        J->>J: descarta código fora do vocabulário e valor de tipo errado
+        J-->>T: 200, nada gravado
+    end
+    Note over T: o tutor confirma ou corrige
+    T->>J: POST /api/checkin (condições confirmadas)
+    J->>DB: grava o check-in e as condições
+    J->>J: condição crítica? acionar a clínica : aplica as regras em ordem
+    J->>DB: grava o desfecho no item do plano
+    J-->>T: 201, dose calculada, acionar a clínica ou sem dose
 ```
+
+### Onde está a IA no código
+
+| Arquivo | Papel |
+|---|---|
+| `infrastructure/ia/ExtratorIA.java` | a chamada ao modelo; falha vira resposta vazia, nunca exceção |
+| `service/checkin/CheckinExtracaoService.java` | monta o vocabulário, o prompt do check-in e filtra a resposta |
+| `service/checkin/AvaliadorRegraService.java` | o motor de regras: decide dose, acionar a clínica ou sem dose |
+| `service/prescricao/PrescricaoExtracaoService.java` | o prompt do rascunho de prescrição e a validação de cada campo |
+
+## 6. Guardrails
+
+| Risco | O que o código faz |
+|---|---|
+| Modelo inventa um código | descartado antes de chegar ao tutor |
+| Valor de tipo errado (sim/não em condição numérica) | descartado antes do banco |
+| Extração errada vira decisão | nada é gravado nem calculado sem o tutor confirmar |
+| Modelo julgando gravidade | gravidade é do catálogo da clínica (`critica`); observações fora do vocabulário voltam só como texto |
+| Veterinária não disse um valor | o campo volta vazio; o prompt proíbe estimar ou calcular por peso |
+| Confiança "de fachada" na prescrição | calculada pelo Java: trecho citado e dito literalmente vale 1,0; inferido, 0,6; sem trecho, o campo é descartado |
+| Regra com condição fora do catálogo | descartada e listada para a veterinária |
+| Modelo fora do ar ou chave inválida | resposta 200 degradada, com preenchimento manual; nunca erro 500 |
+
+## 7. Resultados parciais
+
+**Teste da extração contra o Gemini real** (saída estruturada com schema estrito):
+
+- "não mencionado" volta como ausência de linha; "fezes normais" volta como `false`;
+- condição fora do vocabulário ("mancando da pata") vai para observações em texto, sem código inventado;
+- na prescrição, "dipirona três vezes ao dia" voltou com dose, unidade e duração vazias;
+- **confiança calibrada**: pedir o trecho exato, se foi literal e faixas nomeadas fez a confiança deixar de ser 1,0
+  em tudo. "Não quis o jantar" → 0,95; "acho que as fezes tavam diferentes" → 0,50.
+
+**Matriz clínica: 108 cenários.** 6 espécies, 18 quadros clínicos (três por espécie), 23 variáveis, e 6 tipos de
+relato por quadro (normal, bem, mal, grave, ambíguo, ruído). Cada cenário percorre a cadeia inteira: narrativa →
+extração → regra → desfecho.
+
+| Resultado | Valor |
+|---|---|
+| Cadeias corretas | **107 / 108** |
+| Relatos graves que escalaram para a clínica | **18 / 18** |
+| Escalações falsas em relatos normais, bons, ambíguos ou com ruído | **0 / 72** |
+| Relatos "mal": dose × acionar a clínica | **13 × 5**, conforme a regra assinada em cada quadro |
+
+A única falha foi sim/não preenchido numa condição numérica, num quadro de coelho: corrigida no prompt e, como
+garantia, barrada em Java antes de gravar. A matriz também definiu o escopo do vocabulário: com o catálogo inteiro,
+um relato "tudo certo" gerava 15 condições negadas; com só as condições da prescrição ativa, 2.
 
 ---
 
@@ -108,13 +205,7 @@ docker compose up -d --wait                          # sobe só o Oracle
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Para rodar mais de uma instância em paralelo, parametrize porta e projeto:
-
-```bash
-COMPOSE_PROJECT_NAME=minha-instancia ORACLE_PORT=1581 docker compose up -d --wait
-```
-
-Derrube com `docker compose down -v`. Os bancos desta sprint são resetados a cada subida, não migrados.
+Derrube com `docker compose down -v`.
 
 ### Oracle FIAP (alternativa)
 
@@ -127,429 +218,65 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 A aplicação sobe em `http://localhost:8080`, com o Swagger em `/swagger-ui.html`.
 
-### Variáveis de ambiente
+`GEMINI_API_KEY` ausente do ambiente impede a aplicação de subir; presente mas vazia, a aplicação sobe e as
+chamadas de IA respondem degradadas.
 
-Todas em `.env.example`; `.env` está no `.gitignore`.
+### Testando a IA
 
-| Variável | Para quê |
-|---|---|
-| `ORACLE_URL` | conexão com o Oracle. Default aponta para o Oracle FIAP; o `docker-compose.yml` aponta para o container local |
-| `ORACLE_USER`, `ORACLE_PASSWORD` | credencial do schema. **A aplicação não sobe sem elas.** `ORACLE_USER` em maiúsculas — o Oracle guarda nome de schema assim |
-| `ORACLE_SYS_PASSWORD` | senha do `SYS` do container local; só o `docker-compose.yml` usa |
-| `ORACLE_PORT` | porta do Oracle no host, para rodar instâncias em paralelo |
-| `PETBUDDIES_JWT_SECRET` | segredo `HS256` do token — mínimo 32 bytes, o mesmo valor do .NET. Abaixo disso a aplicação recusa subir |
-| `GEMINI_API_KEY` | chave do Gemini. Ausente do ambiente, a aplicação não sobe; presente mas vazia, sobe e só as chamadas de IA falham |
+O seed cria dois usuários: `ana@clinica.com` (`VET`) e `maria@email.com` (`TUTOR`), ambos com senha
+`petbuddies123`. A extração do check-in só reconhece condições de uma prescrição ativa, então o cenário é montado
+antes, pelo Swagger:
 
-### Usuários de demonstração
-
-`V2__seed_demonstracao.sql` semeia uma clínica, um veterinário, um responsável e dois usuários:
-
-| Login | Perfil | Senha |
-|---|---|---|
-| `ana@clinica.com` | `VET` | `petbuddies123` |
-| `maria@email.com` | `TUTOR` | `petbuddies123` |
-
----
-
-## Modelo de Dados
-
-16 tabelas, criadas pelo Flyway em `V1__baseline_schema_cuidado.sql`. Enums persistidos como `STRING`; valores monetários e de dose em `BigDecimal`.
-
-### Registro clínico
-
-```mermaid
-erDiagram
-    CLINICA ||--o{ VETERINARIO : emprega
-    CLINICA ||--o{ CONDICAO_CLINICA : define
-    VETERINARIO ||--o{ CONDICAO_CLINICA : autora
-    RESPONSAVEL ||--o{ ANIMAL : tutela
-    ANIMAL ||--o{ CONSULTA : recebe
-    VETERINARIO ||--o{ CONSULTA : atende
-    VETERINARIO ||--o{ JANELA_ATENDIMENTO : oferece
-    CONSULTA ||--o| JANELA_ATENDIMENTO : ocupa
-    CONSULTA ||--o{ REGISTRO_ATENDIMENTO : gera
-    ANIMAL ||--o{ REGISTRO_ATENDIMENTO : possui
-    REGISTRO_ATENDIMENTO ||--o{ PROCEDIMENTO : executa
-    REGISTRO_ATENDIMENTO ||--o{ PRESCRICAO : assina
-    PRESCRICAO ||--o{ REGRA_PRESCRICAO : condiciona
-    CONDICAO_CLINICA ||--o{ REGRA_PRESCRICAO : compara
-
-    CLINICA { long id PK }
-    VETERINARIO {
-        long id PK
-        string crmv
-        long clinicaId FK
-    }
-    RESPONSAVEL {
-        long id PK
-        string cpf
-    }
-    ANIMAL {
-        long id PK
-        string especie
-        long responsavelId FK
-    }
-    CONSULTA {
-        long id PK
-        string status
-        date dataHora
-    }
-    JANELA_ATENDIMENTO {
-        long id PK
-        date dataHora
-    }
-    REGISTRO_ATENDIMENTO {
-        long id PK
-        string diagnostico
-    }
-    PROCEDIMENTO {
-        long id PK
-        string tipo
-        string status
-    }
-    PRESCRICAO {
-        long id PK
-        decimal doseMin
-        decimal doseMax
-    }
-    REGRA_PRESCRICAO {
-        long id PK
-        string operador
-        string acaoDose
-    }
-    CONDICAO_CLINICA {
-        long id PK
-        string codigo
-        string tipoDado
-    }
-    USUARIO {
-        long id PK
-        string login
-        string perfil
-    }
-```
-
-`USUARIO` guarda o login e aponta para `VETERINARIO` **ou** `RESPONSAVEL` por id, conforme o perfil.
-
-### Cuidado e check-in
-
-```mermaid
-erDiagram
-    PLANO_CUIDADO ||--o{ ITEM_PLANO_CUIDADO : contem
-    ITEM_PLANO_CUIDADO ||--o| CHECKIN : registra
-    ANIMAL ||--o{ CHECKIN : declara
-    CHECKIN ||--o{ CONDICAO_OBSERVADA : observa
-    CONDICAO_CLINICA ||--o{ CONDICAO_OBSERVADA : tipifica
-
-    PLANO_CUIDADO {
-        long id PK
-        long animalId
-        long protocoloId
-        string status
-    }
-    ITEM_PLANO_CUIDADO {
-        long id PK
-        date dataPrevista
-        string status
-        string tipoDesfecho
-    }
-    CHECKIN {
-        long id PK
-        date data
-        string narrativa
-    }
-    CONDICAO_OBSERVADA {
-        long id PK
-        boolean valorBooleano
-        decimal valorNumerico
-    }
-    ANIMAL { long id PK }
-    CONDICAO_CLINICA { long id PK }
-```
-
-`PLANO_CUIDADO.protocoloId` referencia um protocolo que vive **no banco do .NET** — por isso é uma coluna escalar, não uma relação JPA.
-
----
-
-## Autenticação e perfis
-
-Duas cadeias de segurança no mesmo processo:
-
-| Cadeia | Quem usa | Como autentica |
-|---|---|---|
-| `/api/**` | app mobile e integrações | `Authorization: Bearer <JWT>` (HS256) |
-| telas Thymeleaf | navegador | formulário em `/login`, sessão e logout |
-
-O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `responsavelId`), e é o mesmo aceito pelo `PetBuddies-API` (.NET) — o segredo é compartilhado.
-
-**Rotas por perfil na API:** as escritas são do veterinário — consulta, registro de atendimento, procedimento, prescrição, regra de prescrição, condição clínica, janela, motor de planos e o cadastro clínico (animal, responsável, veterinário, clínica). O check-in é do tutor, porque o relato é de quem convive com o animal. **O portão é por método:** todo `GET` segue aberto a qualquer token válido, e o tutor lê o próprio animal normalmente.
-
-**Rotas por perfil na web:** `/painel`, `/clinica`, `/equipe`, `/tutores`, `/pacientes` e `/agenda` exigem `VET`; `/meus-animais` exige `TUTOR`. O tutor recebe `403` nas rotas da clínica, e a lista dele é escopada pelo `responsavelId` da sessão, nunca por parâmetro na URL.
-
----
-
-## Fluxos Principais
-
-### O contexto
-
-```mermaid
-flowchart LR
-    App["App mobile<br/>vet e tutor"] --> Java
-    Web["Telas Thymeleaf<br/>8 telas"] --> Java
-    Java["petbuddies-ai (Java)<br/>registro, agenda, prescrição, cuidado"]
-    Java -->|"GET /api/protocolo"| Net["PetBuddies-API (.NET)<br/>catálogo e política"]
-    Java --> Gemini["Gemini 2.5 Flash<br/>interpreta narrativa"]
-    Java --> Oracle[("Oracle<br/>16 tabelas")]
-```
-
-### Plano de cuidado a partir de protocolo
-
-O único fluxo que atravessa os dois serviços.
-
-```mermaid
-sequenceDiagram
-    participant V as Veterinária
-    participant J as petbuddies-ai
-    participant N as PetBuddies-API
-    participant DB as Oracle
-
-    V->>J: POST /api/motor/plano/instanciar-preventivo
-    J->>DB: já existe plano ATIVO para o animal?
-    alt já existe
-        DB-->>J: plano existente
-        J-->>V: 200 — devolve o plano (idempotente)
-    else não existe
-        J->>N: GET /api/protocolo?especie=&categoria=
-        N-->>J: protocolos ativos + regras
-        J->>DB: grava PLANO_CUIDADO e um ITEM por regra
-        J-->>V: 201 — plano com os itens e datas previstas
-    end
-```
-
-### Check-in narrado
-
-A IA interpreta; **o motor determinístico decide a dose**.
-
-```mermaid
-sequenceDiagram
-    participant T as Tutor
-    participant J as petbuddies-ai
-    participant G as Gemini
-    participant DB as Oracle
-
-    T->>J: POST /api/checkin/extracao — narrativa em texto livre
-    J->>DB: condições clínicas do vocabulário da clínica
-    J->>G: narrativa + vocabulário (temperature=0)
-    G-->>J: condições reconhecidas, com trecho e confiança
-    J-->>T: 200 — nada é gravado ainda
-
-    Note over T: o tutor confirma o que reconheceu
-
-    T->>J: POST /api/checkin — condições confirmadas
-    J->>DB: grava CHECKIN e CONDICAO_OBSERVADA
-    J->>J: motor percorre as regras assinadas da prescrição ativa
-    J->>DB: grava o desfecho no ITEM_PLANO_CUIDADO
-    J-->>T: 201 — dose calculada, acionar a clínica ou suspender
-```
-
-Duas regras de comportamento que a integração precisa conhecer:
-
-- **Quando nenhuma regra dispara**, a dose devolvida é o piso da faixa prescrita (`doseMin`).
-- **Cada condição vem com `confianca` entre 0 e 1.** Abaixo de `0.7` a leitura é uma inferência do modelo, não algo que o tutor disse — o app deve confirmar antes de seguir.
-
----
-
-## Superfície web (Thymeleaf)
-
-8 telas server-rendered, layout compartilhado por fragmentos. O login redireciona por perfil.
-
-| Rota | Perfil | O que faz |
-|---|---|---|
-| `/login` | público | formulário de acesso |
-| `/painel` | `VET` | visão geral da clínica |
-| `/clinica` | `VET` | dados da clínica |
-| `/equipe` | `VET` | veterinários — lista e cadastro |
-| `/tutores` | `VET` | responsáveis — lista e cadastro |
-| `/pacientes` | `VET` | animais, ficha clínica e instanciação de plano |
-| `/agenda` | `VET` | consultas, agendamento e fechamento de atendimento |
-| `/meus-animais` | `TUTOR` | os animais do próprio tutor |
-
-Erro de negócio numa tela devolve página HTML, não JSON — o `WebExceptionHandler` intercepta antes do handler da API.
-
----
-
-## Recursos e Rotas
-
-Respostas de recurso vêm em envelope HATEOAS (`EntityModel` / `CollectionModel`). Erros vêm como `ErrorDto{ code, message }`. Parâmetros, corpos e códigos de cada rota estão no Swagger.
-
-### Saúde
-
-| Método | Rota |
-|---|---|
-| `GET` | `/actuator/health` |
-
-Aberta, sem token. Responde `200 {"status":"UP"}` com o banco no ar e `503 {"status":"DOWN"}` com o banco fora — sem detalhe dos componentes. É a rota que o health check do `PetBuddies-API` consulta para saber se este serviço está de pé.
-
-### Autenticação
-
-| Método | Rota |
-|---|---|
-| `POST` | `/api/auth/login` |
-
-### Cadastro
-
-| Recurso | Rota base | Métodos |
-|---|---|---|
-| Clínicas | `/api/clinica` | `GET`, `GET /buscar?cnpj=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Veterinários | `/api/veterinario` | `GET (?clinicaId=)`, `GET /buscar?crmv=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Responsáveis | `/api/responsavel` | `GET (?nome=)`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Animais | `/api/animal` | `GET (?responsavelId=&nome=)`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-
-### Atendimento
-
-| Recurso | Rota base | Métodos |
-|---|---|---|
-| Consultas | `/api/consulta` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`, `POST /agendamentos`, `POST /{id}/cancelamento`, `POST /{id}/fechamento` |
-| Janelas de atendimento | `/api/janela-atendimento` | `GET (?veterinarioId=)`, `GET /livres`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Registros de atendimento | `/api/registro-atendimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Procedimentos | `/api/procedimento` | `GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Condições clínicas | `/api/condicao-clinica` | `GET (?clinicaId=)`, `GET /buscar?clinicaId=&codigo=`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-
-### Prescrição
-
-| Recurso | Rota | Métodos |
-|---|---|---|
-| Prescrições | `/api/prescricao` | `GET`, `GET /{id}`, `POST` — o `POST` recebe `{"prescricoes": [ … ]}` e grava as N do mesmo atendimento numa transação. Sem `PUT`/`DELETE`, é ato imutável |
-| Rascunho por IA | `/api/prescricao/rascunho` | `POST` — interpreta a narrativa da vet e devolve prescrição + regras propostas, sem gravar. Exige `VET` |
-| Regras de prescrição | `/api/regra-prescricao` | `GET`, `GET /{id}`, `POST` — sem `PUT`/`DELETE` |
-
-### Motor de planos
-
-| Método | Rota | O que faz |
-|---|---|---|
-| `POST` | `/api/motor/plano/instanciar-preventivo` | cria o plano preventivo do animal, ou devolve o existente |
-| `POST` | `/api/motor/plano/instanciar-pos-cirurgico` | idem, para o plano vinculado a uma consulta |
-| `GET` | `/api/motor/plano/{animalId}` | plano `ATIVO` do animal, com os itens pendentes |
-| `GET` | `/api/motor/plano/{animalId}/eventos` | itens do plano, paginado (`?page=&size=`) |
-| `GET` | `/api/motor/plano/{animalId}/protocolo-aplicado` | itens separados em realizados, pendentes e vencidos |
-| `GET` | `/api/motor/plano/{animalId}/sugestoes` | próximo cuidado sugerido pelo histórico do animal |
-
-### Check-in
-
-| Método | Rota | O que faz |
-|---|---|---|
-| `POST` | `/api/checkin/extracao` | passo 1 — interpreta a narrativa; não grava |
-| `POST` | `/api/checkin` | passo 2 — grava o confirmado, avalia a regra e grava o desfecho |
-| `GET` | `/api/checkin/{id}` | busca por id |
-| `GET` | `/api/checkin?animalId=` | check-ins do animal, do mais recente ao mais antigo |
-
----
-
-## Roteiro do Fluxo Principal
-
-Na ordem abaixo, com o usuário `VET` de demonstração:
-
-| Passo | Método | Rota | O que observar |
+| Passo | Perfil | Rota | Para quê |
 |---|---|---|---|
-| 1 | `POST` | `/api/auth/login` | `200` + token; use como Bearer nos passos seguintes |
-| 2 | `POST` | `/api/animal` | `201` — paciente para o responsável do seed (`responsavelId: 1`) |
-| 3 | `POST` | `/api/condicao-clinica` | `201` — o vocabulário que o check-in vai avaliar |
-| 4 | `POST` | `/api/janela-atendimento` | `201` — um slot livre para o veterinário do seed |
-| 5 | `POST` | `/api/consulta/agendamento` | `201` — ocupa a janela; a consulta nasce `AGENDADA` |
-| 6 | `POST` | `/api/consulta/{id}/fechamento` | `201` — registro, procedimentos e prescrições numa transação; a consulta vira `REALIZADA` |
-| 7 | `POST` | `/api/motor/plano/instanciar-preventivo` | `201` — lê o catálogo do .NET e materializa o plano |
-| 8 | `POST` | `/api/checkin/extracao` | `200` — a IA interpreta a narrativa contra o vocabulário |
-| 9 | `POST` | `/api/checkin` | `201` — o motor decide a dose ou escala à clínica |
+| 1 | `VET` | `POST /api/auth/login` | token da veterinária |
+| 2 | `VET` | `POST /api/animal` | paciente do responsável `1` |
+| 3 | `VET` | `POST /api/condicao-clinica` | condição do vocabulário, ex. `FEZES_MOLES`, tipo `BOOLEANO` |
+| 4 | `VET` | `POST /api/janela-atendimento` | horário livre |
+| 5 | `VET` | `POST /api/consulta/agendamento` | consulta na janela |
+| 6 | `VET` | `POST /api/consulta/{id}/fechamento` | prescrição de 1 a 2 ml com a regra `FEZES_MOLES → DOSE_MIN`, início hoje |
+| 7 | `VET` | `POST /api/prescricao/rascunho` | **IA:** a narrativa da veterinária vira rascunho de prescrição |
+| 8 | `TUTOR` | `POST /api/auth/login` | token do tutor |
+| 9 | `TUTOR` | `POST /api/checkin/extracao` | **IA:** a narrativa do tutor vira condições, sem gravar |
+| 10 | `TUTOR` | `POST /api/checkin` | grava o confirmado e o motor decide a dose |
 
-> O passo 8 só reconhece condições de uma prescrição ativa. Sem o passo 6, a extração devolve lista vazia — é o escopo do vocabulário funcionando.
-
----
-
-## Validações — respostas de erro
-
-| Situação | Exemplo | Status |
-|---|---|---|
-| Campo obrigatório ausente ou fora de faixa | `POST /api/animal` sem `nome` | `400` |
-| Parâmetro de query obrigatório ausente | `GET /api/checkin` sem `animalId` | `400` |
-| JSON malformado ou enum inválido | `"especie": "INVALIDO"` | `400` |
-| Faixa de dose invertida | `POST /api/prescricao` com `doseMin > doseMax` | `400` |
-| Credenciais inválidas | senha errada | `401` — mesma mensagem para login inexistente e usuário inativo |
-| Papel sem permissão | `TUTOR` chamando `POST /api/prescricao/rascunho` | `403` |
-| Recurso inexistente | `GET /api/animal/999999` | `404` |
-| CNPJ, CRMV ou código duplicado | CNPJ repetido | `409` |
-| Janela ocupada ou consulta já realizada | agendar em janela ocupada | `409` |
-| Check-in duplicado | mesmo animal, data e item | `409` |
-
----
-
-## Como Testar
-
-### Via Swagger UI
-
-`http://localhost:8080/swagger-ui.html` — endpoints por tag de domínio, com "Authorize" e Try it out. O JSON do OpenAPI fica em **`/api-docs`**, não em `/v3/api-docs`.
-
-### Via Postman
-
-Importe `docs/postman/petbuddies-ai-java.postman_collection.json`. A coleção traz Bearer no nível da collection (variável `token`) e `baseUrl` em `http://localhost:8080`: faça o login, copie o token para a variável e as pastas seguintes já saem autenticadas.
-
-A coleção ainda não cobre `POST /api/consulta/{id}/cancelamento`, `GET /api/janela-atendimento/livres`, `GET /api/motor/plano/{animalId}/protocolo-aplicado`, `GET /api/motor/plano/{animalId}/sugestoes`, `POST /api/prescricao/rascunho` e a pasta de check-in — use o Swagger para essas.
-
----
-
-## Exemplos de Payload
-
-#### `POST /api/auth/login`
+#### `POST /api/checkin/extracao`
 ```json
-{ "login": "ana@clinica.com", "senha": "petbuddies123" }
+{ "animalId": 1, "narrativa": "Dei o remédio às 20h, mas as fezes tavam moles de novo." }
 ```
 
-#### `POST /api/animal`
-```json
-{ "nome": "Rex", "especie": "CACHORRO", "raca": "Vira-lata", "porte": "MEDIO", "sexo": "MACHO",
-  "dataNascimento": "2021-03-15", "peso": 18.5, "castrado": true, "responsavelId": 1 }
-```
+A resposta traz `condicoes[]` com `codigo`, valor, `trecho`, `literal` e `confianca`, e `degradado: true` se o modelo
+falhou.
 
-#### `POST /api/motor/plano/instanciar-preventivo`
-```json
-{ "animalId": 1, "especie": "CACHORRO", "dataNascimento": "2021-03-15" }
-```
-
-#### `POST /api/checkin/extracao` — passo 1, interpreta e não grava
-```json
-{ "animalId": 1, "narrativa": "Ele comeu bem hoje, mas as fezes estavam mais moles que o normal." }
-```
-
-A resposta traz `condicoes[]` com `confianca` por item, e `degradado: true` se o modelo falhou.
-
-#### `POST /api/checkin` — passo 2, grava o confirmado
+#### `POST /api/checkin`
 ```json
 {
   "animalId": 1,
-  "narrativa": "Ele comeu bem hoje, mas as fezes estavam mais moles que o normal.",
+  "narrativa": "Dei o remédio às 20h, mas as fezes tavam moles de novo.",
   "condicoes": [
-    { "condicaoClinicaId": 3, "valorBooleano": true, "confianca": 0.92 }
+    { "condicaoClinicaId": 1, "valorBooleano": true, "confianca": 0.95 }
   ]
 }
 ```
 
-#### `POST /api/consulta/{id}/fechamento`
+A resposta traz `desfechos[]` com `DOSE_CALCULADA` e a dose aplicada, ou `ACIONAR_CLINICA` sem dose.
+
+#### `POST /api/prescricao/rascunho`
 ```json
 {
-  "registroAtendimento": {
-    "dataAtendimento": "2026-09-10T14:30:00",
-    "anamnese": "Tutor relata apetite normal.",
-    "diagnostico": "Gastroenterite leve.",
-    "tratamento": "Dieta leve por 3 dias."
-  },
-  "prescricoes": [
-    {
-      "medicamento": "Lactulona", "doseMin": 1.0, "doseMax": 2.0, "unidade": "ml",
-      "frequenciaDia": 2, "duracaoDias": 5, "dataInicio": "2026-09-10",
-      "orientacao": "Se as fezes estiverem moles, aplicar a dose menor.",
-      "regras": [
-        { "condicaoClinicaId": 3, "acaoDose": "DOSE_MIN", "ordem": 1 }
-      ]
-    }
-  ]
+  "registroAtendimentoId": 1,
+  "narrativa": "Lactulona, de 1 a 2 ml, uma vez ao dia, por 14 dias, começando hoje. Se as fezes estiverem moles, dose mínima."
 }
 ```
+
+A resposta traz a prescrição preenchida, `confiancaPorCampo`, `regrasPropostas` e `condicoesDescartadas`, sem gravar.
+
+---
+
+## Tecnologias
+
+- **Java 21** · Spring Boot 3.4.5
+- **Spring AI 1.1.6** (`spring-ai-starter-model-openai`) — `ChatClient` com saída estruturada
+- **Gemini 2.5 Flash** — pela camada compatível com a API da OpenAI, `temperature=0`
+- Spring Data JPA + Hibernate sobre **Oracle**, com **Flyway**
+- Spring Security com JWT · Bean Validation · Springdoc OpenAPI
