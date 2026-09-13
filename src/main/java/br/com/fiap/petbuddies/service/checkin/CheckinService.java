@@ -229,7 +229,7 @@ public class CheckinService {
                 .map(item -> {
                     PrescricaoEntity prescricao = item.getPrescricaoId() == null
                             ? null : prescricaoRepository.findById(item.getPrescricaoId()).orElse(null);
-                    // Desfecho so vem nulo pra item de origem PROTOCOLO — nao acontece aqui, mas o Hibernate devolve o embeddable inteiro nulo quando todas as colunas sao nulas.
+                    // Com todas as colunas nulas, o Hibernate devolve o Desfecho inteiro como null.
                     Desfecho desfecho = item.getDesfecho();
                     return CheckinDesfechoResponse.of(
                             item.getPrescricaoId(), prescricao == null ? null : prescricao.getMedicamento(),
