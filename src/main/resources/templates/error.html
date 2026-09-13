@@ -4,10 +4,15 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Erro · PetBuddies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Nunito:wght@400;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="icon" th:href="@{/favicon.png}" type="image/png"/>
 </head>
-<body>
-<main class="caixa-erro pagina-avulsa" th:switch="${status}">
+<body class="pagina-avulsa">
+<main class="caixa-erro" th:switch="${status}">
     <th:block th:case="403">
         <h1>Acesso negado</h1>
         <p>Seu perfil não tem permissão para abrir esta página.</p>

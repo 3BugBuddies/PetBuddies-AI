@@ -227,7 +227,7 @@ Duas cadeias de segurança no mesmo processo:
 
 O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `responsavelId`), e é o mesmo aceito pelo `PetBuddies-API` (.NET) — o segredo é compartilhado.
 
-**Rotas por perfil na API:** as escritas são do veterinário — consulta, registro de atendimento, procedimento, prescrição, regra de prescrição, condição clínica, janela, motor de planos e o cadastro clínico (animal, responsável, veterinário, clínica). O check-in é do tutor, porque o relato é de quem convive com o animal. **O portão é por método:** todo `GET` segue aberto a qualquer token válido, e o tutor lê o próprio animal normalmente.
+**Rotas por perfil na API:** as escritas são do veterinário — consulta, registro de atendimento, procedimento, prescrição, regra de prescrição, condição clínica, janela, motor de planos e o cadastro clínico (animal, responsável, veterinário, clínica). O check-in é do tutor, porque o relato é de quem convive com o animal. O tutor também remove animal, mas só o próprio: no de outro tutor recebe `403`. **O portão é por método:** todo `GET` segue aberto a qualquer token válido, e o tutor lê o próprio animal normalmente.
 
 **Rotas por perfil na web:** `/painel`, `/clinica`, `/equipe`, `/tutores`, `/pacientes` e `/agenda` exigem `VET`; `/meus-animais` exige `TUTOR`. O tutor recebe `403` nas rotas da clínica, e a lista dele é escopada pelo `responsavelId` da sessão, nunca por parâmetro na URL.
 
@@ -308,6 +308,23 @@ Duas regras de comportamento que a integração precisa conhecer:
 | `/meus-animais` | `TUTOR` | os animais do próprio tutor |
 
 Erro de negócio numa tela devolve página HTML, não JSON — o `WebExceptionHandler` intercepta antes do handler da API.
+
+### Telas
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="assets/telas/01-login.png" alt="Login com credencial inválida"><br><b>Login</b> · credencial inválida</td>
+<td width="50%" valign="top"><img src="assets/telas/02-painel.png" alt="Painel da clínica"><br><b>Painel</b> · indicadores e consultas de hoje</td>
+</tr>
+<tr>
+<td valign="top"><img src="assets/telas/03-paciente-validacao.png" alt="Cadastro de paciente com erro de validação"><br><b>Novo paciente</b> · validação no campo</td>
+<td valign="top"><img src="assets/telas/04-ficha-plano.png" alt="Ficha do paciente com plano e consultas"><br><b>Ficha</b> · plano preventivo gerado do catálogo e consultas</td>
+</tr>
+<tr>
+<td valign="top"><img src="assets/telas/05-fechar-atendimento.png" alt="Fechamento de atendimento"><br><b>Fechar atendimento</b> · registro, procedimento e prescrição</td>
+<td valign="top"><img src="assets/telas/06-meus-animais.png" alt="Meus animais"><br><b>Meus animais</b> · a tutora vê só os dela<br><br><img src="assets/telas/07-acesso-negado.png" alt="Acesso negado"><br><b>Acesso negado</b> · tutora abrindo <code>/painel</code></td>
+</tr>
+</table>
 
 ---
 
@@ -423,9 +440,10 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 
 Importe `docs/postman/petbuddies-ai-java.postman_collection.json`, com `baseUrl` em `http://localhost:8080`.
 
-1. Rode **Autenticação → Login — vet** e **Login — tutor**. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.
-2. As pastas herdam `tokenVet`, porque as escritas clínicas exigem perfil `VET`. A pasta **Check-in** usa `tokenTutor`, e todo `GET` aceita qualquer um dos dois.
-3. **Saúde** chama `GET /actuator/health`, sem token.
+1. Rode **01 · Autenticação → Entrar como veterinária** e **Entrar como tutora**. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.
+2. As pastas estão numeradas na ordem de uso: clínica e equipe, janelas, tutores e animais, consultas e fechamento, prescrição, plano de cuidado e check-in.
+3. As pastas herdam `tokenVet`, porque as escritas clínicas exigem perfil `VET`. A pasta **14 · Check-in** usa `tokenTutor`, e todo `GET` aceita qualquer um dos dois.
+4. **15 · Saúde** chama `GET /actuator/health`, sem token.
 
 A coleção cobre todas as rotas da API, inclusive agendamento, cancelamento e fechamento de consulta, janelas livres, rascunho de prescrição, protocolo aplicado, sugestões e check-in.
 

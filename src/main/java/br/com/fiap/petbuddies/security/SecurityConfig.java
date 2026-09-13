@@ -58,6 +58,9 @@ public class SecurityConfig {
                         // e quem convive com o animal.
                         .requestMatchers(HttpMethod.POST, "/api/checkin", "/api/checkin/extracao").hasRole("TUTOR")
 
+                        // Precisa vir antes da regra geral de DELETE; o dono do animal e conferido no AnimalService.
+                        .requestMatchers(HttpMethod.DELETE, "/api/animal/**").hasAnyRole("VET", "TUTOR")
+
                         // Ato clinico: o TUTOR nao autora, nao agenda e nao fecha atendimento.
                         // A regra e por metodo, nao por rota — os GET seguem abertos a
                         // qualquer token, porque o tutor precisa ler o proprio animal.

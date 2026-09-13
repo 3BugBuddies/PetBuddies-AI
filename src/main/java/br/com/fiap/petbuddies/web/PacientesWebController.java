@@ -190,6 +190,7 @@ public class PacientesWebController {
         model.addAttribute("animal", animalResponse);
         model.addAttribute("responsavel", ResponsavelResponse.from(responsavel));
         model.addAttribute("consultas", consultas);
+        model.addAttribute("statusFechavel", ConsultaService.STATUS_FECHAVEL);
         motorPlanoService.buscarPlanoAtivo(animal.getId()).ifPresent(p -> model.addAttribute("planoAtivo", p));
     }
 }

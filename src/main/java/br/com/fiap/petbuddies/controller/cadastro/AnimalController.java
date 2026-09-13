@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -76,13 +77,15 @@ public class AnimalController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Remove animal")
+    @Operation(summary = "Remove animal", description = "O veterinário remove qualquer animal; o tutor, só os próprios.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Animal removido"),
-        @ApiResponse(responseCode = "404", description = "Animal não encontrado")
+        @ApiResponse(responseCode = "403", description = "Tutor tentando remover animal de outro tutor"),
+        @ApiResponse(responseCode = "404", description = "Animal não encontrado"),
+        @ApiResponse(responseCode = "409", description = "Animal com histórico clínico")
     })
-    public ResponseEntity<Void> remover(@PathVariable Long id) {
-        service.remover(id);
+    public ResponseEntity<Void> remover(@PathVariable Long id, Authentication autenticacao) {
+        service.remover(id, Long.valueOf(autenticacao.getName()));
         return ResponseEntity.noContent().build();
     }
 }
