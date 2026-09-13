@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,11 @@ public interface PlanoCuidadoRepository extends JpaRepository<PlanoCuidadoEntity
             @Param("animalId") Long animalId, @Param("consultaId") Long consultaId);
 
     List<PlanoCuidadoEntity> findByStatus(StatusPlano status);
+
+    @EntityGraph(attributePaths = "itens")
+    @Query("SELECT p FROM PlanoCuidadoEntity p WHERE p.animalId IN :animalIds AND p.status = :status")
+    List<PlanoCuidadoEntity> findPorAnimaisEStatus(
+            @Param("animalIds") Collection<Long> animalIds, @Param("status") StatusPlano status);
 
     // Todo plano do animal que nasceu de um molde do catalogo, de qualquer status — inclui o pos-cirurgico concluido, nao so o ativo.
     @EntityGraph(attributePaths = "itens")
