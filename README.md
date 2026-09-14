@@ -37,7 +37,7 @@ A veterinária atende, prescreve e monta o plano de cuidado. Em casa, o tutor co
 | Swagger UI (produção)         | http://petbuddies-java-rm563925.eastus.azurecontainer.io:8080/swagger-ui.html |
 | Swagger UI (local)            | `http://localhost:8080/swagger-ui.html` |
 | Postman collection            | [`docs/postman/petbuddies-ai-java.postman_collection.json`](docs/postman/petbuddies-ai-java.postman_collection.json) |
-| Vídeo de apresentação         | [(https://youtu.be/fXq902k3OHI)](https://youtu.be/VrChl50hDlo) |
+| Vídeo de apresentação         | (https://youtu.be/VrChl50hDlo)](https://youtu.be/VrChl50hDlo) |
 
 ---
 
