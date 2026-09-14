@@ -11,4 +11,8 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long> {
     Optional<UsuarioEntity> findByLoginAndAtivoTrue(String login);
 
     boolean existsByLoginIgnoreCase(String login);
+
+    boolean existsByResponsavelId(Long responsavelId);
+
+    boolean existsByVeterinarioId(Long veterinarioId);
 }

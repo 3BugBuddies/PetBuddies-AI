@@ -6,6 +6,10 @@
 #
 # Lê GEMINI_API_KEY e PETBUDDIES_JWT_SECRET do .env na raiz do projeto.
 # O banco nasce vazio a cada `down -v`: o Flyway recria o schema e o seed dos dois usuários.
+
+# Sem nome próprio, o projeto herdaria o da pasta e colidiria com o serviço `oracle` do docker-compose.yml.
+name: petbuddies-demo
+
 services:
   oracle:
     image: gvenzl/oracle-free:23-slim

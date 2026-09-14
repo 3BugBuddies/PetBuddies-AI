@@ -46,6 +46,7 @@ public class PrescricaoRequest {
     // Referencia solta — a tabela de destino ainda nao existe.
     private Long materialOrigemId;
 
+    @Max(value = 9999, message = "Versão de origem excede a precisão NUMBER(4).")
     private Integer versaoOrigem;
 
     @NotNull(message = "Animal é obrigatório.")

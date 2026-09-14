@@ -1,11 +1,11 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.type.NumericBooleanConverter;
-import java.time.LocalDateTime;
 
 // UK_CONDICAO_CLINICA_CODIGO (ID_CLINICA, CD_CODIGO): o código é único dentro
 // da clínica, não globalmente.
@@ -62,17 +62,13 @@ public class CondicaoClinicaEntity {
     @JoinColumn(name = "ID_VETERINARIO_AUTOR", nullable = false)
     private VeterinarioEntity autor;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 
     @PreUpdate
-    private void preUpdate() { updatedAt = LocalDateTime.now(); }
+    private void preUpdate() { auditoria = auditoria.atualizadaAgora(); }
 }

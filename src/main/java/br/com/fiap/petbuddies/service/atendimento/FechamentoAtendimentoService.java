@@ -1,5 +1,7 @@
 package br.com.fiap.petbuddies.service.atendimento;
 
+import br.com.fiap.petbuddies.domain.embeddable.CondicaoCongelada;
+import br.com.fiap.petbuddies.domain.embeddable.FaixaDose;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
@@ -134,9 +136,7 @@ public class FechamentoAtendimentoService {
         for (PrescricaoFechamentoRequest pr : nullSafe(requests)) {
             PrescricaoEntity prescricao = new PrescricaoEntity();
             prescricao.setMedicamento(pr.getMedicamento());
-            prescricao.setDoseMin(pr.getDoseMin());
-            prescricao.setDoseMax(pr.getDoseMax());
-            prescricao.setUnidade(pr.getUnidade());
+            prescricao.setFaixaDose(new FaixaDose(pr.getDoseMin(), pr.getDoseMax(), pr.getUnidade()));
             prescricao.setFrequenciaDia(pr.getFrequenciaDia());
             prescricao.setDuracaoDias(pr.getDuracaoDias());
             prescricao.setDataInicio(pr.getDataInicio());
@@ -166,9 +166,7 @@ public class FechamentoAtendimentoService {
             regra.setPrescricao(prescricao);
             regra.setCondicaoClinica(condicao);
             // A cópia congelada: o que foi assinado, não o que o catálogo diz hoje.
-            regra.setRotuloCongelado(condicao.getRotulo());
-            regra.setTipoDadoCongelado(condicao.getTipoDado());
-            regra.setFonteValorCongelada(condicao.getFonteValor());
+            regra.setCondicaoCongelada(new CondicaoCongelada(condicao.getRotulo(), condicao.getTipoDado(), condicao.getFonteValor()));
             regra.setOperador(rg.getOperador());
             regra.setLimite(rg.getLimite());
             regra.setAcaoDose(rg.getAcaoDose());

@@ -39,6 +39,10 @@ public interface PlanoCuidadoRepository extends JpaRepository<PlanoCuidadoEntity
 
     // Todo plano do animal que nasceu de um molde do catalogo, de qualquer status — inclui o pos-cirurgico concluido, nao so o ativo.
     @EntityGraph(attributePaths = "itens")
-    @Query("SELECT p FROM PlanoCuidadoEntity p WHERE p.animalId = :animalId AND p.protocoloId IS NOT NULL ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM PlanoCuidadoEntity p WHERE p.animalId = :animalId AND p.protocoloId IS NOT NULL ORDER BY p.auditoria.createdAt DESC")
     List<PlanoCuidadoEntity> findComProtocoloPorAnimal(@Param("animalId") Long animalId);
+
+    boolean existsByAnimalId(Long animalId);
+
+    boolean existsByConsultaId(Long consultaId);
 }

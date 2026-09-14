@@ -1,10 +1,10 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaPlano;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,20 +40,16 @@ public class PlanoCuidadoEntity {
     @Column(name = "ST_STATUS_PLANO", nullable = false, length = 50)
     private StatusPlano status = StatusPlano.ATIVO;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @OneToMany(mappedBy = "plano", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ItemPlanoCuidadoEntity> itens = new ArrayList<>();
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 
     @PreUpdate
-    private void preUpdate() { updatedAt = LocalDateTime.now(); }
+    private void preUpdate() { auditoria = auditoria.atualizadaAgora(); }
 }

@@ -19,4 +19,8 @@ public interface CondicaoClinicaRepository extends JpaRepository<CondicaoClinica
 
     // Escala independente de regra de prescricao — entra no prompt de todo check-in, nao so dos animais com prescricao ativa.
     List<CondicaoClinicaEntity> findByCriticaTrueAndAtivoTrue();
+
+    boolean existsByAutorId(Long autorId);
+
+    boolean existsByClinicaId(Long clinicaId);
 }

@@ -86,7 +86,7 @@ public class CheckinExtracaoService {
 
         Set<Long> idsPorRegra = ativas.stream()
                 .flatMap(p -> regraPrescricaoRepository.findByPrescricaoIdOrderByOrdemAsc(p.getId()).stream())
-                .filter(r -> r.getFonteValorCongelada() == TipoFonteValor.RELATO)
+                .filter(r -> r.getCondicaoCongelada().getFonteValor() == TipoFonteValor.RELATO)
                 .map(r -> r.getCondicaoClinica().getId())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 

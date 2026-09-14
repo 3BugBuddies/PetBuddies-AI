@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "PetBuddies · API única (Java)",
-    "description": "Coleção do serviço `petbuddies-ai`, a API única do produto (ADR s3-25).\n\n**Demo da IA:** rode a pasta *Demo IA* inteira (Run folder), com o ambiente de `docker-compose.demo.yml` no ar.\n\n**Demo da IA:** rode a pasta *Demo IA* inteira (Run folder), com o ambiente de `docker-compose.demo.yml` no ar.\n\n**Como usar:** suba o serviço (`docker compose up -d --wait` e `mvn spring-boot:run`), rode *Autenticação → Login — vet* e o token fica guardado para as demais requisições.\n\n**Escopo:** reflete os endpoints existentes em `main`. Os casos de uso da onda 5 — fechar atendimento, agendamento e cancelamento, check-in, protocolo aplicado — entram aqui conforme cada PR mergear.\n\nO catálogo de protocolos **não está aqui**: passou ao serviço .NET no PR J17, e o Java o consome por HTTP.",
+    "description": "Coleção do serviço `petbuddies-ai`, a API do PetBuddies.\n\n**Demo da IA:** rode a pasta *00 · Demo IA* inteira (*Run folder*). Ela é independente das demais e cria o próprio cenário.\n\n**Como usar:** suba o serviço e rode *01 · Autenticação → Entrar como veterinária* e *Entrar como tutora*. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.\n\n**A ordem das pastas é a ordem de uso:** autenticar, cadastrar a clínica e a equipe, abrir janelas, cadastrar tutores e animais, agendar e fechar a consulta, prescrever, gerar o plano de cuidado e registrar o check-in.\n\n**Qual token cada pasta usa:** as pastas herdam `tokenVet`, que é o padrão da coleção, e a pasta *14 · Check-in* usa `tokenTutor`, porque o check-in é só do tutor. Todo `GET` aceita qualquer um dos dois.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -9,7 +9,7 @@
     "bearer": [
       {
         "key": "token",
-        "value": "{{token}}",
+        "value": "{{tokenVet}}",
         "type": "string"
       }
     ]
@@ -18,11 +18,6 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:8080",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "",
       "type": "string"
     },
     {
@@ -86,11 +81,6 @@
       "type": "string"
     },
     {
-      "key": "hoje",
-      "value": "",
-      "type": "string"
-    },
-    {
       "key": "amanha",
       "value": "",
       "type": "string"
@@ -108,14 +98,15 @@
   ],
   "item": [
     {
-      "name": "Demo IA",
-      "description": "Roteiro da demonstração do componente de IA, para rodar em ordem (Run folder).\n\nSuba o ambiente com `docker compose -f docker-compose.demo.yml up -d --build`. Cada requisição guarda o que a próxima precisa (tokens, ids, datas) nas variáveis da coleção.",
+      "name": "00 · Demo IA",
+      "description": "Roteiro da demonstração do componente de IA. Não depende das outras pastas: rode esta pasta inteira com *Run folder*, num banco recém-criado.\n\nSuba o ambiente com `docker compose -f docker-compose.demo.yml up -d --build`. Cada requisição guarda o que a próxima precisa (tokens, ids e datas) nas variáveis da coleção.\n\nAs subpastas 1 e 2 usam `tokenVet`, o padrão da coleção; as subpastas 3 e 4 usam `tokenTutor`.",
       "item": [
         {
-          "name": "1. Preparação (veterinária)",
+          "name": "1 · Preparação (veterinária)",
+          "description": "A veterinária cadastra a Luna e duas condições, agenda a consulta e fecha o atendimento com a prescrição e a regra.",
           "item": [
             {
-              "name": "1.1 Login da veterinária",
+              "name": "Entrar como veterinária",
               "request": {
                 "method": "POST",
                 "header": [
@@ -146,7 +137,8 @@
                 },
                 "auth": {
                   "type": "noauth"
-                }
+                },
+                "description": "Guarda o token em `tokenVet` e as datas da demo."
               },
               "event": [
                 {
@@ -154,12 +146,11 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// Datas no formato que a API espera, no fuso da máquina.",
+                      "// Datas da demo no fuso da máquina; \"hoje\" vem do script da coleção.",
                       "const pad = n => String(n).padStart(2, '0');",
                       "const dia = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;",
                       "const hora = d => `${dia(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;",
                       "const agora = new Date();",
-                      "pm.collectionVariables.set('hoje', dia(agora));",
                       "pm.collectionVariables.set('amanha', dia(new Date(agora.getTime() + 86400000)));",
                       "pm.collectionVariables.set('agora', hora(agora));",
                       "pm.collectionVariables.set('daquiUmaHora', hora(new Date(agora.getTime() + 3600000 + Math.floor(Math.random() * 3000000))));"
@@ -171,15 +162,17 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
-                      "pm.collectionVariables.set('tokenVet', pm.response.json().token);"
+                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.eql(200));",
+                      "if (pm.response.code === 200) {",
+                      "    pm.collectionVariables.set('tokenVet', pm.response.json().token);",
+                      "}"
                     ]
                   }
                 }
               ]
             },
             {
-              "name": "1.2 Cadastrar a Luna",
+              "name": "Cadastrar a Luna",
               "request": {
                 "method": "POST",
                 "header": [
@@ -207,16 +200,7 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenVet}}",
-                      "type": "string"
-                    }
-                  ]
-                }
+                "description": "Guarda o id em `animalId`."
               },
               "event": [
                 {
@@ -232,7 +216,7 @@
               ]
             },
             {
-              "name": "1.3 Condição: apetite baixo",
+              "name": "Cadastrar condição: apetite baixo",
               "request": {
                 "method": "POST",
                 "header": [
@@ -260,16 +244,6 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenVet}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "description": "Entra no vocabulário que a IA pode preencher."
               },
               "event": [
@@ -294,7 +268,7 @@
               ]
             },
             {
-              "name": "1.4 Condição crítica: sem comer 24h",
+              "name": "Cadastrar condição crítica: sem comer 24h",
               "request": {
                 "method": "POST",
                 "header": [
@@ -322,16 +296,6 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenVet}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "description": "Crítica: escala para a clínica antes de qualquer regra."
               },
               "event": [
@@ -356,7 +320,7 @@
               ]
             },
             {
-              "name": "1.5 Abrir janela na agenda",
+              "name": "Abrir janela de atendimento",
               "request": {
                 "method": "POST",
                 "header": [
@@ -383,16 +347,6 @@
                       "language": "json"
                     }
                   }
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenVet}}",
-                      "type": "string"
-                    }
-                  ]
                 }
               },
               "event": [
@@ -409,7 +363,7 @@
               ]
             },
             {
-              "name": "1.6 Agendar consulta",
+              "name": "Agendar consulta na janela",
               "request": {
                 "method": "POST",
                 "header": [
@@ -437,16 +391,6 @@
                       "language": "json"
                     }
                   }
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenVet}}",
-                      "type": "string"
-                    }
-                  ]
                 }
               },
               "event": [
@@ -463,7 +407,7 @@
               ]
             },
             {
-              "name": "1.7 Fechar atendimento com prescrição e regra",
+              "name": "Fechar atendimento com prescrição e regra",
               "request": {
                 "method": "POST",
                 "header": [
@@ -493,16 +437,6 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenVet}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "description": "A regra assinada: apetite baixo → menor dose da faixa (1 ml)."
               },
               "event": [
@@ -521,10 +455,11 @@
           ]
         },
         {
-          "name": "2. IA na prescrição",
+          "name": "2 · IA na prescrição",
+          "description": "A veterinária dita a prescrição e a IA devolve o formulário preenchido.",
           "item": [
             {
-              "name": "2.1 Rascunho da prescrição pela fala (IA)",
+              "name": "Montar rascunho a partir da fala da veterinária",
               "request": {
                 "method": "POST",
                 "header": [
@@ -553,16 +488,6 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenVet}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "description": "Nada é gravado: a veterinária revisa e assina."
               },
               "event": [
@@ -583,10 +508,21 @@
           ]
         },
         {
-          "name": "3. IA no check-in",
+          "name": "3 · IA no check-in",
+          "description": "A tutora conta como a Luna passou; a IA extrai as condições e a regra assinada decide a dose.",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{tokenTutor}}",
+                "type": "string"
+              }
+            ]
+          },
           "item": [
             {
-              "name": "3.1 Login da tutora",
+              "name": "Entrar como tutora",
               "request": {
                 "method": "POST",
                 "header": [
@@ -617,7 +553,8 @@
                 },
                 "auth": {
                   "type": "noauth"
-                }
+                },
+                "description": "Guarda o token em `tokenTutor`."
               },
               "event": [
                 {
@@ -625,15 +562,17 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
-                      "pm.collectionVariables.set('tokenTutor', pm.response.json().token);"
+                      "pm.test('responde 200', () => pm.expect(pm.response.code).to.eql(200));",
+                      "if (pm.response.code === 200) {",
+                      "    pm.collectionVariables.set('tokenTutor', pm.response.json().token);",
+                      "}"
                     ]
                   }
                 }
               ]
             },
             {
-              "name": "3.2 Extrair o relato (IA)",
+              "name": "Extrair condições do relato",
               "request": {
                 "method": "POST",
                 "header": [
@@ -662,16 +601,6 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenTutor}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "description": "Não grava nada: devolve o que a IA entendeu, com trecho e confiança."
               },
               "event": [
@@ -691,7 +620,7 @@
               ]
             },
             {
-              "name": "3.3 Confirmar o check-in → dose do dia",
+              "name": "Registrar check-in confirmado → dose do dia",
               "request": {
                 "method": "POST",
                 "header": [
@@ -719,16 +648,7 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenTutor}}",
-                      "type": "string"
-                    }
-                  ]
-                }
+                "description": "A tutora confirma o que a IA extraiu; a regra aplica a menor dose da faixa."
               },
               "event": [
                 {
@@ -760,10 +680,21 @@
           ]
         },
         {
-          "name": "4. Condição crítica",
+          "name": "4 · Condição crítica",
+          "description": "Um relato grave no dia seguinte: a condição crítica passa na frente de qualquer regra.",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{tokenTutor}}",
+                "type": "string"
+              }
+            ]
+          },
           "item": [
             {
-              "name": "4.1 Extrair um relato preocupante (IA)",
+              "name": "Extrair condições de um relato preocupante",
               "request": {
                 "method": "POST",
                 "header": [
@@ -792,16 +723,6 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenTutor}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "description": "Dia seguinte, para não colidir com o check-in de hoje."
               },
               "event": [
@@ -820,7 +741,7 @@
               ]
             },
             {
-              "name": "4.2 Confirmar o check-in → acionar a clínica",
+              "name": "Registrar check-in confirmado → acionar a clínica",
               "request": {
                 "method": "POST",
                 "header": [
@@ -848,16 +769,7 @@
                     }
                   }
                 },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{tokenTutor}}",
-                      "type": "string"
-                    }
-                  ]
-                }
+                "description": "Sem dose: a resposta orienta procurar a clínica, com o telefone dela."
               },
               "event": [
                 {
@@ -890,10 +802,10 @@
       ]
     },
     {
-      "name": "Autenticação",
+      "name": "01 · Autenticação",
       "item": [
         {
-          "name": "Login — vet",
+          "name": "Entrar como veterinária",
           "request": {
             "method": "POST",
             "header": [
@@ -925,7 +837,7 @@
             "auth": {
               "type": "noauth"
             },
-            "description": "Salva o token na variável da coleção. Rode este primeiro."
+            "description": "Guarda o token em `tokenVet`. Rode este primeiro."
           },
           "event": [
             {
@@ -933,9 +845,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Guarda o token na variavel da colecao: todas as outras requisicoes o herdam.",
+                  "// Guarda o token do perfil em tokenVet.",
                   "if (pm.response.code === 200) {",
-                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "    pm.collectionVariables.set('tokenVet', pm.response.json().token);",
                   "}"
                 ]
               }
@@ -943,7 +855,7 @@
           ]
         },
         {
-          "name": "Login — tutor",
+          "name": "Entrar como tutora",
           "request": {
             "method": "POST",
             "header": [
@@ -975,7 +887,7 @@
             "auth": {
               "type": "noauth"
             },
-            "description": "Mesmo efeito, com perfil TUTOR."
+            "description": "Guarda o token em `tokenTutor`."
           },
           "event": [
             {
@@ -983,9 +895,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Guarda o token na variavel da colecao: todas as outras requisicoes o herdam.",
+                  "// Guarda o token do perfil em tokenTutor.",
                   "if (pm.response.code === 200) {",
-                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "    pm.collectionVariables.set('tokenTutor', pm.response.json().token);",
                   "}"
                 ]
               }
@@ -993,7 +905,7 @@
           ]
         },
         {
-          "name": "Login — credencial inválida (401)",
+          "name": "Entrar com senha errada (401)",
           "request": {
             "method": "POST",
             "header": [
@@ -1026,75 +938,103 @@
               "type": "noauth"
             }
           }
+        },
+        {
+          "name": "Registrar tutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"TUTOR\",\n  \"nome\": \"Joana Ribeiro\",\n  \"email\": \"joana.ribeiro@email.com\",\n  \"senha\": \"Senha@Forte1\",\n  \"telefone\": \"11955554444\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Registrar veterinário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VET\",\n  \"nome\": \"Carlos Lima\",\n  \"email\": \"carlos.lima@clinica.com\",\n  \"senha\": \"Senha@Forte1\",\n  \"crmv\": \"SP-54321\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Trocar a própria senha",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/senha",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "senha"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senhaAtual\": \"petbuddies123\",\n  \"senhaNova\": \"petbuddies123\"\n}"
+            },
+            "description": "Troca a senha do usuário do token. O corpo mantém a mesma senha, para não quebrar os logins seguintes."
+          }
         }
       ],
-      "description": "Os dois usuários vêm do seed `V2`. O login guarda o token automaticamente."
+      "description": "Os dois usuários vêm do seed da migration `V2`. Os logins guardam o token em `tokenVet` e `tokenTutor`."
     },
     {
-      "name": "Clínicas",
+      "name": "02 · Clínica",
       "item": [
         {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clinica",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clinica"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Buscar por CNPJ",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clinica/buscar?cnpj=12345678000199",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clinica",
-                "buscar"
-              ],
-              "query": [
-                {
-                  "key": "cnpj",
-                  "value": "12345678000199",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/clinica/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "clinica",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
+          "name": "Cadastrar clínica",
           "request": {
             "method": "POST",
             "header": [
@@ -1125,7 +1065,66 @@
           }
         },
         {
-          "name": "Atualizar",
+          "name": "Listar clínicas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinica",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinica"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar clínica por CNPJ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinica/buscar?cnpj=12345678000199",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinica",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "cnpj",
+                  "value": "12345678000199"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar clínica por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clinica/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clinica",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar clínica",
           "request": {
             "method": "PUT",
             "header": [
@@ -1157,7 +1156,7 @@
           }
         },
         {
-          "name": "Remover",
+          "name": "Remover clínica",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1177,77 +1176,10 @@
       ]
     },
     {
-      "name": "Veterinários",
+      "name": "03 · Veterinários",
       "item": [
         {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/veterinario?clinicaId=1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "veterinario"
-              ],
-              "query": [
-                {
-                  "key": "clinicaId",
-                  "value": "1",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Buscar por CRMV",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/veterinario/buscar?crmv=SP-12345",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "veterinario",
-                "buscar"
-              ],
-              "query": [
-                {
-                  "key": "crmv",
-                  "value": "SP-12345",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/veterinario/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "veterinario",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
+          "name": "Cadastrar veterinário",
           "request": {
             "method": "POST",
             "header": [
@@ -1278,7 +1210,73 @@
           }
         },
         {
-          "name": "Atualizar",
+          "name": "Listar veterinários da clínica",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinario?clinicaId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinario"
+              ],
+              "query": [
+                {
+                  "key": "clinicaId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar veterinário por CRMV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinario/buscar?crmv=SP-12345",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinario",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "crmv",
+                  "value": "SP-12345"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar veterinário por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/veterinario/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "veterinario",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar veterinário",
           "request": {
             "method": "PUT",
             "header": [
@@ -1310,7 +1308,7 @@
           }
         },
         {
-          "name": "Remover",
+          "name": "Remover veterinário",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1330,448 +1328,10 @@
       ]
     },
     {
-      "name": "Responsáveis",
+      "name": "04 · Janelas de atendimento",
       "item": [
         {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/responsavel?nome=Maria",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "responsavel"
-              ],
-              "query": [
-                {
-                  "key": "nome",
-                  "value": "Maria",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/responsavel/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "responsavel",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/responsavel",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "responsavel"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Joao Pereira\",\n  \"telefone\": \"11912345678\",\n  \"email\": \"joao@email.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Atualizar",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/responsavel/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "responsavel",
-                "1"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Maria Oliveira\",\n  \"telefone\": \"11987654321\",\n  \"email\": \"maria@email.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Remover",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/responsavel/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "responsavel",
-                "1"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Animais",
-      "item": [
-        {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/animal?responsavelId=1&nome=Rex",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "animal"
-              ],
-              "query": [
-                {
-                  "key": "responsavelId",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "nome",
-                  "value": "Rex",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "Sem parâmetro, lista todos."
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/animal/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "animal",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/animal",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "animal"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Rex\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"Golden Retriever\",\n  \"porte\": \"GRANDE\",\n  \"sexo\": \"MACHO\",\n  \"dataNascimento\": \"2022-03-15\",\n  \"peso\": 28.5,\n  \"condicaoCronica\": false,\n  \"castrado\": true,\n  \"foto\": null,\n  \"alergias\": null,\n  \"observacoes\": \"Docil com criancas\",\n  \"responsavelId\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Atualizar",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/animal/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "animal",
-                "1"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Rex\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"Golden Retriever\",\n  \"porte\": \"GRANDE\",\n  \"sexo\": \"MACHO\",\n  \"dataNascimento\": \"2022-03-15\",\n  \"peso\": 30.0,\n  \"condicaoCronica\": false,\n  \"castrado\": true,\n  \"foto\": null,\n  \"alergias\": \"Dipirona\",\n  \"observacoes\": null,\n  \"responsavelId\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Remover",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/animal/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "animal",
-                "1"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Consultas",
-      "item": [
-        {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/consulta?animalId=1&veterinarioId=1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "consulta"
-              ],
-              "query": [
-                {
-                  "key": "animalId",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "veterinarioId",
-                  "value": "1",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/consulta/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "consulta",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/consulta",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "consulta"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tipo\": \"ROTINA\",\n  \"dataHora\": \"2026-09-15T14:30:00\",\n  \"status\": \"AGENDADA\",\n  \"observacao\": \"Primeira consulta do ano\",\n  \"motivo\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Atualizar",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/consulta/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "consulta",
-                "1"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tipo\": \"ROTINA\",\n  \"dataHora\": \"2026-09-15T15:00:00\",\n  \"status\": \"CONFIRMADA\",\n  \"observacao\": null,\n  \"motivo\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Remover",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/consulta/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "consulta",
-                "1"
-              ]
-            }
-          }
-        }
-      ],
-      "description": "Status: AGENDADA · CONFIRMADA · REALIZADA · CANCELADA · NAO_COMPARECEU. Tipo: ROTINA · VACINACAO · EXAME · RETORNO · EMERGENCIA."
-    },
-    {
-      "name": "Janelas de atendimento",
-      "item": [
-        {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/janela-atendimento?veterinarioId=1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "janela-atendimento"
-              ],
-              "query": [
-                {
-                  "key": "veterinarioId",
-                  "value": "1",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/janela-atendimento/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "janela-atendimento",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
+          "name": "Abrir janela de atendimento",
           "request": {
             "method": "POST",
             "header": [
@@ -1803,7 +1363,77 @@
           }
         },
         {
-          "name": "Atualizar",
+          "name": "Listar janelas do veterinário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/janela-atendimento?veterinarioId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janela-atendimento"
+              ],
+              "query": [
+                {
+                  "key": "veterinarioId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar janelas livres de hoje",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/janela-atendimento/livres?veterinarioId=1&data={{hoje}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janela-atendimento",
+                "livres"
+              ],
+              "query": [
+                {
+                  "key": "veterinarioId",
+                  "value": "1"
+                },
+                {
+                  "key": "data",
+                  "value": "{{hoje}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar janela por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/janela-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "janela-atendimento",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar janela",
           "request": {
             "method": "PUT",
             "header": [
@@ -1835,7 +1465,7 @@
           }
         },
         {
-          "name": "Remover",
+          "name": "Remover janela",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1852,24 +1482,375 @@
             }
           }
         }
-      ]
+      ],
+      "description": "Os horários em que um veterinário atende. Agendar uma consulta ocupa uma janela livre."
     },
     {
-      "name": "Registros de atendimento",
+      "name": "05 · Tutores",
       "item": [
         {
-          "name": "Listar",
+          "name": "Cadastrar tutor",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/registro-atendimento?animalId=1&consultaId=1",
+              "raw": "{{baseUrl}}/api/responsavel",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "registro-atendimento"
+                "responsavel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Joao Pereira\",\n  \"telefone\": \"11912345678\",\n  \"email\": \"joao@email.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar tutores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsavel?nome=Maria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsavel"
+              ],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "Maria",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar tutor por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsavel/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsavel",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar tutor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsavel/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsavel",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria Oliveira\",\n  \"telefone\": \"11987654321\",\n  \"email\": \"maria@email.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover tutor",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/responsavel/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsavel",
+                "1"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Os responsáveis pelos animais, na rota `/api/responsavel`."
+    },
+    {
+      "name": "06 · Animais",
+      "item": [
+        {
+          "name": "Cadastrar animal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/animal",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animal"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Rex\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"Golden Retriever\",\n  \"porte\": \"GRANDE\",\n  \"sexo\": \"MACHO\",\n  \"dataNascimento\": \"2022-03-15\",\n  \"peso\": 28.5,\n  \"condicaoCronica\": false,\n  \"castrado\": true,\n  \"foto\": null,\n  \"alergias\": null,\n  \"observacoes\": \"Docil com criancas\",\n  \"responsavelId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar animais",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animal?responsavelId=1&nome=Rex",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animal"
+              ],
+              "query": [
+                {
+                  "key": "responsavelId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "nome",
+                  "value": "Rex",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Sem parâmetro, lista todos."
+          }
+        },
+        {
+          "name": "Buscar animal por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animal/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animal",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar animal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/animal/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animal",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Rex\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"Golden Retriever\",\n  \"porte\": \"GRANDE\",\n  \"sexo\": \"MACHO\",\n  \"dataNascimento\": \"2022-03-15\",\n  \"peso\": 30.0,\n  \"condicaoCronica\": false,\n  \"castrado\": true,\n  \"foto\": null,\n  \"alergias\": \"Dipirona\",\n  \"observacoes\": null,\n  \"responsavelId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover animal",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animal/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animal",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remover o próprio animal como tutora",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/animal/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "animal",
+                "1"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenTutor}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "O tutor remove só os animais dele. No animal de outro tutor, 403 ANIMAL_DE_OUTRO_TUTOR; com histórico clínico, 409."
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 · Consultas",
+      "item": [
+        {
+          "name": "Agendar consulta numa janela livre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/agendamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "agendamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"janelaId\": 1,\n  \"animalId\": 1,\n  \"tipo\": \"ROTINA\",\n  \"observacao\": \"Primeira consulta do Rex.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cadastrar consulta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ROTINA\",\n  \"dataHora\": \"2026-09-15T14:30:00\",\n  \"status\": \"AGENDADA\",\n  \"observacao\": \"Primeira consulta do ano\",\n  \"motivo\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar consultas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta?animalId=1&veterinarioId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta"
               ],
               "query": [
                 {
@@ -1878,7 +1859,7 @@
                   "disabled": true
                 },
                 {
-                  "key": "consultaId",
+                  "key": "veterinarioId",
                   "value": "1",
                   "disabled": true
                 }
@@ -1887,25 +1868,138 @@
           }
         },
         {
-          "name": "Por id",
+          "name": "Buscar consulta por id",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/registro-atendimento/1",
+              "raw": "{{baseUrl}}/api/consulta/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "registro-atendimento",
+                "consulta",
                 "1"
               ]
             }
           }
         },
         {
-          "name": "Criar",
+          "name": "Atualizar consulta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "1"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ROTINA\",\n  \"dataHora\": \"2026-09-15T15:00:00\",\n  \"status\": \"CONFIRMADA\",\n  \"observacao\": null,\n  \"motivo\": null,\n  \"animalId\": 1,\n  \"veterinarioId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Fechar atendimento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/1/fechamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "1",
+                "fechamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registroAtendimento\": {\n    \"dataAtendimento\": \"2026-09-10T14:30:00\",\n    \"anamnese\": \"Tutor relata apetite normal.\",\n    \"diagnostico\": \"Gastroenterite leve.\",\n    \"tratamento\": \"Dieta leve por 3 dias.\"\n  },\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Lactulona\",\n      \"doseMin\": 1.0,\n      \"doseMax\": 2.0,\n      \"unidade\": \"ml\",\n      \"frequenciaDia\": 2,\n      \"duracaoDias\": 5,\n      \"dataInicio\": \"2026-09-10\",\n      \"orientacao\": \"Se comer pouco, aplicar a dose menor.\",\n      \"regras\": [\n        {\n          \"condicaoClinicaId\": 1,\n          \"acaoDose\": \"DOSE_MIN\",\n          \"ordem\": 1\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "description": "Grava registro, procedimentos e prescrições numa transação só, e a consulta passa a REALIZADA."
+          }
+        },
+        {
+          "name": "Cancelar consulta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/1/cancelamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "1",
+                "cancelamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Tutor pediu para remarcar.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remover consulta",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/consulta/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "consulta",
+                "1"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Status: AGENDADA · CONFIRMADA · REALIZADA · CANCELADA · NAO_COMPARECEU. Tipo: ROTINA · VACINACAO · EXAME · RETORNO · EMERGENCIA."
+    },
+    {
+      "name": "08 · Registros de atendimento",
+      "item": [
+        {
+          "name": "Cadastrar registro de atendimento",
           "request": {
             "method": "POST",
             "header": [
@@ -1936,7 +2030,54 @@
           }
         },
         {
-          "name": "Atualizar",
+          "name": "Listar registros de atendimento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/registro-atendimento?animalId=1&consultaId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registro-atendimento"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "consultaId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar registro por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/registro-atendimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registro-atendimento",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar registro",
           "request": {
             "method": "PUT",
             "header": [
@@ -1968,7 +2109,7 @@
           }
         },
         {
-          "name": "Remover",
+          "name": "Remover registro",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1988,57 +2129,10 @@
       ]
     },
     {
-      "name": "Procedimentos",
+      "name": "09 · Procedimentos",
       "item": [
         {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/procedimento?animalId=1&registroAtendimentoId=1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "procedimento"
-              ],
-              "query": [
-                {
-                  "key": "animalId",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "registroAtendimentoId",
-                  "value": "1",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/procedimento/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "procedimento",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
+          "name": "Cadastrar procedimento",
           "request": {
             "method": "POST",
             "header": [
@@ -2069,7 +2163,54 @@
           }
         },
         {
-          "name": "Atualizar",
+          "name": "Listar procedimentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/procedimento?animalId=1&registroAtendimentoId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "procedimento"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "registroAtendimentoId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar procedimento por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/procedimento/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "procedimento",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar procedimento",
           "request": {
             "method": "PUT",
             "header": [
@@ -2101,7 +2242,7 @@
           }
         },
         {
-          "name": "Remover",
+          "name": "Remover procedimento",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -2121,308 +2262,10 @@
       ]
     },
     {
-      "name": "Prescrições",
+      "name": "10 · Condições clínicas",
       "item": [
         {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/prescricao?animalId=1&registroAtendimentoId=1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "prescricao"
-              ],
-              "query": [
-                {
-                  "key": "animalId",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "registroAtendimentoId",
-                  "value": "1",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/prescricao/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "prescricao",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/prescricao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "prescricao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 0.5,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Criar duas de uma vez (lote)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/prescricao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "prescricao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 0.5,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    },\n    {\n      \"medicamento\": \"Meloxicam 2mg\",\n      \"doseMin\": 0.1,\n      \"doseMax\": 0.2,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Faixa inválida — doseMin > doseMax (400)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/prescricao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "prescricao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 2.0,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Deve ser recusado por CK_PRESCRICAO_FAIXA.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "description": "Ato assinado e imutável (ADR s3-09): não há PUT nem DELETE, e é de propósito."
-    },
-    {
-      "name": "Regras de prescrição",
-      "item": [
-        {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regra-prescricao?prescricaoId=1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "regra-prescricao"
-              ],
-              "query": [
-                {
-                  "key": "prescricaoId",
-                  "value": "1",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regra-prescricao/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "regra-prescricao",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/regra-prescricao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "regra-prescricao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"prescricaoId\": 1,\n  \"condicaoClinicaId\": 1,\n  \"operador\": \"MAIOR_QUE\",\n  \"limite\": 39.0,\n  \"acaoDose\": \"ACIONAR_CLINICA\",\n  \"ordem\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Rótulo, tipo de dado e fonte são congelados pelo service a partir da condição clínica (ADR s3-10) — o request nunca os carrega."
-          }
-        }
-      ],
-      "description": "Operador: MAIOR_QUE · MAIOR_OU_IGUAL · MENOR_QUE · MENOR_OU_IGUAL · IGUAL. Ação: DOSE_MIN · DOSE_MAX · DOSE_PADRAO · ACIONAR_CLINICA · SUSPENDER. Imutável, como a prescrição."
-    },
-    {
-      "name": "Condições clínicas",
-      "item": [
-        {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/condicao-clinica?clinicaId=1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "condicao-clinica"
-              ],
-              "query": [
-                {
-                  "key": "clinicaId",
-                  "value": "1",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Buscar por código",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/condicao-clinica/buscar?clinicaId=1&codigo=FEBRE",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "condicao-clinica",
-                "buscar"
-              ],
-              "query": [
-                {
-                  "key": "clinicaId",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "codigo",
-                  "value": "FEBRE",
-                  "disabled": true
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Por id",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/condicao-clinica/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "condicao-clinica",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Criar",
+          "name": "Cadastrar condição clínica",
           "request": {
             "method": "POST",
             "header": [
@@ -2453,7 +2296,77 @@
           }
         },
         {
-          "name": "Atualizar",
+          "name": "Listar condições da clínica",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicao-clinica?clinicaId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicao-clinica"
+              ],
+              "query": [
+                {
+                  "key": "clinicaId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar condição por código",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicao-clinica/buscar?clinicaId=1&codigo=FEBRE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicao-clinica",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "clinicaId",
+                  "value": "1"
+                },
+                {
+                  "key": "codigo",
+                  "value": "FEBRE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar condição por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/condicao-clinica/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "condicao-clinica",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar condição",
           "request": {
             "method": "PUT",
             "header": [
@@ -2485,7 +2398,7 @@
           }
         },
         {
-          "name": "Remover",
+          "name": "Remover condição",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -2506,10 +2419,264 @@
       "description": "Vocabulário por clínica. tipoDado: BOOLEANO · NUMERICO. fonteValor: RELATO · ANIMAL · HISTORICO."
     },
     {
-      "name": "Motor de planos",
+      "name": "11 · Prescrições",
       "item": [
         {
-          "name": "Instanciar plano preventivo",
+          "name": "Montar rascunho a partir da fala da veterinária",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao/rascunho",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao",
+                "rascunho"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registroAtendimentoId\": 1,\n  \"narrativa\": \"Lactulona de 1 a 2 ml, duas vezes ao dia por cinco dias. Se comer pouco, dose menor.\"\n}"
+            },
+            "description": "A IA devolve o rascunho para revisão. Nada é gravado."
+          }
+        },
+        {
+          "name": "Prescrever medicamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 0.5,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Prescrever dois medicamentos de uma vez",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 0.5,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    },\n    {\n      \"medicamento\": \"Meloxicam 2mg\",\n      \"doseMin\": 0.1,\n      \"doseMax\": 0.2,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Administrar em jejum, pela manha.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Prescrever com dose mínima maior que a máxima (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Omeprazol\",\n      \"doseMin\": 2.0,\n      \"doseMax\": 1.0,\n      \"unidade\": \"mg/kg\",\n      \"frequenciaDia\": 1,\n      \"duracaoDias\": 10,\n      \"dataInicio\": \"2026-09-15\",\n      \"orientacao\": \"Deve ser recusado por CK_PRESCRICAO_FAIXA.\",\n      \"materialOrigemId\": null,\n      \"versaoOrigem\": null,\n      \"animalId\": 1,\n      \"veterinarioId\": 1,\n      \"registroAtendimentoId\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar prescrições",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao?animalId=1&registroAtendimentoId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "registroAtendimentoId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar prescrição por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescricao/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescricao",
+                "1"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Ato assinado: não há PUT nem DELETE."
+    },
+    {
+      "name": "12 · Regras de prescrição",
+      "item": [
+        {
+          "name": "Cadastrar regra de prescrição",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/regra-prescricao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "regra-prescricao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescricaoId\": 1,\n  \"condicaoClinicaId\": 1,\n  \"operador\": \"MAIOR_QUE\",\n  \"limite\": 39.0,\n  \"acaoDose\": \"ACIONAR_CLINICA\",\n  \"ordem\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Rótulo, tipo de dado e fonte vêm da condição clínica; o corpo não os carrega."
+          }
+        },
+        {
+          "name": "Listar regras da prescrição",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/regra-prescricao?prescricaoId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "regra-prescricao"
+              ],
+              "query": [
+                {
+                  "key": "prescricaoId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar regra por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/regra-prescricao/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "regra-prescricao",
+                "1"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Operador: MAIOR_QUE · MAIOR_OU_IGUAL · MENOR_QUE · MENOR_OU_IGUAL · IGUAL. Ação: DOSE_MIN · DOSE_MAX · DOSE_PADRAO · ACIONAR_CLINICA · SUSPENDER. Imutável, como a prescrição."
+    },
+    {
+      "name": "13 · Plano de cuidado",
+      "item": [
+        {
+          "name": "Gerar plano preventivo",
           "request": {
             "method": "POST",
             "header": [
@@ -2543,7 +2710,7 @@
           }
         },
         {
-          "name": "Instanciar plano pós-cirúrgico",
+          "name": "Gerar plano pós-cirúrgico",
           "request": {
             "method": "POST",
             "header": [
@@ -2576,7 +2743,7 @@
           }
         },
         {
-          "name": "Plano do animal",
+          "name": "Buscar plano ativo do animal",
           "request": {
             "method": "GET",
             "header": [],
@@ -2595,7 +2762,7 @@
           }
         },
         {
-          "name": "Eventos do plano",
+          "name": "Listar eventos do plano",
           "request": {
             "method": "GET",
             "header": [],
@@ -2613,9 +2780,200 @@
               ]
             }
           }
+        },
+        {
+          "name": "Ver protocolo aplicado ao animal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/plano/1/protocolo-aplicado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "plano",
+                "1",
+                "protocolo-aplicado"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sugerir cuidados pelo histórico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/motor/plano/1/sugestoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "motor",
+                "plano",
+                "1",
+                "sugestoes"
+              ]
+            }
+          }
         }
       ],
-      "description": "Exige autenticação desde o PR de limpeza da onda 4 — a zona aberta existia para um gatilho do .NET que o ADR s3-25 removeu."
+      "description": "O plano preventivo lê o catálogo de protocolos do serviço .NET no momento em que nasce."
+    },
+    {
+      "name": "14 · Check-in",
+      "description": "Registrar check-in é do tutor: esta pasta usa `tokenTutor`. Rode *Entrar como tutora* antes.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{tokenTutor}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Extrair condições do relato",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin/extracao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin",
+                "extracao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": 1,\n  \"narrativa\": \"Dei o remédio às 20h, mas ele não quis o jantar.\"\n}"
+            },
+            "description": "Passo 1: interpreta o texto do tutor e não grava."
+          }
+        },
+        {
+          "name": "Registrar check-in confirmado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": 1,\n  \"narrativa\": \"Dei o remédio às 20h, mas ele não quis o jantar.\",\n  \"condicoes\": [\n    {\n      \"condicaoClinicaId\": 1,\n      \"valorBooleano\": true,\n      \"confianca\": 0.92\n    }\n  ]\n}"
+            },
+            "description": "Passo 2: grava o que o tutor confirmou e aplica as regras da prescrição."
+          }
+        },
+        {
+          "name": "Listar check-ins do animal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin?animalId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin"
+              ],
+              "query": [
+                {
+                  "key": "animalId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar check-in por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkin/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "checkin",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 · Saúde",
+      "item": [
+        {
+          "name": "Verificar saúde da aplicação",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Sem token."
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Data de hoje no formato AAAA-MM-DD, no fuso da máquina: toISOString() daria o dia seguinte depois das 21h no Brasil.",
+          "const d = new Date();",
+          "pm.variables.set('hoje', `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);"
+        ]
+      }
     }
   ]
 }

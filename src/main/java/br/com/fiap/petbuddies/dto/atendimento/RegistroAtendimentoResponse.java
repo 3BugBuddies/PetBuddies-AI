@@ -36,8 +36,8 @@ public class RegistroAtendimentoResponse {
         dto.proximaVacina = entity.getProximaVacina();
         dto.animalId = entity.getAnimal() == null ? null : entity.getAnimal().getId();
         dto.consultaId = entity.getConsulta() == null ? null : entity.getConsulta().getId();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

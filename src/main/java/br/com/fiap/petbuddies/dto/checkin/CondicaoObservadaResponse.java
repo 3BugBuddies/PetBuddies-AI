@@ -24,10 +24,10 @@ public class CondicaoObservadaResponse {
         dto.id = entity.getId();
         dto.condicaoClinicaId = entity.getCondicaoClinica() == null ? null : entity.getCondicaoClinica().getId();
         dto.codigoCongelado = entity.getCodigoCongelado();
-        dto.valorBooleano = entity.getValorBooleano();
-        dto.valorNumerico = entity.getValorNumerico();
+        dto.valorBooleano = entity.getValor().getBooleano();
+        dto.valorNumerico = entity.getValor().getNumerico();
         dto.confianca = entity.getConfianca();
-        dto.createdAt = entity.getCreatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
         return dto;
     }
 }

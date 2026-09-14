@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.service.prescricao;
 
+import br.com.fiap.petbuddies.domain.embeddable.FaixaDose;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
@@ -12,6 +13,7 @@ import br.com.fiap.petbuddies.dto.prescricao.PrescricaoRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.prescricao.PrescricaoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import br.com.fiap.petbuddies.service.cuidado.PlanoTratamentoService;
 import org.springframework.stereotype.Service;
@@ -78,12 +80,13 @@ public class PrescricaoService {
                 .orElseThrow(() -> new VeterinarioNaoEncontradoException(request.getVeterinarioId()));
         RegistroAtendimentoEntity registroAtendimento = registroAtendimentoRepository.findById(request.getRegistroAtendimentoId())
                 .orElseThrow(() -> new RegistroAtendimentoNaoEncontradoException(request.getRegistroAtendimentoId()));
+        if (!registroAtendimento.getAnimal().getId().equals(animal.getId())) {
+            throw new RegistroDeOutroAnimalException(registroAtendimento.getId(), animal.getId());
+        }
 
         PrescricaoEntity entity = new PrescricaoEntity();
         entity.setMedicamento(request.getMedicamento());
-        entity.setDoseMin(request.getDoseMin());
-        entity.setDoseMax(request.getDoseMax());
-        entity.setUnidade(request.getUnidade());
+        entity.setFaixaDose(new FaixaDose(request.getDoseMin(), request.getDoseMax(), request.getUnidade()));
         entity.setFrequenciaDia(request.getFrequenciaDia());
         entity.setDuracaoDias(request.getDuracaoDias());
         entity.setDataInicio(request.getDataInicio());

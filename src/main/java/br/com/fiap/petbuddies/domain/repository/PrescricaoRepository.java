@@ -10,4 +10,10 @@ public interface PrescricaoRepository extends JpaRepository<PrescricaoEntity, Lo
     List<PrescricaoEntity> findByAnimalIdOrderByDataInicioDesc(Long animalId);
 
     List<PrescricaoEntity> findByRegistroAtendimentoId(Long registroAtendimentoId);
+
+    boolean existsByAnimalId(Long animalId);
+
+    boolean existsByVeterinarioId(Long veterinarioId);
+
+    boolean existsByRegistroAtendimentoId(Long registroAtendimentoId);
 }

@@ -34,8 +34,8 @@ public class ConsultaResponse {
         // Só os ids: com open-in-view=false, ler outro campo do proxy LAZY aqui lança LazyInitializationException.
         dto.animalId = entity.getAnimal() == null ? null : entity.getAnimal().getId();
         dto.veterinarioId = entity.getVeterinario() == null ? null : entity.getVeterinario().getId();
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
+        dto.createdAt = entity.getAuditoria().getCreatedAt();
+        dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
     }
 }

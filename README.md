@@ -172,31 +172,72 @@ A confiança por campo passou a discriminar depois de o prompt exigir o trecho e
 
 ## Como executar
 
-Pré-requisitos: Java 21, Maven 3.9, Docker (ou Oracle FIAP) e uma chave do Gemini
-([Google AI Studio](https://aistudio.google.com)).
+### Pré-requisitos
+
+- Docker, para subir o banco e a API juntos
+- Uma chave do Gemini ([Google AI Studio](https://aistudio.google.com))
+- Para rodar a API fora do container: Java 21+ e Maven 3.9+ (o repositório não versiona o Maven Wrapper)
+
+### Demonstração da IA (recomendado)
+
+O Oracle e a API sobem em container, com o banco criado do zero pelo Flyway:
 
 ```bash
 cp .env.example .env
-# preencha ORACLE_PASSWORD, ORACLE_SYS_PASSWORD, PETBUDDIES_JWT_SECRET e GEMINI_API_KEY
+# preencha GEMINI_API_KEY e PETBUDDIES_JWT_SECRET (mínimo 32 bytes: openssl rand -hex 32)
 
-docker compose up -d --wait                          # sobe o Oracle local
+docker compose -f docker-compose.demo.yml up -d --build
+curl http://localhost:8080/actuator/health           # {"status":"UP"}; o Oracle leva de 1 a 2 minutos
+```
+
+Derrube com `docker compose -f docker-compose.demo.yml down -v`. Para rodar ao lado de outra instância, troque as
+portas: `API_PORT=8081 ORACLE_PORT=1522 docker compose -p outra-demo -f docker-compose.demo.yml up -d --build`.
+
+### API fora do container
+
+```bash
+docker compose up -d --wait                          # sobe só o Oracle
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Para o Oracle FIAP, preencha `ORACLE_USER` (RM) e `ORACLE_PASSWORD` no `.env` e rode só o `mvn`.
+Para o Oracle FIAP, preencha `ORACLE_URL`, `ORACLE_USER` (o RM, em maiúsculas) e `ORACLE_PASSWORD` no `.env` e rode
+só o `mvn`.
+
+| Variável | Para quê |
+|---|---|
+| `GEMINI_API_KEY` | chave do Gemini. Ausente, a aplicação não sobe; presente mas vazia, sobe e as chamadas de IA respondem degradadas |
+| `PETBUDDIES_JWT_SECRET` | segredo `HS256` do token, com no mínimo 32 bytes. Abaixo disso a aplicação recusa subir |
+| `ORACLE_URL`, `ORACLE_USER`, `ORACLE_PASSWORD` | conexão com o Oracle; o `.env.example` já aponta para o container local |
+| `ORACLE_SYS_PASSWORD`, `ORACLE_PORT` | senha do `SYS` e porta do Oracle no host; só os arquivos do compose usam |
+
+### Usuários de demonstração
+
+A migration `V2__seed_demonstracao.sql` semeia uma clínica, uma veterinária, uma tutora e os dois logins:
+
+| Login | Perfil | Senha |
+|---|---|---|
+| `ana@clinica.com` | `VET` | `petbuddies123` |
+| `maria@email.com` | `TUTOR` | `petbuddies123` |
 
 ### Testando a IA pelo Postman
 
-Com Docker, o banco e a API sobem juntos (`.env` com `GEMINI_API_KEY` e `PETBUDDIES_JWT_SECRET`):
+Importe `docs/postman/petbuddies-ai-java.postman_collection.json` (a `baseUrl` já é `http://localhost:8080`) e rode a
+pasta **00 · Demo IA** com *Run folder*, num banco recém-criado. Ela não depende das outras pastas: cada requisição
+guarda os tokens, ids e datas de que a próxima precisa.
 
-```bash
-docker compose -f docker-compose.demo.yml up -d --build
-```
+| Subpasta | Quem | O que acontece |
+|---|---|---|
+| 1 · Preparação (veterinária) | `ana@clinica.com` | cadastra a Luna e as condições `APETITE_BAIXO` e `SEM_COMER_24H` (crítica), agenda e fecha a consulta com Lactulona de 1 a 2 ml e a regra "apetite baixo → menor dose" |
+| 2 · IA na prescrição | veterinária | a fala da prescrição vira o formulário preenchido, com a confiança de cada campo |
+| 3 · IA no check-in | `maria@email.com` | "não quis o jantar" vira `APETITE_BAIXO`, e a regra devolve a dose de 1 ml |
+| 4 · Condição crítica | tutora | "não comeu nada desde ontem" escala para a clínica, sem dose |
 
-Importe `docs/postman/petbuddies-ai-java.postman_collection.json` e rode a pasta **Demo IA** (Run folder). Ela prepara
-o cenário como veterinária (`ana@clinica.com`), gera o rascunho de prescrição, faz o check-in como tutora
-(`maria@email.com`) e termina no relato crítico. Os ids e tokens passam de uma requisição para a outra sozinhos. Senha
-dos dois usuários: `petbuddies123`.
+São 13 requisições e 21 verificações. As pastas **01 a 15** cobrem o resto da API na ordem de uso: usam `tokenVet` como
+padrão e `tokenTutor` na pasta **14 · Check-in**, que é só da tutora.
+
+Pelo Swagger (`/swagger-ui.html`), rode antes a subpasta 1 no Postman. Depois faça `POST /api/auth/login` com a
+tutora, cole o `token` em **Authorize** e chame `POST /api/checkin/extracao` e `POST /api/checkin`, com os mesmos
+corpos da subpasta 3.
 
 **Tecnologias:** Java 21 · Spring Boot 3.4.5 · Spring AI 1.1.6 · Gemini 2.5 Flash · Spring Data JPA · Oracle ·
 Flyway · Spring Security (JWT) · Springdoc OpenAPI

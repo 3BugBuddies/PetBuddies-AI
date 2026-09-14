@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.domain.entity;
 
+import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
 import br.com.fiap.petbuddies.domain.enums.atendimento.StatusProcedimento;
 import br.com.fiap.petbuddies.domain.enums.atendimento.TipoProcedimento;
 import jakarta.persistence.*;
@@ -57,17 +58,13 @@ public class ProcedimentoEntity {
     @JoinColumn(name = "ID_VETERINARIO", nullable = false)
     private VeterinarioEntity veterinario;
 
-    @Column(name = "CA_CREATED_AT", nullable = false, updatable = false)
+    @Embedded
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
-
-    @Column(name = "AT_UPDATED_AT")
-    @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    private Auditoria auditoria;
 
     @PrePersist
-    private void prePersist() { createdAt = LocalDateTime.now(); }
+    private void prePersist() { auditoria = Auditoria.criadaAgora(); }
 
     @PreUpdate
-    private void preUpdate() { updatedAt = LocalDateTime.now(); }
+    private void preUpdate() { auditoria = auditoria.atualizadaAgora(); }
 }

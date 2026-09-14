@@ -22,4 +22,8 @@ public interface RegistroAtendimentoRepository extends JpaRepository<RegistroAte
             + "JOIN FETCH v.clinica "
             + "WHERE r.id = :id")
     Optional<RegistroAtendimentoEntity> buscarComAnimalEVeterinario(@Param("id") Long id);
+
+    boolean existsByAnimalId(Long animalId);
+
+    boolean existsByConsultaId(Long consultaId);
 }

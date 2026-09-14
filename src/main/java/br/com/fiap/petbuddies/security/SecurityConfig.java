@@ -20,11 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /**
-     * As rotas cujo POST, PUT e DELETE sao ato clinico. O rascunho de prescricao
-     * nao precisa entrar: /api/prescricao ja cobre ele por prefixo.
-     */
-    private static final String[] ESCRITAS_CLINICAS = {
+    private static final String[] ESCRITAS_DO_VET = {
             "/api/consulta/**", "/api/consulta",
             "/api/registro-atendimento/**", "/api/registro-atendimento",
             "/api/procedimento/**", "/api/procedimento",
@@ -33,7 +29,6 @@ public class SecurityConfig {
             "/api/condicao-clinica/**", "/api/condicao-clinica",
             "/api/janela-atendimento/**", "/api/janela-atendimento",
             "/api/motor/plano/**",
-            "/api/animal/**", "/api/animal",
             "/api/responsavel/**", "/api/responsavel",
             "/api/veterinario/**", "/api/veterinario",
             "/api/clinica/**", "/api/clinica"
@@ -54,16 +49,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/registro").permitAll()
 
-                        // O relato do dia e do tutor, e so dele: quem escreve check-in
-                        // e quem convive com o animal.
                         .requestMatchers(HttpMethod.POST, "/api/checkin", "/api/checkin/extracao").hasRole("TUTOR")
 
-                        // Ato clinico: o TUTOR nao autora, nao agenda e nao fecha atendimento.
-                        // A regra e por metodo, nao por rota — os GET seguem abertos a
-                        // qualquer token, porque o tutor precisa ler o proprio animal.
-                        .requestMatchers(HttpMethod.POST, ESCRITAS_CLINICAS).hasRole("VET")
-                        .requestMatchers(HttpMethod.PUT, ESCRITAS_CLINICAS).hasRole("VET")
-                        .requestMatchers(HttpMethod.DELETE, ESCRITAS_CLINICAS).hasRole("VET")
+                        // Antes de ESCRITAS_DO_VET: o primeiro matcher vence, e o prefixo /api/consulta/** prenderia o tutor.
+                        .requestMatchers(HttpMethod.POST, "/api/animal", "/api/responsavel",
+                                "/api/consulta/agendamento", "/api/consulta/*/cancelamento").hasAnyRole("VET", "TUTOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/animal/**", "/api/responsavel/**").hasAnyRole("VET", "TUTOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/animal/**", "/api/consulta/*").hasAnyRole("VET", "TUTOR")
+
+                        .requestMatchers(HttpMethod.POST, ESCRITAS_DO_VET).hasRole("VET")
+                        .requestMatchers(HttpMethod.PUT, ESCRITAS_DO_VET).hasRole("VET")
+                        .requestMatchers(HttpMethod.DELETE, ESCRITAS_DO_VET).hasRole("VET")
 
                         .anyRequest().authenticated())
                 .exceptionHandling(erro -> erro

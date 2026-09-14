@@ -8,4 +8,6 @@ import java.util.List;
 public interface CondicaoObservadaRepository extends JpaRepository<CondicaoObservadaEntity, Long> {
 
     List<CondicaoObservadaEntity> findByCheckin_Id(Long checkinId);
+
+    boolean existsByCondicaoClinicaId(Long condicaoClinicaId);
 }

@@ -1,5 +1,7 @@
 package br.com.fiap.petbuddies.service.checkin;
 
+import br.com.fiap.petbuddies.domain.embeddable.Desfecho;
+import br.com.fiap.petbuddies.domain.embeddable.ValorObservado;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
@@ -23,6 +25,7 @@ import br.com.fiap.petbuddies.dto.checkin.CondicaoObservadaResponse;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinDuplicadoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
@@ -94,6 +97,9 @@ public class CheckinService {
         if (request.getItemPlanoCuidadoId() != null) {
             itemRelatado = itemPlanoCuidadoRepository.findById(request.getItemPlanoCuidadoId())
                     .orElseThrow(() -> new ItemPlanoCuidadoNaoEncontradoException(request.getItemPlanoCuidadoId()));
+            if (!itemRelatado.getPlano().getAnimalId().equals(animal.getId())) {
+                throw new ItemDeOutroAnimalException(itemRelatado.getId(), animal.getId());
+            }
         }
 
         if (checkinRepository.findExistente(animal.getId(), referencia, request.getItemPlanoCuidadoId()).isPresent()) {
@@ -109,7 +115,9 @@ public class CheckinService {
         checkin.setTicUtilizada(request.getTicUtilizada());
         checkin = checkinRepository.save(checkin);
 
-        List<CondicaoObservadaEntity> observadas = gravarCondicoes(checkin, request.getCondicoes());
+        // "condicoes": null explicito no JSON sobrescreve o default da lista vazia do DTO.
+        List<CondicaoConfirmadaRequest> condicoes = request.getCondicoes() == null ? List.of() : request.getCondicoes();
+        List<CondicaoObservadaEntity> observadas = gravarCondicoes(checkin, condicoes);
         boolean escalarPorCritica = observadas.stream().anyMatch(this::observacaoCritica);
 
         List<PrescricaoEntity> prescricoesParaAvaliar = itemRelatado != null
@@ -124,16 +132,13 @@ public class CheckinService {
 
             ItemPlanoCuidadoEntity item = itemParaGravar(itemRelatado, prescricao, referencia);
             if (item != null) {
-                item.setCheckinId(checkin.getId());
-                item.setDesfecho(resultado.desfecho());
-                item.setDoseAplicada(resultado.doseAplicada());
-                item.setRegraAplicadaId(resultado.regraAplicadaId());
+                item.setDesfecho(new Desfecho(checkin.getId(), resultado.desfecho(), resultado.doseAplicada(), resultado.regraAplicadaId()));
                 itemPlanoCuidadoRepository.save(item);
             }
 
             desfechos.add(CheckinDesfechoResponse.of(
                     prescricao.getId(), prescricao.getMedicamento(), item == null ? null : item.getId(),
-                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getUnidade(), resultado.regraAplicadaId()));
+                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId()));
         }
 
         if (escalarPorCritica) {
@@ -175,8 +180,7 @@ public class CheckinService {
             entity.setCheckin(checkin);
             entity.setCondicaoClinica(condicao);
             entity.setCodigoCongelado(condicao.getCodigo());
-            entity.setValorBooleano(confirmada.getValorBooleano());
-            entity.setValorNumerico(confirmada.getValorNumerico());
+            entity.setValor(new ValorObservado(confirmada.getValorBooleano(), confirmada.getValorNumerico()));
             entity.setConfianca(confirmada.getConfianca().setScale(4, RoundingMode.HALF_UP));
             observadas.add(condicaoObservadaRepository.save(entity));
         }
@@ -200,10 +204,10 @@ public class CheckinService {
         if (!observada.getCondicaoClinica().isCritica()) {
             return false;
         }
-        if (observada.getValorBooleano() != null) {
-            return observada.getValorBooleano();
+        if (observada.getValor().getBooleano() != null) {
+            return observada.getValor().getBooleano();
         }
-        return observada.getValorNumerico() != null;
+        return observada.getValor().getNumerico() != null;
     }
 
     private String montarObservacaoEscalacao(List<CondicaoObservadaEntity> observadas, List<PrescricaoEntity> prescricoes) {
@@ -214,7 +218,7 @@ public class CheckinService {
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("");
         String telefone = prescricoes.stream()
-                .map(p -> p.getVeterinario().getClinica().getTelefone())
+                .map(p -> p.getVeterinario().getClinica().getContato().getTelefone())
                 .findFirst()
                 .orElse(null);
         String base = "Sinal de atenção identificado (" + rotulos + "). Procure a clínica";
@@ -227,14 +231,18 @@ public class CheckinService {
 
         // Só reconstitui o que foi de fato gravado no item — prescrição
         // avaliada sem item na hora do POST não deixa rastro para o GET.
-        List<CheckinDesfechoResponse> desfechos = itemPlanoCuidadoRepository.findByCheckinId(checkin.getId()).stream()
+        List<CheckinDesfechoResponse> desfechos = itemPlanoCuidadoRepository.findByDesfechoCheckinId(checkin.getId()).stream()
                 .map(item -> {
                     PrescricaoEntity prescricao = item.getPrescricaoId() == null
                             ? null : prescricaoRepository.findById(item.getPrescricaoId()).orElse(null);
+                    // Com todas as colunas nulas, o Hibernate devolve o Desfecho inteiro como null.
+                    Desfecho desfecho = item.getDesfecho();
                     return CheckinDesfechoResponse.of(
                             item.getPrescricaoId(), prescricao == null ? null : prescricao.getMedicamento(),
-                            item.getId(), item.getDesfecho(), item.getDoseAplicada(),
-                            prescricao == null ? null : prescricao.getUnidade(), item.getRegraAplicadaId());
+                            item.getId(), desfecho == null ? null : desfecho.getTipo(),
+                            desfecho == null ? null : desfecho.getDoseAplicada(),
+                            prescricao == null ? null : prescricao.getFaixaDose().getUnidade(),
+                            desfecho == null ? null : desfecho.getRegraAplicadaId());
                 })
                 .toList();
 

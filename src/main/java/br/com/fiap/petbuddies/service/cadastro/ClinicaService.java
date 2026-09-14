@@ -1,8 +1,12 @@
 package br.com.fiap.petbuddies.service.cadastro;
 
+import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
+import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
+import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.cadastro.ClinicaRequest;
+import br.com.fiap.petbuddies.exception.cadastro.ClinicaComVinculosException;
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.cadastro.CnpjDuplicadoException;
 import org.springframework.stereotype.Service;
@@ -15,9 +19,16 @@ import java.util.Optional;
 public class ClinicaService {
 
     private final ClinicaRepository repository;
+    private final VeterinarioRepository veterinarioRepository;
+    private final CondicaoClinicaRepository condicaoClinicaRepository;
 
-    public ClinicaService(ClinicaRepository repository) {
+    public ClinicaService(
+            ClinicaRepository repository,
+            VeterinarioRepository veterinarioRepository,
+            CondicaoClinicaRepository condicaoClinicaRepository) {
         this.repository = repository;
+        this.veterinarioRepository = veterinarioRepository;
+        this.condicaoClinicaRepository = condicaoClinicaRepository;
     }
 
     @Transactional(readOnly = true)
@@ -65,6 +76,12 @@ public class ClinicaService {
     @Transactional
     public void remover(Long id) {
         encontrarOuFalhar(id);
+        if (veterinarioRepository.existsByClinicaId(id)) {
+            throw new ClinicaComVinculosException(id, "veterinários");
+        }
+        if (condicaoClinicaRepository.existsByClinicaId(id)) {
+            throw new ClinicaComVinculosException(id, "condições clínicas");
+        }
         repository.deleteById(id);
     }
 
@@ -75,7 +92,6 @@ public class ClinicaService {
     private void aplicar(ClinicaRequest request, ClinicaEntity entity) {
         entity.setNome(request.getNome());
         entity.setCnpj(request.getCnpj());
-        entity.setTelefone(request.getTelefone());
-        entity.setEmail(request.getEmail());
+        entity.setContato(new Contato(request.getTelefone(), request.getEmail()));
     }
 }
