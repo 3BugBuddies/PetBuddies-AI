@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 // Sem envelope HATEOAS — o rascunho nao e recurso, nao e persistido e nao tem self; nasce da narrativa e morre se o vet nao confirmar.
 @RestController
 @RequestMapping("/api/prescricao")
-@Tag(name = "ia — prescrição narrada", description = "Transcreve a narrativa do veterinário para um rascunho de prescrição. Perfil VET.")
+@Tag(name = "ia — prescrição narrada", description = "Transcreve a narrativa do veterinário para um rascunho de prescrição.")
 public class PrescricaoExtracaoController {
 
     private final PrescricaoExtracaoService service;
