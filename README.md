@@ -8,7 +8,7 @@ procurar a clínica.
 
 | | |
 |---|---|
-| Vídeo de apresentação | *link do YouTube (não listado)* |
+| Vídeo de apresentação | `https://youtu.be/BV3-_UwLYpA`|
 | Swagger UI (local) | `http://localhost:8080/swagger-ui.html` |
 
 > Esta branch reúne a entrega da disciplina de IA. O código é o mesmo da `main`, cujo README descreve a API para
