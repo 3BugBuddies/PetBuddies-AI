@@ -20,6 +20,20 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final String[] ESCRITAS_DO_VET = {
+            "/api/consulta/**", "/api/consulta",
+            "/api/registro-atendimento/**", "/api/registro-atendimento",
+            "/api/procedimento/**", "/api/procedimento",
+            "/api/prescricao/**", "/api/prescricao",
+            "/api/regra-prescricao/**", "/api/regra-prescricao",
+            "/api/condicao-clinica/**", "/api/condicao-clinica",
+            "/api/janela-atendimento/**", "/api/janela-atendimento",
+            "/api/motor/plano/**",
+            "/api/responsavel/**", "/api/responsavel",
+            "/api/veterinario/**", "/api/veterinario",
+            "/api/clinica/**", "/api/clinica"
+    };
+
     // Ponto de entrada explicito: sem ele, cadeia sem formulario nem basic recusa com 403 em vez de 401.
     @Bean
     @Order(1)
@@ -34,6 +48,19 @@ public class SecurityConfig {
                 .authorizeHttpRequests(rota -> rota
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/registro").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/checkin", "/api/checkin/extracao").hasRole("TUTOR")
+
+                        // Antes de ESCRITAS_DO_VET: o primeiro matcher vence, e o prefixo /api/consulta/** prenderia o tutor.
+                        .requestMatchers(HttpMethod.POST, "/api/animal", "/api/responsavel",
+                                "/api/consulta/agendamento", "/api/consulta/*/cancelamento").hasAnyRole("VET", "TUTOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/animal/**", "/api/responsavel/**").hasAnyRole("VET", "TUTOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/animal/**", "/api/consulta/*").hasAnyRole("VET", "TUTOR")
+
+                        .requestMatchers(HttpMethod.POST, ESCRITAS_DO_VET).hasRole("VET")
+                        .requestMatchers(HttpMethod.PUT, ESCRITAS_DO_VET).hasRole("VET")
+                        .requestMatchers(HttpMethod.DELETE, ESCRITAS_DO_VET).hasRole("VET")
+
                         .anyRequest().authenticated())
                 .exceptionHandling(erro -> erro
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

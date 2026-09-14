@@ -222,7 +222,7 @@ Duas cadeias de segurança no mesmo processo:
 
 O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `responsavelId`), e é o mesmo aceito pelo `PetBuddies-API` (.NET) — o segredo é compartilhado.
 
-**Rotas na API:** fora `login` e `registro`, toda rota exige um token válido, de qualquer perfil. O tutor cadastra e edita o próprio animal, agenda consulta e faz check-in pela mesma API que o veterinário usa. A remoção de animal confere o dono: o tutor que tenta remover animal de outro tutor recebe `403`.
+**Rotas por perfil na API:** a regra segue o que o app faz com cada perfil. Os dois perfis cadastram, editam e removem animal, editam o responsável, agendam e cancelam consulta. O veterinário é o único que abre consulta direta, fecha atendimento, registra atendimento e procedimento, prescreve, cria regra e condição clínica, abre janela, instancia plano e cadastra veterinário e clínica. O check-in é só do tutor. Todo `GET` aceita qualquer token válido. Perfil sem permissão recebe `403`, nunca `401`, e a remoção de animal ainda confere o dono.
 
 **Rotas por perfil na web:** `/painel`, `/clinica`, `/equipe`, `/tutores`, `/pacientes` e `/agenda` exigem `VET`; `/meus-animais` exige `TUTOR`. O tutor recebe `403` nas rotas da clínica, e a lista dele é escopada pelo `responsavelId` da sessão, nunca por parâmetro na URL.
 
@@ -376,6 +376,7 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 | JSON malformado ou enum inválido | `"especie": "INVALIDO"` | `400` |
 | Faixa de dose invertida | `POST /api/prescricao` com `doseMin > doseMax` | `400` |
 | Credenciais inválidas | senha errada | `401` — mesma mensagem para login inexistente e usuário inativo |
+| Perfil sem permissão | `TUTOR` chamando `POST /api/prescricao/rascunho` | `403` |
 | Animal de outro tutor | `TUTOR` chamando `DELETE /api/animal/{id}` num animal que não é dele | `403` |
 | Recurso inexistente | `GET /api/animal/999999` | `404` |
 | CNPJ, CRMV ou código duplicado | CNPJ repetido | `409` |
@@ -396,7 +397,7 @@ Importe `docs/postman/petbuddies-ai-java.postman_collection.json`, com `baseUrl`
 
 1. Rode **01 · Autenticação → Entrar como veterinária** e **Entrar como tutora**. Cada login guarda o próprio token: `tokenVet` e `tokenTutor`.
 2. As pastas estão numeradas na ordem de uso: clínica e equipe, janelas, tutores e animais, consultas e fechamento, prescrição, plano de cuidado e check-in.
-3. As pastas herdam `tokenVet`, e a pasta **14 · Check-in** usa `tokenTutor`, que é quem relata o dia do animal. A API aceita qualquer um dos dois tokens em todas as rotas.
+3. As pastas herdam `tokenVet`, e a pasta **14 · Check-in** usa `tokenTutor`, porque o check-in é só do tutor. Todo `GET` aceita qualquer um dos dois tokens.
 4. **15 · Saúde** chama `GET /actuator/health`, sem token.
 
 A coleção cobre todas as rotas da API, inclusive agendamento, cancelamento e fechamento de consulta, janelas livres, rascunho de prescrição, protocolo aplicado, sugestões e check-in.
