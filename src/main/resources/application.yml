@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: petbuddies-ai
+
+  ai:
+    openai:
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      api-key: "${GEMINI_API_KEY}"
+      chat:
+        options:
+          model: gemini-2.5-flash
+    retry:
+      max-attempts: 3
+      backoff:
+        multiplier: 2
+        max-interval: 10000
+
+  datasource:
+    url: "${ORACLE_URL:jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL}"
+    username: "${ORACLE_USER}"
+    password: "${ORACLE_PASSWORD}"
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: "${ORACLE_USER}"
+
+  flyway:
+    # sem flyway.schemas: o Flyway cita o nome e o Oracle o guarda em maiusculas
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  mvc:
+    format:
+      # sem iso, <input type="date"> nao faz bind em LocalDate e vira typeMismatch
+      date: iso
+      date-time: iso
+
+  web:
+    # o container nao tem pt-BR: sem isto o painel mostra "September"
+    locale: pt-BR
+    locale-resolver: fixed
+
+server:
+  error:
+    # a pagina de erro do Spring Security (403/404) precisa da mensagem no model
+    include-message: always
+
+petbuddies:
+  jwt:
+    secret: "${PETBUDDIES_JWT_SECRET}"
+    expiracao-horas: 8
+
+petnetapi:
+  url: "${PETNETAPI_URL:http://localhost:5297}"
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  default-produces-media-type: application/json
+  swagger-ui:
+    operations-sorter: method
+    try-it-out-enabled: true
+    persist-authorization: true
+
+logging:
+  level:
+    org.hibernate.tool.schema: WARN
