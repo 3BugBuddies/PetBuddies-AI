@@ -104,10 +104,11 @@ public class CheckinExtracaoService {
             condicaoClinicaRepository.findAllById(idsPorRegra).forEach(c -> vocabulario.put(c.getId(), c));
         }
         Set<Long> clinicaIds = clinicasDoAnimal(animalId, ativas);
-        if (!clinicaIds.isEmpty()) {
-            condicaoClinicaRepository.findByClinicaIdInAndCriticaTrueAndAtivoTrue(clinicaIds)
-                    .forEach(c -> vocabulario.putIfAbsent(c.getId(), c));
-        }
+        // Pet sem consulta nem prescrição não tem clínica: sem este fallback, nenhum sinal de alarme escalaria.
+        List<CondicaoClinicaEntity> criticas = clinicaIds.isEmpty()
+                ? condicaoClinicaRepository.findByCriticaTrueAndAtivoTrue()
+                : condicaoClinicaRepository.findByClinicaIdInAndCriticaTrueAndAtivoTrue(clinicaIds);
+        criticas.forEach(c -> vocabulario.putIfAbsent(c.getId(), c));
 
         return vocabulario.values().stream()
                 .filter(CondicaoClinicaEntity::isAtivo)
