@@ -1,7 +1,6 @@
 package br.com.fiap.petbuddies.service.prescricao;
 
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
-import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
@@ -121,9 +120,10 @@ public class PrescricaoExtracaoService {
     }
 
     private void validarRegistro(Long registroId, Long animalId) {
-        RegistroAtendimentoEntity registro = registroAtendimentoRepository.findById(registroId)
-                .orElseThrow(() -> new RegistroAtendimentoNaoEncontradoException(registroId));
-        if (!registro.getAnimal().getId().equals(animalId)) {
+        if (!registroAtendimentoRepository.existsById(registroId)) {
+            throw new RegistroAtendimentoNaoEncontradoException(registroId);
+        }
+        if (!registroAtendimentoRepository.existsByIdAndAnimalId(registroId, animalId)) {
             throw new RegistroDeOutroAnimalException(registroId, animalId);
         }
     }

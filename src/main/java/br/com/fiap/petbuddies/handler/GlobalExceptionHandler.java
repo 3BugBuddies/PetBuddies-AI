@@ -28,6 +28,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -71,6 +72,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleParametroAusente(MissingServletRequestParameterException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("PARAMETRO_OBRIGATORIO",
                 "Parâmetro obrigatório ausente: " + ex.getParameterName() + "."));
+    }
+
+    // Rotas com params condicionais (ex.: /livres): combinação sem mapeamento cairia no handleGeneric como 500.
+    @ExceptionHandler(UnsatisfiedServletRequestParameterException.class)
+    public ResponseEntity<ErrorDto> handleCombinacaoDeParametros(UnsatisfiedServletRequestParameterException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("PARAMETRO_OBRIGATORIO",
+                "Combinação de parâmetros inválida. Esperado um destes: " + String.join(" | ", ex.getParamConditions()) + "."));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

@@ -11,6 +11,7 @@ import br.com.fiap.petbuddies.domain.entity.ProcedimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
+import br.com.fiap.petbuddies.domain.enums.atendimento.TipoProcedimento;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
@@ -39,7 +40,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Fecha um atendimento num único ato transacional: grava o registro, os
@@ -55,6 +58,10 @@ import java.util.List;
  */
 @Service
 public class FechamentoAtendimentoService {
+
+    // Só vacina e vermífugo têm o mesmo nome em TipoProcedimento e TipoCuidado; exame e cirurgia ficam avulsos.
+    private static final Set<TipoProcedimento> TIPOS_COM_ITEM_NO_PLANO =
+            EnumSet.of(TipoProcedimento.VACINACAO, TipoProcedimento.VERMIFUGACAO);
 
     private final ConsultaService consultaService;
     private final RegistroAtendimentoRepository registroAtendimentoRepository;
@@ -155,7 +162,7 @@ public class FechamentoAtendimentoService {
             throw new ItemPlanoInvalidoParaProcedimentoException(
                     "Item " + itemId + " do plano não é do animal " + animal.getId() + ".");
         }
-        if (!item.getTipo().name().equals(p.getTipo().name())) {
+        if (!TIPOS_COM_ITEM_NO_PLANO.contains(p.getTipo()) || !item.getTipo().name().equals(p.getTipo().name())) {
             throw new ItemPlanoInvalidoParaProcedimentoException(
                     "Item " + itemId + " é do tipo " + item.getTipo() + ", incompatível com o procedimento " + p.getTipo() + ".");
         }
