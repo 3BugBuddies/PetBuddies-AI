@@ -2,38 +2,45 @@ package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelRequest;
-import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResponse;
 import br.com.fiap.petbuddies.service.cadastro.ResponsavelService;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/** Cadastro de tutores (responsáveis). */
+/**
+ * Cadastro de responsáveis. Responsável não tem flag de ativo: não há exclusão nem desativação aqui;
+ * o acesso ao app é do usuário, que não se gerencia por esta tela.
+ */
 @Controller
-@RequestMapping("/tutores")
-public class TutoresWebController {
+@RequestMapping("/responsaveis")
+public class ResponsaveisWebController {
 
     private final ResponsavelService responsavelService;
 
-    public TutoresWebController(ResponsavelService responsavelService) {
+    public ResponsaveisWebController(ResponsavelService responsavelService) {
         this.responsavelService = responsavelService;
     }
 
+    @InitBinder("responsavelRequest")
+    public void binder(WebDataBinder binder) {
+        binder.registerCustomEditor(String.class, "telefone", new DigitosEditor());
+    }
+
     @GetMapping
-    public String listar(Model model) {
-        List<ResponsavelResponse> tutores = responsavelService.listar(null).stream()
-                .map(ResponsavelResponse::from)
-                .toList();
-        model.addAttribute("tutores", tutores);
-        return "tutores/lista";
+    public String listar(@RequestParam(required = false) String q, Model model) {
+        model.addAttribute("responsaveis", responsavelService.listarResumos(q));
+        model.addAttribute("q", q);
+        return "responsaveis/lista";
     }
 
     @GetMapping("/novo")
@@ -41,8 +48,8 @@ public class TutoresWebController {
         if (!model.containsAttribute("responsavelRequest")) {
             model.addAttribute("responsavelRequest", new ResponsavelRequest());
         }
-        model.addAttribute("acaoFormulario", "/tutores");
-        return "tutores/form";
+        model.addAttribute("acaoFormulario", "/responsaveis");
+        return "responsaveis/form";
     }
 
     @PostMapping
@@ -52,12 +59,12 @@ public class TutoresWebController {
             Model model,
             RedirectAttributes redirect) {
         if (result.hasErrors()) {
-            model.addAttribute("acaoFormulario", "/tutores");
-            return "tutores/form";
+            model.addAttribute("acaoFormulario", "/responsaveis");
+            return "responsaveis/form";
         }
         ResponsavelEntity criado = responsavelService.criar(request);
-        redirect.addFlashAttribute("sucesso", "Tutor(a) " + criado.getNome() + " cadastrado(a).");
-        return "redirect:/tutores";
+        redirect.addFlashAttribute("sucesso", "Responsável " + criado.getNome() + " cadastrado(a).");
+        return "redirect:/responsaveis";
     }
 
     @GetMapping("/{id}/editar")
@@ -66,8 +73,8 @@ public class TutoresWebController {
             model.addAttribute("responsavelRequest", ResponsavelRequest.from(responsavelService.buscarPorId(id)));
         }
         model.addAttribute("responsavelId", id);
-        model.addAttribute("acaoFormulario", "/tutores/" + id);
-        return "tutores/form";
+        model.addAttribute("acaoFormulario", "/responsaveis/" + id);
+        return "responsaveis/form";
     }
 
     @PostMapping("/{id}")
@@ -79,11 +86,11 @@ public class TutoresWebController {
             RedirectAttributes redirect) {
         if (result.hasErrors()) {
             model.addAttribute("responsavelId", id);
-            model.addAttribute("acaoFormulario", "/tutores/" + id);
-            return "tutores/form";
+            model.addAttribute("acaoFormulario", "/responsaveis/" + id);
+            return "responsaveis/form";
         }
         responsavelService.atualizar(id, request);
         redirect.addFlashAttribute("sucesso", "Cadastro atualizado.");
-        return "redirect:/tutores";
+        return "redirect:/responsaveis";
     }
 }

@@ -2,36 +2,50 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: page(~{::title}, ~{::main})}">
 <head>
-    <title>Clínica · PetBuddies</title>
+    <title>Dados da clínica · PetBuddies</title>
 </head>
 <body>
-<main>
-    <h1>Dados da clínica</h1>
+<main class="pn-main">
+    <div class="pn-head">
+        <div>
+            <div class="sub">Como a clínica aparece para os responsáveis</div>
+            <h1 class="pn-h1">Dados da clínica</h1>
+        </div>
+        <button type="submit" form="form-clinica" class="pn-btn">Salvar dados</button>
+    </div>
 
     <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
 
-    <form class="formulario" method="post" th:action="@{/clinica}" th:object="${clinicaRequest}">
-
-        <label for="nome">Nome</label>
-        <input id="nome" type="text" th:field="*{nome}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">erro</div>
-
-        <label for="cnpj">CNPJ (14 dígitos, sem pontuação)</label>
-        <input id="cnpj" type="text" th:field="*{cnpj}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('cnpj')}" th:errors="*{cnpj}">erro</div>
-
-        <label for="telefone">Telefone</label>
-        <input id="telefone" type="text" th:field="*{telefone}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}">erro</div>
-
-        <label for="email">E-mail</label>
-        <input id="email" type="email" th:field="*{email}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">erro</div>
-
-        <div class="acoes-formulario">
-            <button type="submit">Salvar</button>
+    <div class="pn-split igual">
+        <form id="form-clinica" method="post" th:action="@{/clinica}" th:object="${clinicaRequest}" class="pn-card">
+            <h2 class="pn-h2">Cadastro</h2>
+            <div class="pn-field">
+                <label for="nome">Nome</label>
+                <input id="nome" type="text" class="pn-input" th:field="*{nome}"/>
+                <div class="pn-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">erro</div>
+            </div>
+            <div class="pn-field">
+                <label for="cnpj">CNPJ</label>
+                <input id="cnpj" type="text" class="pn-input" data-mascara="cnpj" inputmode="numeric" th:field="*{cnpj}"/>
+                <div class="pn-erro" th:if="${#fields.hasErrors('cnpj')}" th:errors="*{cnpj}">erro</div>
+            </div>
+            <div class="pn-field">
+                <label for="telefone">Telefone</label>
+                <input id="telefone" type="text" class="pn-input" data-mascara="telefone" inputmode="tel" th:field="*{telefone}"/>
+                <div class="pn-erro" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}">erro</div>
+            </div>
+            <div class="pn-field">
+                <label for="email">E-mail</label>
+                <input id="email" type="email" class="pn-input" th:field="*{email}"/>
+                <div class="pn-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">erro</div>
+            </div>
+        </form>
+        <div class="pn-card info">
+            <h2 class="pn-h2">Horário de atendimento</h2>
+            <span class="pn-strong">Cada veterinária define os próprios horários e a duração da consulta em
+                <a th:href="@{/horarios}">Horários</a>.</span>
         </div>
-    </form>
+    </div>
 </main>
 </body>
 </html>
