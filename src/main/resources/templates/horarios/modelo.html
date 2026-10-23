@@ -122,8 +122,12 @@
     <script>
         (function () {
             var form = document.getElementById('form-horarios');
-            // Índices novos partem de um número alto: os da linha já renderizada não podem colidir.
-            var proximo = 1000;
+            // Índice novo = maior índice já na página + 1. Número alto estoura o limite de auto-crescimento da lista no binder.
+            var proximo = 0;
+            form.querySelectorAll('input[name^="faixas["], input[name^="bloqueados["]').forEach(function (i) {
+                var m = i.name.match(/\[(\d+)\]/);
+                if (m) proximo = Math.max(proximo, (+m[1]) + 1);
+            });
             function minutos(v) { var p = (v || '').split(':'); return p.length < 2 ? 0 : (+p[0]) * 60 + (+p[1]); }
             function horas() {
                 form.querySelectorAll('tr[data-dia]').forEach(function (linha) {
