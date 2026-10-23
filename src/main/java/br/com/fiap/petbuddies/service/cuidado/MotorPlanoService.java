@@ -50,7 +50,7 @@ public class MotorPlanoService {
     private static final int HORIZONTE_MESES = 12;
 
     private static final List<CategoriaPlano> PRIORIDADE_PLANO_ATIVO =
-            List.of(CategoriaPlano.PREVENTIVO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.TRATAMENTO);
+            List.of(CategoriaPlano.TRATAMENTO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.PREVENTIVO);
 
     private final PlanoCuidadoRepository planoRepository;
     private final ItemPlanoCuidadoRepository itemRepository;
@@ -146,10 +146,18 @@ public class MotorPlanoService {
                 .comparingInt((PlanoCuidadoEntity p) -> PRIORIDADE_PLANO_ATIVO.indexOf(p.getCategoria()))
                 .thenComparing(PlanoCuidadoEntity::getId);
 
+        // Todo pet nasce com o preventivo: o principal é o mais específico, e os eventos juntam todos os planos ativos.
         return planoRepository.findPorAnimaisEStatus(animalIds, StatusPlano.ATIVO).stream()
                 .collect(Collectors.groupingBy(PlanoCuidadoEntity::getAnimalId,
-                        Collectors.collectingAndThen(Collectors.minBy(prioridade),
-                                plano -> PlanoResponse.from(plano.orElseThrow()))));
+                        Collectors.collectingAndThen(Collectors.toList(), ativos -> {
+                            PlanoResponse principal = PlanoResponse.from(ativos.stream().min(prioridade).orElseThrow());
+                            principal.setEventos(ativos.stream()
+                                    .flatMap(p -> PlanoResponse.from(p).getEventos().stream())
+                                    .sorted(Comparator.comparing(ItemPlanoCuidadoDto::getDataAlvo,
+                                            Comparator.nullsLast(Comparator.naturalOrder())))
+                                    .toList());
+                            return principal;
+                        })));
     }
 
     @Transactional(readOnly = true)
