@@ -626,3 +626,155 @@ a.sem-cel.livre:hover { border-color: var(--cor-marca); color: var(--cor-marca-e
 .hora-opcao input:checked + span { background: var(--cor-texto); color: var(--cor-fundo); }
 .hora-opcao input:focus-visible + span { outline: 2px solid var(--cor-marca); outline-offset: 2px; }
 .hora-opcao { position: relative; }
+
+/* ---------- painel clínico ---------- */
+
+.pc-sub { color: var(--cor-texto-suave); font-size: 0.82rem; }
+.pc-forte { color: var(--cor-texto-forte); }
+.pc-eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cor-texto-suave);
+    font-weight: 700;
+}
+
+.pc-cartao {
+    background: var(--cor-superficie);
+    border-radius: var(--raio);
+    box-shadow: 0 8px 24px rgba(21, 32, 57, 0.06);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+    margin-bottom: 1rem;
+}
+.pc-cartao.marca { background: var(--cor-marca-fundo); box-shadow: none; }
+.pc-cartao.info { background: var(--cor-info-fundo); box-shadow: none; }
+.pc-cartao.espera { background: var(--cor-espera-fundo); box-shadow: none; }
+.pc-cartao.contorno { box-shadow: none; border: 1.5px solid var(--cor-borda); }
+.pc-cartao > h2 { margin: 0; }
+
+.pc-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: var(--raio-pilula);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+    background: var(--cor-painel);
+    color: var(--cor-texto-forte);
+}
+.pc-chip.marca { background: var(--cor-marca-fundo); color: var(--cor-texto); }
+.pc-chip.info { background: var(--cor-info-fundo); color: var(--cor-texto); }
+.pc-chip.espera { background: var(--cor-espera-fundo); color: var(--cor-texto); }
+.pc-chip.ok { background: #eef5c4; color: var(--cor-texto); }
+.pc-chip.alerta { background: var(--cor-marca); color: #fff; }
+
+.pc-barra {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.pc-busca-form { display: flex; gap: 0.5rem; align-items: center; }
+.pc-busca {
+    width: 320px;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--cor-borda-forte);
+    border-radius: var(--raio-campo);
+    font-family: inherit;
+    font-size: 0.92rem;
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+}
+
+.pc-seg { display: inline-flex; background: var(--cor-painel); border-radius: 12px; padding: 3px; gap: 2px; }
+.pc-seg a, .pc-seg button {
+    padding: 0.35rem 0.8rem;
+    border: 0;
+    border-radius: 9px;
+    font: 700 0.82rem/1.2 inherit;
+    font-family: inherit;
+    color: var(--cor-texto-forte);
+    background: transparent;
+    cursor: pointer;
+    text-decoration: none;
+}
+.pc-seg a:hover, .pc-seg button:hover { text-decoration: none; color: var(--cor-texto); }
+.pc-seg .on { background: var(--cor-superficie); color: var(--cor-texto); box-shadow: 0 1px 3px rgba(21, 32, 57, 0.12); }
+
+.pc-tabela td .pc-sub { display: block; }
+.pc-vazio { padding: 1.6rem; text-align: center; color: var(--cor-texto-suave); }
+
+/* ficha: dados do paciente no cabeçalho, sem card lateral */
+.pc-ficha-topo { flex-direction: row; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.pc-ficha-topo h1 { margin: 0.1rem 0 0.2rem; }
+.pc-ficha-topo p { margin: 0; }
+.pc-meta { color: var(--cor-texto-forte); font-size: 0.92rem; }
+.pc-acoes { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.pc-voltar { font-size: 0.82rem; font-weight: 700; }
+.pc-aviso-clinico { margin-top: 0.4rem; }
+
+.pc-planos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.pc-planos .pc-cartao { margin-bottom: 0; }
+.pc-progresso { height: 8px; background: #fff; border-radius: 99px; overflow: hidden; }
+.pc-progresso > span { display: block; height: 100%; background: var(--cor-marca); }
+.pc-regra {
+    font: 600 0.8rem ui-monospace, "SF Mono", Menlo, monospace;
+    background: var(--cor-info-fundo);
+    border-radius: 10px;
+    padding: 6px 10px;
+    color: var(--cor-texto);
+}
+.pc-cartao.marca .pc-regra { background: #fff; }
+.pc-cuidados { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.pc-cuidados li { display: flex; justify-content: space-between; gap: 0.6rem; align-items: center; font-size: 0.9rem; }
+
+.pc-linha-cab { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+.pc-linha { list-style: none; margin: 0; padding: 0; }
+.pc-linha-item { display: flex; gap: 0.8rem; align-items: flex-start; padding: 0.7rem 0.2rem; border-bottom: 1px solid var(--cor-borda); }
+.pc-linha-item:last-child { border-bottom: 0; }
+.pc-linha-item .pc-chip { min-width: 66px; justify-content: center; margin-top: 2px; }
+.pc-linha-item b { display: block; font-size: 0.92rem; }
+.pc-linha-item span.detalhe { color: var(--cor-texto-forte); font-size: 0.86rem; }
+.pc-linha-item[hidden] { display: none; }
+
+/* condições: formulário em duas colunas, unidade só para tipo número */
+.pc-duas-colunas { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.pc-campos label { display: block; margin-top: 0.7rem; font-weight: 700; font-size: 0.85rem; }
+.pc-campos label:first-child { margin-top: 0; }
+.pc-campos input[type="text"], .pc-campos input[type="number"], .pc-campos input[type="date"],
+.pc-campos input[type="datetime-local"], .pc-campos select, .pc-campos textarea {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    margin-top: 0.3rem;
+    border: 1px solid var(--cor-borda-forte);
+    border-radius: var(--raio-campo);
+    font-family: inherit;
+    font-size: 0.93rem;
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+}
+.pc-campos input:focus, .pc-campos select:focus, .pc-campos textarea:focus {
+    outline: 2px solid var(--cor-marca);
+    outline-offset: 1px;
+    border-color: var(--cor-marca);
+}
+.pc-campos .campo-checkbox { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; }
+.pc-campos .campo-checkbox input { width: auto; margin: 0; accent-color: var(--cor-marca); }
+.pc-campos .campo-checkbox label { margin: 0; }
+.pc-opcao { margin: 0 !important; padding: 0.35rem 0.9rem; border-radius: 9px; cursor: pointer; font-weight: 700 !important; }
+.pc-opcao input { display: none; }
+.pc-opcao:has(input:checked) { background: var(--cor-superficie); box-shadow: 0 1px 3px rgba(21, 32, 57, 0.12); }
+.pc-unidade { display: none; }
+.pc-duas-colunas:has(input[value="NUMERICO"]:checked) .pc-unidade,
+.pc-duas-colunas:has(input[type="hidden"][name="tipoDado"][value="NUMERICO"]) .pc-unidade { display: block; }
+.pc-codigo { margin-top: 0.3rem; padding: 0.5rem 0.7rem; border-radius: var(--raio-campo); background: var(--cor-painel); color: var(--cor-texto-suave); font-family: ui-monospace, Menlo, monospace; }
+.pc-acoes-form { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+.pc-previa { position: sticky; top: 1rem; }

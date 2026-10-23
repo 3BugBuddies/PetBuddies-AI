@@ -15,6 +15,7 @@ import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.cadastro.CrmvDuplicadoException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioComVinculosException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.identidade.UsuarioNaoVeterinarioException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +63,15 @@ public class VeterinarioService {
     @Transactional(readOnly = true)
     public VeterinarioEntity buscarPorId(Long id) {
         return encontrarOuFalhar(id);
+    }
+
+    /** A clínica de quem está logado no painel; sem vínculo de veterinário não há clínica. */
+    @Transactional(readOnly = true)
+    public Long buscarClinicaId(Long veterinarioId) {
+        if (veterinarioId == null) {
+            throw new UsuarioNaoVeterinarioException();
+        }
+        return encontrarOuFalhar(veterinarioId).getClinica().getId();
     }
 
     @Transactional(readOnly = true)
