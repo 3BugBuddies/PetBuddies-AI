@@ -5,6 +5,8 @@ import br.com.fiap.petbuddies.exception.AcessoNegadoException;
 import br.com.fiap.petbuddies.exception.ConflitoException;
 import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
+import br.com.fiap.petbuddies.exception.atendimento.ItemPlanoInvalidoParaProcedimentoException;
+import br.com.fiap.petbuddies.exception.atendimento.PeriodoInvalidoException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
@@ -120,6 +122,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(new ErrorDto("JANELA_NO_PASSADO", ex.getMessage()));
     }
 
+    @ExceptionHandler(PeriodoInvalidoException.class)
+    public ResponseEntity<ErrorDto> handlePeriodoInvalido(PeriodoInvalidoException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("PERIODO_INVALIDO", ex.getMessage()));
+    }
+
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
     public ResponseEntity<ErrorDto> handleRegraPrescricaoIncoerente(RegraPrescricaoIncoerenteException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("REGRA_PRESCRICAO_INCOERENTE", ex.getMessage()));
@@ -155,6 +162,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RegistroDeOutroAnimalException.class)
     public ResponseEntity<ErrorDto> handleRegistroDeOutroAnimal(RegistroDeOutroAnimalException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("REGISTRO_DE_OUTRO_ANIMAL", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ItemPlanoInvalidoParaProcedimentoException.class)
+    public ResponseEntity<ErrorDto> handleItemPlanoInvalido(ItemPlanoInvalidoParaProcedimentoException ex) {
+        return ResponseEntity.unprocessableEntity().body(new ErrorDto("ITEM_PLANO_INVALIDO", ex.getMessage()));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

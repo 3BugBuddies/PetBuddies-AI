@@ -28,8 +28,17 @@ public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuida
 
     List<ItemPlanoCuidadoEntity> findByDataAlvoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusItem status);
 
-    @Query("SELECT e FROM ItemPlanoCuidadoEntity e WHERE e.plano.animalId = :animalId")
-    Page<ItemPlanoCuidadoEntity> findEventosPorAnimal(@Param("animalId") Long animalId, Pageable pageable);
+    @Query(value = "SELECT e FROM ItemPlanoCuidadoEntity e JOIN e.plano p WHERE p.animalId = :animalId "
+            + "AND (:semFiltroTipo = true OR e.tipo IN :tipos) "
+            + "AND (:abertos = false OR (p.status = :statusPlanoAberto AND e.status IN :statusAbertos))",
+            countQuery = "SELECT COUNT(e) FROM ItemPlanoCuidadoEntity e JOIN e.plano p WHERE p.animalId = :animalId "
+            + "AND (:semFiltroTipo = true OR e.tipo IN :tipos) "
+            + "AND (:abertos = false OR (p.status = :statusPlanoAberto AND e.status IN :statusAbertos))")
+    Page<ItemPlanoCuidadoEntity> findEventosPorAnimal(
+            @Param("animalId") Long animalId,
+            @Param("semFiltroTipo") boolean semFiltroTipo, @Param("tipos") List<TipoCuidado> tipos,
+            @Param("abertos") boolean abertos, @Param("statusPlanoAberto") StatusPlano statusPlanoAberto,
+            @Param("statusAbertos") List<StatusItem> statusAbertos, Pageable pageable);
 
     @Query("SELECT e FROM ItemPlanoCuidadoEntity e WHERE e.plano.animalId = :animalId AND e.tipo = :tipo AND e.status = :status AND e.dataAlvo < :data")
     List<ItemPlanoCuidadoEntity> findEventosVencidosPorAnimal(

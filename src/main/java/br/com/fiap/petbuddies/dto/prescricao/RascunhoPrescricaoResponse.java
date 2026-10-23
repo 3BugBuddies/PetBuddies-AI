@@ -5,15 +5,7 @@ import lombok.*;
 import java.util.List;
 import java.util.Map;
 
-/**
- * O rascunho que a extração devolve ao veterinário — nunca persistido.
- *
- * <p>{@code prescricao} e {@code regrasPropostas} têm exatamente a forma de
- * {@link PrescricaoRequest} e de uma lista de {@link RegraPrescricaoRequest}.
- * Diferença deliberada, não bug: cada regra nasce com {@code prescricaoId}
- * nulo, porque a prescrição ainda não existe — a tela preenche esse campo
- * com o id devolvido pelo POST da prescrição antes de assinar cada regra.</p>
- */
+/** O rascunho que a extração devolve ao veterinário — nunca persistido. */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,7 +16,7 @@ public class RascunhoPrescricaoResponse {
     private String motivoDegradacao;
     private PrescricaoRequest prescricao;
     private Map<String, Double> confiancaPorCampo;
-    private List<RegraPrescricaoRequest> regrasPropostas;
+    private List<RegraPropostaResponse> regrasPropostas;
     private List<String> condicoesDescartadas;
 
     public static RascunhoPrescricaoResponse degradado(String narrativa, String motivo, PrescricaoRequest prescricaoVazia) {
@@ -43,7 +35,7 @@ public class RascunhoPrescricaoResponse {
             String narrativa,
             PrescricaoRequest prescricao,
             Map<String, Double> confiancaPorCampo,
-            List<RegraPrescricaoRequest> regrasPropostas,
+            List<RegraPropostaResponse> regrasPropostas,
             List<String> condicoesDescartadas) {
         RascunhoPrescricaoResponse dto = new RascunhoPrescricaoResponse();
         dto.narrativaOriginal = narrativa;

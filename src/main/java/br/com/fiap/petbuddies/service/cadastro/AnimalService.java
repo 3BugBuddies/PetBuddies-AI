@@ -69,7 +69,7 @@ public class AnimalService {
         if (nome != null && !nome.isBlank()) {
             return repository.findByNomeContainingIgnoreCase(nome);
         }
-        return repository.findAll();
+        return repository.findAllComResponsavel();
     }
 
     @Transactional(readOnly = true)
@@ -123,7 +123,7 @@ public class AnimalService {
     }
 
     private AnimalEntity encontrarOuFalhar(Long id) {
-        return repository.findById(id).orElseThrow(() -> new AnimalNaoEncontradoException(id));
+        return repository.findComResponsavelById(id).orElseThrow(() -> new AnimalNaoEncontradoException(id));
     }
 
     private void aplicar(AnimalRequest request, AnimalEntity entity) {

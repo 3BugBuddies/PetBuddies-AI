@@ -154,9 +154,13 @@ public class MotorPlanoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ItemPlanoCuidadoDto> listarEventos(Long animalId, Pageable pageable) {
+    public Page<ItemPlanoCuidadoDto> listarEventos(Long animalId, List<TipoCuidado> tipos, boolean abertos, Pageable pageable) {
+        boolean semFiltroTipo = tipos == null || tipos.isEmpty();
+        // Lista vazia em IN nao e portavel: com semFiltroTipo o valor e ignorado, mas precisa ter um elemento.
+        List<TipoCuidado> filtroTipos = semFiltroTipo ? List.of(TipoCuidado.VACINACAO) : tipos;
         return itemRepository
-                .findEventosPorAnimal(animalId, pageable)
+                .findEventosPorAnimal(animalId, semFiltroTipo, filtroTipos, abertos,
+                        StatusPlano.ATIVO, List.of(StatusItem.PENDENTE, StatusItem.ATRASADO), pageable)
                 .map(ItemPlanoCuidadoDto::from);
     }
 

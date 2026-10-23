@@ -88,6 +88,7 @@ public class RegistroService {
         ResponsavelEntity responsavel = new ResponsavelEntity();
         responsavel.setNome(request.getNome());
         responsavel.setContato(new Contato(request.getTelefone(), request.getEmail()));
+        responsavel.setEndereco(request.getEndereco());
         responsavelRepository.save(responsavel);
 
         UsuarioEntity usuario = novoUsuario(request, PerfilUsuario.TUTOR);
