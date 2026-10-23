@@ -13,6 +13,7 @@ import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.atendimento.AgendamentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.CancelamentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.ConsultaAgendaDto;
 import br.com.fiap.petbuddies.dto.atendimento.ConsultaRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaComVinculosException;
@@ -80,6 +81,13 @@ public class ConsultaService {
     @Transactional(readOnly = true)
     public List<ConsultaEntity> listarDoDia(LocalDate dia) {
         return repository.findNoPeriodo(dia.atStartOfDay(), dia.plusDays(1).atStartOfDay());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConsultaAgendaDto> agendaDoDia(LocalDate dia) {
+        return repository.findNoPeriodo(dia.atStartOfDay(), dia.plusDays(1).atStartOfDay()).stream()
+                .map(c -> ConsultaAgendaDto.from(c, STATUS_FECHAVEL.contains(c.getStatus())))
+                .toList();
     }
 
     @Transactional

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Responsáveis · PetBuddies</title>
+</head>
+<body>
+<main class="pn-main">
+    <div class="pn-head">
+        <div>
+            <div class="sub">Quem cuida dos pets da clínica</div>
+            <h1 class="pn-h1">Responsáveis</h1>
+        </div>
+        <a class="pn-btn" th:href="@{/responsaveis/novo}">+ Novo responsável</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <form method="get" th:action="@{/responsaveis}" class="pn-row">
+        <input type="search" name="q" th:value="${q}" class="pn-input" style="max-width:340px"
+               placeholder="Buscar por nome, telefone ou e-mail"/>
+        <button type="submit" class="pn-btn line sm">Buscar</button>
+        <a class="pn-btn ghost sm" th:if="${q != null and !q.isBlank()}" th:href="@{/responsaveis}">limpar</a>
+    </form>
+
+    <div class="pn-card">
+        <p class="pn-muted" th:if="${#lists.isEmpty(responsaveis)}"
+           th:text="${q != null and !q.isBlank()} ? 'Nenhum responsável encontrado.' : 'Nenhum responsável cadastrado ainda.'">Nenhum responsável.</p>
+        <table class="pn-table" th:unless="${#lists.isEmpty(responsaveis)}">
+            <thead>
+            <tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Pets</th><th>Acesso ao app</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${responsaveis}">
+                <td><b th:text="${r.nome}">Joana Visitante</b></td>
+                <td th:text="${@formatador.telefone(r.telefone)}">(11) 91234-5678</td>
+                <td th:text="${r.email}">joana@next.com</td>
+                <td th:text="${#lists.isEmpty(r.animais)} ? '—' : ${#strings.listJoin(r.animais, ', ')}">Paçoca</td>
+                <td>
+                    <span class="pn-chip ok" th:if="${r.acessoApp}">ativo</span>
+                    <span class="pn-chip" th:unless="${r.acessoApp}">sem acesso</span>
+                </td>
+                <td><a class="pn-btn ghost sm" th:href="@{/responsaveis/{id}/editar(id=${r.id})}">Editar</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>
