@@ -89,14 +89,14 @@ public class ConsultaService {
         if (request.getStatus() == null) {
             entity.setStatus(StatusConsulta.AGENDADA);
         }
-        return repository.save(entity);
+        return encontrarOuFalhar(repository.save(entity).getId());
     }
 
     @Transactional
     public ConsultaEntity atualizar(Long id, ConsultaRequest request) {
         ConsultaEntity entity = encontrarOuFalhar(id);
         aplicar(request, entity);
-        return repository.save(entity);
+        return encontrarOuFalhar(repository.save(entity).getId());
     }
 
     @Transactional
@@ -136,7 +136,8 @@ public class ConsultaService {
 
         janela.setConsulta(consulta);
         janelaAtendimentoRepository.save(janela);
-        return consulta;
+        // o JOIN FETCH inicializa a vet, que veio da janela como proxy; sem ele o nome sai nulo na resposta
+        return encontrarOuFalhar(consulta.getId());
     }
 
     // CK_CONSULTA_STATUS não impede reabrir REALIZADA; a regra de negócio, sim

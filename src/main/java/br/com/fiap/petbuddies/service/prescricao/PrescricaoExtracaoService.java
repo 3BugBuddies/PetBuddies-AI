@@ -186,8 +186,8 @@ public class PrescricaoExtracaoService {
                 4. Cada regra condicional em "regras" referencia, no campo "condicao", EXATAMENTE um dos
                    códigos listados abaixo — copie o código literalmente. Se a narrativa mencionar uma
                    condição que não está na lista (ex.: um sintoma sem código correspondente), gere a regra
-                   com "condicao" null e descreva a condição nova em "condicaoNovaRotulo" (nome curto, como
-                   o veterinário diria) e "condicaoNovaTipoDado" (BOOLEANO ou NUMERICO). Nunca preencha
+                   com "condicao" null e descreva a condição nova em "condicaoNovaRotulo" (substantivo curto
+                   com inicial maiúscula, como num prontuário: "Vômito", "Tosse", "Temperatura" — nunca o verbo) e "condicaoNovaTipoDado" (BOOLEANO ou NUMERICO). Nunca preencha
                    "condicao" e "condicaoNovaRotulo" na mesma regra.
                 5. Se a condição da regra é do tipo BOOLEANO, os campos "operador" e "limite" da
                    regra devem vir null — não há o que comparar. Se é NUMERICO, os dois são obrigatórios.
