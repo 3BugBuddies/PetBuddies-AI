@@ -23,6 +23,8 @@ public interface CondicaoClinicaRepository extends JpaRepository<CondicaoClinica
 
     boolean existsByClinicaIdAndCriticaTrueAndAtivoTrue(Long clinicaId);
 
+    List<CondicaoClinicaEntity> findByCriticaTrueAndAtivoTrue();
+
     boolean existsByAutorId(Long autorId);
 
     boolean existsByClinicaId(Long clinicaId);
