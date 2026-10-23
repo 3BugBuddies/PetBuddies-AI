@@ -256,7 +256,7 @@
 
     <script th:inline="javascript">window.FECHAMENTO = /*[[${estado}]]*/ {};</script>
     <script th:src="@{/js/fechamento.js}" defer="defer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer="defer"></script>
+    <script th:src="@{/js/vendor/alpine-3.14.1.min.js}" defer="defer"></script>
 </main>
 </body>
 </html>
