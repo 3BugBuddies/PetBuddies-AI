@@ -14,7 +14,7 @@
 </head>
 <body>
 <div class="app">
-    <aside class="lateral" th:if="${usuario != null}">
+    <aside class="lateral" th:if="${usuario != null and usuario.vet}">
         <a class="marca" th:href="@{/painel}">
             <img class="marca-filo" th:src="@{/images/filo.png}" alt="" width="34" height="31"/>
             <span>
