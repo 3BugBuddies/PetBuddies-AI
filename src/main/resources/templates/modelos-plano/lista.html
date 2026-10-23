@@ -28,7 +28,7 @@
         </div>
 
         <section th:each="grupo : ${porEspecie}">
-            <h2 class="pc-grupo" th:text="${@rotulos.de(grupo.key)}">Cão</h2>
+            <h2 class="pc-grupo" th:text="${grupo.key.rotulo}">Cão</h2>
             <div class="pc-planos">
                 <div class="pc-cartao" th:each="m : ${grupo.value}">
                     <div class="pc-linha-cab">
@@ -36,7 +36,7 @@
                         <span class="pc-chip ok">Ativo</span>
                     </div>
                     <span class="pc-sub"
-                          th:text="${@rotulos.de(m.categoria) + ' · ' + #lists.size(m.cuidados) + (#lists.size(m.cuidados) == 1 ? ' cuidado' : ' cuidados')}">Preventivo · 3 cuidados</span>
+                          th:text="${m.categoria.rotulo + ' · ' + #lists.size(m.cuidados) + (#lists.size(m.cuidados) == 1 ? ' cuidado' : ' cuidados')}">Preventivo · 3 cuidados</span>
                     <span class="pc-forte" th:text="${#strings.listJoin(m.cuidados.![nome], ', ')}">Antirrábica, Vermífugo</span>
                     <div><a class="botao pequeno secundario" th:href="@{/modelos-plano/{id}(id=${m.id})}">Abrir</a></div>
                 </div>

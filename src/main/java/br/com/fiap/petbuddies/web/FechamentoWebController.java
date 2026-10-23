@@ -1,6 +1,5 @@
 package br.com.fiap.petbuddies.web;
 
-import br.com.fiap.petbuddies.apresentacao.Rotulos;
 import br.com.fiap.petbuddies.domain.enums.atendimento.TipoProcedimento;
 import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
@@ -30,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -50,12 +50,10 @@ public class FechamentoWebController {
 
     private final FechamentoPainelService fechamentoPainelService;
     private final Validator validator;
-    private final Rotulos rotulos;
 
-    public FechamentoWebController(FechamentoPainelService fechamentoPainelService, Validator validator, Rotulos rotulos) {
+    public FechamentoWebController(FechamentoPainelService fechamentoPainelService, Validator validator) {
         this.fechamentoPainelService = fechamentoPainelService;
         this.validator = validator;
-        this.rotulos = rotulos;
     }
 
     @ModelAttribute("tiposProcedimento")
@@ -173,7 +171,9 @@ public class FechamentoWebController {
                 procedimento.getItemPlanoId() == null ? "" : procedimento.getItemPlanoId().toString(),
                 procedimento.getNome() == null ? "" : procedimento.getNome(),
                 itens, condicoes, regras,
-                mapa(TipoProcedimento.values()), mapa(OperadorRegra.values()), mapa(TipoAcaoRegra.values()),
+                mapa(TipoProcedimento.values(), TipoProcedimento::getRotulo),
+                mapa(OperadorRegra.values(), OperadorRegra::getRotulo),
+                mapa(TipoAcaoRegra.values(), TipoAcaoRegra::getRotulo),
                 prescricao.getReceitaModeloId() == null ? "" : prescricao.getReceitaModeloId().toString(),
                 prescricao.getReceitaModeloVersao() == null ? "" : prescricao.getReceitaModeloVersao().toString(),
                 receitasModelo);
@@ -193,9 +193,9 @@ public class FechamentoWebController {
                 r.getOrientacao() == null ? "" : r.getOrientacao(), regras);
     }
 
-    private Map<String, String> mapa(Enum<?>[] valores) {
+    private <E extends Enum<E>> Map<String, String> mapa(E[] valores, Function<E, String> rotulo) {
         Map<String, String> rotulado = new LinkedHashMap<>();
-        Arrays.stream(valores).forEach(v -> rotulado.put(v.name(), rotulos.de(v)));
+        Arrays.stream(valores).forEach(v -> rotulado.put(v.name(), rotulo.apply(v)));
         return rotulado;
     }
 }

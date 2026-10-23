@@ -17,7 +17,7 @@
         <div class="cabecalho-pagina">
             <div>
                 <h1 th:text="${modelo.nome}">Preventivo anual — cão</h1>
-                <p class="subtitulo" th:text="${@rotulos.de(modelo.categoria) + ' · ' + @rotulos.de(modelo.especie)}">Preventivo · Cão</p>
+                <p class="subtitulo" th:text="${modelo.categoria.rotulo + ' · ' + modelo.especie.rotulo}">Preventivo · Cão</p>
             </div>
             <span class="pc-chip espera">Só leitura</span>
         </div>
@@ -32,7 +32,7 @@
                 <tbody>
                 <tr th:each="c : ${modelo.cuidados}">
                     <td><b th:text="${c.nome}">Antirrábica</b></td>
-                    <td th:text="${@rotulos.de(c.tipo)}">Vacinação</td>
+                    <td th:text="${c.tipo.rotulo}">Vacinação</td>
                     <td th:text="${c.comeca}">aos 12 meses</td>
                     <td th:text="${c.repete}">a cada 12 meses</td>
                     <td th:text="${c.vezes}">5</td>

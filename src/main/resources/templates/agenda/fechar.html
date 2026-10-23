@@ -17,7 +17,7 @@
                 </p>
                 <h1>Fechar atendimento</h1>
                 <p class="subtitulo"
-                   th:text="${animalNome + ' · ' + @rotulos.de(consulta.tipo) + ' · ' + #temporals.format(consulta.dataHora, 'dd/MM HH:mm')}">
+                   th:text="${animalNome + ' · ' + consulta.tipo.rotulo + ' · ' + #temporals.format(consulta.dataHora, 'dd/MM HH:mm')}">
                     Paçoca · Vacinação · 22/10 14:00</p>
             </div>
             <span class="pc-chip info" x-text="'etapa ' + etapa + ' de 4'">etapa 1 de 4</span>
@@ -89,7 +89,7 @@
                         <div>
                             <label for="procTipo">Tipo</label>
                             <select id="procTipo" name="procedimento.tipo" x-model="tipo" x-on:change="trocouTipo()">
-                                <option th:each="t : ${tiposProcedimento}" th:value="${t}" th:text="${@rotulos.de(t)}">VACINACAO</option>
+                                <option th:each="t : ${tiposProcedimento}" th:value="${t}" th:text="${t.rotulo}">VACINACAO</option>
                             </select>
                         </div>
                         <div x-show="comItemNoPlano">
@@ -207,7 +207,7 @@
                                 <span class="pc-regra-limite">
                                     <select x-bind:name="'prescricao.regras[' + i + '].operador'" x-model="regra.operador">
                                         <option value="">Operador</option>
-                                        <option th:each="o : ${operadores}" th:value="${o}" th:text="${@rotulos.de(o)}">MAIOR_QUE</option>
+                                        <option th:each="o : ${operadores}" th:value="${o}" th:text="${o.rotulo}">MAIOR_QUE</option>
                                     </select>
                                     <input type="number" step="any" placeholder="Limite"
                                            x-bind:name="'prescricao.regras[' + i + '].limite'" x-model="regra.limite"/>
@@ -216,7 +216,7 @@
                             </template>
                             <select x-bind:name="'prescricao.regras[' + i + '].acaoDose'" x-model="regra.acaoDose">
                                 <option value="">então… (ação)</option>
-                                <option th:each="a : ${acoes}" th:value="${a}" th:text="${@rotulos.de(a)}">DOSE_MIN</option>
+                                <option th:each="a : ${acoes}" th:value="${a}" th:text="${a.rotulo}">DOSE_MIN</option>
                             </select>
                             <button type="button" class="botao pequeno secundario" x-on:click="regras.splice(i, 1)">Remover</button>
                             <div class="pc-regra" x-text="previa(regra)"></div>
