@@ -73,5 +73,6 @@ public class ResponsavelService {
     private void aplicar(ResponsavelRequest request, ResponsavelEntity entity) {
         entity.setNome(request.getNome());
         entity.setContato(new Contato(request.getTelefone(), request.getEmail()));
+        entity.setEndereco(request.getEndereco());
     }
 }

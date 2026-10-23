@@ -24,11 +24,15 @@ public class ResponsavelRequest {
     @Size(max = 254, message = "E-mail deve ter no máximo 254 caracteres.")
     private String email;
 
+    @Size(max = 255, message = "Endereço deve ter no máximo 255 caracteres.")
+    private String endereco;
+
     public static ResponsavelRequest from(ResponsavelEntity entity) {
         ResponsavelRequest request = new ResponsavelRequest();
         request.setNome(entity.getNome());
         request.setTelefone(entity.getContato().getTelefone());
         request.setEmail(entity.getContato().getEmail());
+        request.setEndereco(entity.getEndereco());
         return request;
     }
 }

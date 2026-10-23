@@ -9,6 +9,9 @@ import br.com.fiap.petbuddies.domain.entity.CondicaoObservadaEntity;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
+import br.com.fiap.petbuddies.domain.enums.checkin.TipoDesfecho;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CheckinRepository;
@@ -39,6 +42,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 // Sem chamada ao modelo aqui — ja aconteceu em CheckinExtracaoService; deterministico do inicio ao fim.
 @Service
@@ -133,12 +139,17 @@ public class CheckinService {
             ItemPlanoCuidadoEntity item = itemParaGravar(itemRelatado, prescricao, referencia);
             if (item != null) {
                 item.setDesfecho(new Desfecho(checkin.getId(), resultado.desfecho(), resultado.doseAplicada(), resultado.regraAplicadaId()));
+                if (item.getOrigem() == TipoOrigemItem.PRESCRICAO) {
+                    item.setStatus(statusPorDesfecho(resultado.desfecho()));
+                    item.setExecutadoEm(checkin.getRegistradoEm());
+                }
                 itemPlanoCuidadoRepository.save(item);
             }
 
             desfechos.add(CheckinDesfechoResponse.of(
                     prescricao.getId(), prescricao.getMedicamento(), item == null ? null : item.getId(),
-                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId()));
+                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId(),
+                    prescricao));
         }
 
         if (escalarPorCritica) {
@@ -148,6 +159,14 @@ public class CheckinService {
 
         List<CondicaoObservadaResponse> condicoesResponse = observadas.stream().map(CondicaoObservadaResponse::from).toList();
         return CheckinResponse.of(checkin, condicoesResponse, desfechos, escalarPorCritica);
+    }
+
+    private StatusItem statusPorDesfecho(TipoDesfecho desfecho) {
+        return switch (desfecho) {
+            case DOSE_CALCULADA -> StatusItem.REALIZADO;
+            case SEM_DOSE -> StatusItem.SUSPENSO;
+            case ACIONAR_CLINICA -> StatusItem.ENCAMINHADO;
+        };
     }
 
     private CheckinEntity encontrarOuFalhar(Long id) {
@@ -231,10 +250,14 @@ public class CheckinService {
 
         // Só reconstitui o que foi de fato gravado no item — prescrição
         // avaliada sem item na hora do POST não deixa rastro para o GET.
-        List<CheckinDesfechoResponse> desfechos = itemPlanoCuidadoRepository.findByDesfechoCheckinId(checkin.getId()).stream()
+        List<ItemPlanoCuidadoEntity> itens = itemPlanoCuidadoRepository.findByDesfechoCheckinId(checkin.getId());
+        List<Long> prescricaoIds = itens.stream().map(ItemPlanoCuidadoEntity::getPrescricaoId).filter(Objects::nonNull).distinct().toList();
+        Map<Long, PrescricaoEntity> prescricoes = prescricaoIds.isEmpty() ? Map.of()
+                : prescricaoRepository.findComPrescritorPorIds(prescricaoIds).stream()
+                        .collect(Collectors.toMap(PrescricaoEntity::getId, p -> p));
+        List<CheckinDesfechoResponse> desfechos = itens.stream()
                 .map(item -> {
-                    PrescricaoEntity prescricao = item.getPrescricaoId() == null
-                            ? null : prescricaoRepository.findById(item.getPrescricaoId()).orElse(null);
+                    PrescricaoEntity prescricao = prescricoes.get(item.getPrescricaoId());
                     // Com todas as colunas nulas, o Hibernate devolve o Desfecho inteiro como null.
                     Desfecho desfecho = item.getDesfecho();
                     return CheckinDesfechoResponse.of(
@@ -242,7 +265,8 @@ public class CheckinService {
                             item.getId(), desfecho == null ? null : desfecho.getTipo(),
                             desfecho == null ? null : desfecho.getDoseAplicada(),
                             prescricao == null ? null : prescricao.getFaixaDose().getUnidade(),
-                            desfecho == null ? null : desfecho.getRegraAplicadaId());
+                            desfecho == null ? null : desfecho.getRegraAplicadaId(),
+                            prescricao);
                 })
                 .toList();
 
