@@ -119,6 +119,9 @@ public class FechamentoAtendimentoService {
         registro.setProximaVacina(r.getProximaVacina());
         registro.setAnimal(animal);
         registro.setConsulta(consulta);
+        if (r.getPeso() != null) {
+            animal.setPeso(r.getPeso());
+        }
         return registroAtendimentoRepository.save(registro);
     }
 

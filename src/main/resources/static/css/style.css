@@ -692,3 +692,40 @@ form.formulario .campo-checkbox label { margin: 0; font-weight: 600; }
 
 /* modelos de plano */
 .pc-grupo { margin: 1.2rem 0 0.6rem; }
+
+/* fechar atendimento: quatro etapas num formulário só */
+.pc-fechar .pc-campos { gap: 0.2rem; }
+.pc-etapas { list-style: none; display: flex; gap: 0.4rem; margin: 0 0 1rem; padding: 0; flex-wrap: wrap; }
+.pc-etapas button {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    border: 0; background: transparent; cursor: pointer; font-family: inherit;
+    padding: 0.35rem 0.8rem; border-radius: var(--raio-pilula);
+    font-size: 0.86rem; font-weight: 700; color: var(--cor-texto-suave);
+}
+.pc-etapas button i {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--cor-painel);
+    display: grid; place-items: center; font-style: normal; font-size: 0.74rem;
+}
+.pc-etapas .on button { background: var(--cor-marca-fundo); color: var(--cor-texto); }
+.pc-etapas .on button i { background: var(--cor-marca); color: #fff; }
+.pc-etapas .feita button i { background: #d8e022; color: var(--cor-texto); }
+.pc-pergunta { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.6rem; }
+.pc-pergunta h2 { margin: 0; }
+.pc-grade2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.2rem 1rem; }
+.pc-grade4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.2rem 1rem; }
+.pc-grade4 .pc-largo { grid-column: span 2; }
+.pc-mais { margin-top: 0.8rem; }
+.pc-mais summary { cursor: pointer; font-weight: 700; font-size: 0.85rem; color: var(--cor-texto-suave); }
+.pc-sub-titulo { margin: 1.1rem 0 0.4rem; }
+.pc-etapa { display: block; }
+.pc-etapa[hidden], [x-cloak] { display: none !important; }
+.pc-regra-linha {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    padding: 0.6rem 0; border-bottom: 1px solid var(--cor-borda);
+}
+.pc-regra-linha select, .pc-regra-linha input { width: auto !important; margin-top: 0 !important; }
+.pc-regra-linha .pc-regra { flex-basis: 100%; }
+.pc-regra-limite { display: inline-flex; gap: 0.4rem; align-items: center; }
+.pc-regra-limite input { width: 110px !important; }
+.pc-erros { margin: 0.3rem 0 0; padding-left: 1.2rem; font-weight: 600; }
+.pc-ao-fechar { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.3rem; }
