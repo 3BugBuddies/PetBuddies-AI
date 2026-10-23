@@ -3,6 +3,7 @@ package br.com.fiap.petbuddies.domain.repository;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,8 +18,8 @@ public interface CondicaoClinicaRepository extends JpaRepository<CondicaoClinica
 
     boolean existsByClinicaIdAndCodigoAndIdNot(Long clinicaId, String codigo, Long id);
 
-    // Escala independente de regra de prescricao — entra no prompt de todo check-in, nao so dos animais com prescricao ativa.
-    List<CondicaoClinicaEntity> findByCriticaTrueAndAtivoTrue();
+    // Escala independente de regra de prescricao — entra no prompt do check-in de todo animal atendido pela clinica.
+    List<CondicaoClinicaEntity> findByClinicaIdInAndCriticaTrueAndAtivoTrue(Collection<Long> clinicaIds);
 
     boolean existsByAutorId(Long autorId);
 
