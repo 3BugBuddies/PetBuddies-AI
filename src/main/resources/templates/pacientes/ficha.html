@@ -13,7 +13,7 @@
             <a class="pc-voltar" th:href="@{/pacientes}">← Pacientes</a>
             <h1 th:text="${ficha.animal.nome}">Paçoca</h1>
             <p class="pc-meta"
-               th:text="${@rotulos.de(ficha.animal.especie) + ' · ' + (ficha.animal.raca == 'SEM_RACA' ? 'Sem raça definida' : ficha.animal.raca) + ' · ' + @rotulos.de(ficha.animal.porte) + ' · ' + @rotulos.de(ficha.animal.sexo) + ' · ' + ficha.idade + (ficha.animal.peso != null ? ' · ' + @rotulos.numero(ficha.animal.peso) + ' kg' : '')}">
+               th:text="${ficha.animal.especie.rotulo + ' · ' + (ficha.animal.raca == 'SEM_RACA' ? 'Sem raça definida' : ficha.animal.raca) + ' · ' + ficha.animal.porte.rotulo + ' · ' + ficha.animal.sexo.rotulo + ' · ' + ficha.idade + (ficha.animal.peso != null ? ' · ' + @formatador.numero(ficha.animal.peso) + ' kg' : '')}">
                 Cão · Vira-lata · Médio · Fêmea · 5 anos · 12,4 kg</p>
             <p class="pc-meta">Responsável: <b th:text="${ficha.animal.responsavelNome}">Joana</b>
                 · <span th:text="${@formatador.telefone(ficha.animal.responsavelTelefone)}">(11) 91234-5678</span></p>
@@ -46,16 +46,17 @@
     <div class="pc-planos">
         <th:block th:each="plano : ${ficha.planos}">
             <section class="pc-cartao marca" th:each="t : ${plano.tratamentos}">
-                <span class="pc-eyebrow" th:text="'Plano ativo · ' + ${@rotulos.de(plano.categoria)}">Plano ativo · Tratamento</span>
+                <span class="pc-eyebrow" th:text="'Plano ativo · ' + ${plano.categoria.rotulo}">Plano ativo · Tratamento</span>
                 <h2 th:text="${t.medicamento + ' · ' + #temporals.format(t.inicio, 'dd/MM') + ' a ' + #temporals.format(t.fim, 'dd/MM')}">Amoxicilina · 22 a 28/10</h2>
-                <span class="pc-sub" th:text="${t.dose + ', ' + t.frequencia}">10–20 mg, 2×/dia, 7 dias</span>
-                <div class="pc-regra" th:each="r : ${t.regras}" th:text="${r}">comeu pouco → dose mínima</div>
+                <span class="pc-sub" th:text="${@formatador.faixa(t.doseMin, t.doseMax, t.unidade) + ', ' + t.frequenciaDia + '×/dia, ' + t.duracaoDias + ' dias'}">10–20 mg, 2×/dia, 7 dias</span>
+                <div class="pc-regra" th:each="r : ${t.regras}"
+                     th:text="${@formatador.regra(r.condicao, r.operador, r.limite, r.unidade, r.acao)}">comeu pouco → dose mínima</div>
                 <div class="pc-progresso"><span th:style="'width:' + ${t.percentual} + '%'"></span></div>
                 <b th:text="${t.registrados + ' de ' + t.total + ' dias registrados'}">2 de 7 dias registrados</b>
             </section>
 
             <section class="pc-cartao" th:unless="${#lists.isEmpty(plano.cuidados)}">
-                <span class="pc-eyebrow" th:text="'Plano ativo · ' + ${@rotulos.de(plano.categoria)}">Plano ativo · Preventivo</span>
+                <span class="pc-eyebrow" th:text="'Plano ativo · ' + ${plano.categoria.rotulo}">Plano ativo · Preventivo</span>
                 <ul class="pc-cuidados">
                     <li th:each="c : ${plano.cuidados}">
                         <span>
@@ -92,10 +93,24 @@
         <p class="pc-vazio" th:if="${#lists.isEmpty(ficha.linhaTempo)}">Nada registrado ainda para este paciente.</p>
         <ul class="pc-linha">
             <li class="pc-linha-item" th:each="e : ${ficha.linhaTempo}" th:attr="data-tipo=${e.tipo}">
-                <span class="pc-chip" th:classappend="${e.estilo}" th:text="${e.selo}">alarme</span>
+                <span class="pc-chip" th:classappend="${e.estilo}"
+                      th:text="${e.selo != null ? e.selo : #strings.capitalize(e.consultaStatus.rotulo)}">alarme</span>
                 <div>
-                    <b th:text="${e.comHora ? #temporals.format(e.quando, 'dd/MM · HH:mm') : #temporals.format(e.quando, 'dd/MM/yyyy')} + ' · ' + ${e.titulo}">22/10 · 21:00 · Check-in</b>
-                    <span class="detalhe" th:text="${e.detalhe}">detalhe</span>
+                    <b th:text="${e.comHora ? #temporals.format(e.quando, 'dd/MM · HH:mm') : #temporals.format(e.quando, 'dd/MM/yyyy')} + ' · ' + ${e.titulo != null ? e.titulo : e.consultaTipo.rotulo + ' · ' + e.consultaStatus.rotulo}">22/10 · 21:00 · Check-in</b>
+                    <span class="detalhe" th:if="${e.tipo == 'CHECKIN'}">
+                        <th:block th:text="${'“' + e.detalhe + '” → '}">“relato” → </th:block>
+                        <th:block th:if="${e.sinais != null}" th:text="${'sinal de alarme (' + e.sinais + ') → acionar clínica' + (#lists.isEmpty(e.efeitos) ? '' : '; ')}">sinal de alarme</th:block>
+                        <th:block th:if="${e.sinais == null and #lists.isEmpty(e.efeitos)}">nenhuma regra se aplicou</th:block>
+                        <th:block th:each="f, estado : ${e.efeitos}"><th:block
+                                th:text="${(f.medicamento != null ? f.medicamento + ': ' : '')
+                                    + (f.desfecho == null ? 'sem desfecho'
+                                    : (f.desfecho.name() == 'DOSE_CALCULADA'
+                                        ? (f.acao != null ? f.acao.rotulo + ' · ' : '') + @formatador.numero(f.dose) + ' ' + (f.unidade != null ? f.unidade : '')
+                                        : f.desfecho.rotulo))
+                                    + (estado.last ? '' : '; ')}">Amoxicilina: dose mínima · 10 mg</th:block></th:block>
+                    </span>
+                    <span class="detalhe" th:if="${e.tipo != 'CHECKIN'}"
+                          th:text="${e.statusItem != null ? e.statusItem.rotulo + ' no plano preventivo' : e.detalhe}">detalhe</span>
                 </div>
             </li>
         </ul>
@@ -110,7 +125,7 @@
             <select id="categoria" th:field="*{categoria}">
                 <option value="">Selecione</option>
                 <option th:each="valor : ${categoriasProtocolo}"
-                        th:value="${valor}" th:text="${@rotulos.de(valor)}">PREVENTIVO</option>
+                        th:value="${valor}" th:text="${valor.rotulo}">PREVENTIVO</option>
             </select>
             <div class="erro-campo" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">erro</div>
 
@@ -118,7 +133,7 @@
             <select id="consultaId" th:field="*{consultaId}">
                 <option value="">Nenhuma</option>
                 <option th:each="consulta : ${consultas}" th:value="${consulta.id}"
-                        th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')} + ' — ' + ${@rotulos.de(consulta.tipo)}">
+                        th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')} + ' — ' + ${consulta.tipo.rotulo}">
                     consulta
                 </option>
             </select>

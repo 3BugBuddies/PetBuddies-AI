@@ -44,8 +44,8 @@
                     <b th:text="${c.rotulo}">Vômito</b>
                     <span class="pc-sub" th:if="${c.unidade != null}" th:text="'em ' + ${c.unidade}">°C</span>
                 </td>
-                <td th:text="${@rotulos.de(c.tipoDado)}">Sim/não</td>
-                <td th:text="${@rotulos.de(c.fonteValor)}">Relato do responsável</td>
+                <td th:text="${c.tipoDado.rotulo}">Sim/não</td>
+                <td th:text="${c.fonteValor.rotulo}">Relato do responsável</td>
                 <td><span class="pc-chip marca" th:if="${c.critica}">sinal de alarme</span></td>
                 <td th:text="${c.usadaEmRegras == 0 ? '—' : c.usadaEmRegras + (c.usadaEmRegras == 1 ? ' regra' : ' regras')}">—</td>
                 <td>

@@ -24,7 +24,7 @@
                 <th:block th:if="${tipoTravado}">
                     <input type="hidden" name="tipoDado" th:value="${condicaoForm.tipoDado}"/>
                     <p class="pc-sub">
-                        <b th:text="${@rotulos.de(condicaoForm.tipoDado)}">Número</b>
+                        <b th:text="${condicaoForm.tipoDado.rotulo}">Número</b>
                         · o tipo não muda porque a condição já tem regra ou relato.
                     </p>
                 </th:block>
@@ -42,7 +42,7 @@
 
                 <label for="fonteValor">Fonte</label>
                 <select id="fonteValor" th:field="*{fonteValor}">
-                    <option th:each="f : ${fontes}" th:value="${f}" th:text="${@rotulos.de(f)}">RELATO</option>
+                    <option th:each="f : ${fontes}" th:value="${f}" th:text="${f.rotulo}">RELATO</option>
                 </select>
 
                 <div class="campo-checkbox">
