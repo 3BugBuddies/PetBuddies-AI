@@ -11,16 +11,20 @@ import br.com.fiap.petbuddies.exception.atendimento.ConsultaJaEmOutraJanelaExcep
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
+import br.com.fiap.petbuddies.exception.atendimento.PeriodoInvalidoException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class JanelaAtendimentoService {
+
+    private static final long MAX_DIAS_PERIODO = 62;
 
     private final JanelaAtendimentoRepository repository;
     private final VeterinarioRepository veterinarioRepository;
@@ -56,6 +60,25 @@ public class JanelaAtendimentoService {
         // mesma regra do agendamento, que recusa janela ja iniciada
         LocalDateTime inicio = inicioDoDia.isAfter(agora) ? inicioDoDia : agora;
         return repository.findLivresNoPeriodo(veterinarioId, inicio, inicioDoDia.plusDays(1));
+    }
+
+    // calendario do agendamento: so os dias com ao menos um slot livre ficam clicaveis
+    @Transactional(readOnly = true)
+    public List<LocalDate> listarDatasLivres(Long veterinarioId, LocalDate de, LocalDate ate) {
+        if (ate.isBefore(de)) {
+            throw new PeriodoInvalidoException("O fim do período (ate) não pode ser anterior ao início (de).");
+        }
+        if (ChronoUnit.DAYS.between(de, ate) > MAX_DIAS_PERIODO) {
+            throw new PeriodoInvalidoException("O período não pode passar de " + MAX_DIAS_PERIODO + " dias.");
+        }
+        LocalDateTime inicioDoPeriodo = de.atStartOfDay();
+        LocalDateTime agora = LocalDateTime.now();
+        // mesma regra do agendamento, que recusa janela ja iniciada
+        LocalDateTime inicio = inicioDoPeriodo.isAfter(agora) ? inicioDoPeriodo : agora;
+        return repository.findLivresNoPeriodo(veterinarioId, inicio, ate.plusDays(1).atStartOfDay()).stream()
+                .map(j -> j.getDataHoraInicio().toLocalDate())
+                .distinct()
+                .toList();
     }
 
     @Transactional

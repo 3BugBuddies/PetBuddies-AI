@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.controller.cuidado;
 
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoCuidado;
 import br.com.fiap.petbuddies.dto.cuidado.ItemPlanoCuidadoDto;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/motor/plano")
@@ -93,12 +96,16 @@ public class MotorPlanoController {
     }
 
     @GetMapping("/{animalId}/eventos")
-    @Operation(summary = "Listar eventos do plano", description = "Lista paginada dos eventos do plano ativo do animal. Use ?page=0&size=10.")
+    @Operation(summary = "Listar eventos do plano", description = "Lista paginada dos eventos do animal. Use ?page=0&size=10. "
+            + "Filtros opcionais: tipo (repetível, ex.: ?tipo=VACINACAO&tipo=VERMIFUGACAO) e abertos=true "
+            + "(só itens PENDENTE ou ATRASADO de planos ATIVOS).")
     @ApiResponse(responseCode = "200", description = "Lista de eventos")
     public Page<ItemPlanoCuidadoDto> listarEventos(
             @Parameter(description = "ID do animal no PetBuddies-API (.NET)") @PathVariable Long animalId,
+            @RequestParam(required = false) List<TipoCuidado> tipo,
+            @RequestParam(defaultValue = "false") boolean abertos,
             @ParameterObject Pageable pageable) {
-        return motorPlanoService.listarEventos(animalId, pageable);
+        return motorPlanoService.listarEventos(animalId, tipo, abertos, pageable);
     }
 
     @GetMapping("/{animalId}/protocolo-aplicado")

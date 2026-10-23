@@ -42,4 +42,7 @@ public class ProcedimentoFechamentoRequest {
 
     @Size(max = 2000, message = "Observação deve ter no máximo 2000 caracteres.")
     private String observacao;
+
+    /** Item PENDENTE/ATRASADO do plano que este procedimento baixa; ausente = procedimento avulso. */
+    private Long itemPlanoId;
 }

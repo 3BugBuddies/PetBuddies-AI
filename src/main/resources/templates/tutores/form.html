@@ -22,6 +22,10 @@
         <input id="email" type="email" th:field="*{email}"/>
         <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">erro</div>
 
+        <label for="endereco">Endereço</label>
+        <input id="endereco" type="text" th:field="*{endereco}"/>
+        <div class="erro-campo" th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}">erro</div>
+
         <div class="acoes-formulario">
             <button type="submit">Salvar</button>
             <a class="botao secundario" th:href="@{/tutores}">Cancelar</a>

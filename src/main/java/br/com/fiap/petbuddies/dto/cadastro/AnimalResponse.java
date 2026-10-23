@@ -1,10 +1,12 @@
 package br.com.fiap.petbuddies.dto.cadastro;
 
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
+import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Porte;
 import br.com.fiap.petbuddies.domain.enums.cadastro.Sexo;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -29,6 +31,9 @@ public class AnimalResponse {
     private String alergias;
     private String observacoes;
     private Long responsavelId;
+    private String responsavelNome;
+    private String responsavelTelefone;
+    private String responsavelEndereco;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -47,8 +52,14 @@ public class AnimalResponse {
         dto.foto = entity.getFoto();
         dto.alergias = entity.getAlergias();
         dto.observacoes = entity.getObservacoes();
-        // Só o id: com open-in-view=false, ler outro campo do proxy LAZY aqui lança LazyInitializationException.
         dto.responsavelId = entity.getResponsavel() == null ? null : entity.getResponsavel().getId();
+        // Com open-in-view=false, proxy LAZY não inicializado lançaria LazyInitializationException; a leitura precisa do JOIN FETCH.
+        ResponsavelEntity responsavel = entity.getResponsavel();
+        if (responsavel != null && Hibernate.isInitialized(responsavel)) {
+            dto.responsavelNome = responsavel.getNome();
+            dto.responsavelTelefone = responsavel.getContato() == null ? null : responsavel.getContato().getTelefone();
+            dto.responsavelEndereco = responsavel.getEndereco();
+        }
         dto.createdAt = entity.getAuditoria().getCreatedAt();
         dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;
