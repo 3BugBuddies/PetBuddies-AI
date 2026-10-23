@@ -8,6 +8,7 @@ import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoObservadaRepository;
 import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
+import br.com.fiap.petbuddies.domain.repository.RegraReceitaModeloRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.atendimento.CondicaoClinicaRequest;
 import br.com.fiap.petbuddies.dto.atendimento.CondicaoClinicaResponse;
@@ -24,6 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class CondicaoClinicaService {
@@ -32,6 +34,7 @@ public class CondicaoClinicaService {
     private final ClinicaRepository clinicaRepository;
     private final VeterinarioRepository veterinarioRepository;
     private final RegraPrescricaoRepository regraPrescricaoRepository;
+    private final RegraReceitaModeloRepository regraReceitaModeloRepository;
     private final CondicaoObservadaRepository condicaoObservadaRepository;
 
     public CondicaoClinicaService(
@@ -39,11 +42,13 @@ public class CondicaoClinicaService {
             ClinicaRepository clinicaRepository,
             VeterinarioRepository veterinarioRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
+            RegraReceitaModeloRepository regraReceitaModeloRepository,
             CondicaoObservadaRepository condicaoObservadaRepository) {
         this.repository = repository;
         this.clinicaRepository = clinicaRepository;
         this.veterinarioRepository = veterinarioRepository;
         this.regraPrescricaoRepository = regraPrescricaoRepository;
+        this.regraReceitaModeloRepository = regraReceitaModeloRepository;
         this.condicaoObservadaRepository = condicaoObservadaRepository;
     }
 
@@ -55,11 +60,13 @@ public class CondicaoClinicaService {
         return repository.findAll();
     }
 
-    /** As condições da clínica por rótulo, cada uma com quantas regras assinadas a usam. */
+    /** As condições da clínica por rótulo, cada uma com quantas regras (assinadas e de receita-modelo) a usam. */
     @Transactional(readOnly = true)
     public List<CondicaoClinicaResponse> listarComUso(Long clinicaId) {
-        Map<Long, Long> usos = regraPrescricaoRepository.contarPorCondicaoDaClinica(clinicaId).stream()
-                .collect(Collectors.toMap(linha -> (Long) linha[0], linha -> (Long) linha[1]));
+        Map<Long, Long> usos = Stream.concat(
+                        regraPrescricaoRepository.contarPorCondicaoDaClinica(clinicaId).stream(),
+                        regraReceitaModeloRepository.contarPorCondicaoDaClinica(clinicaId).stream())
+                .collect(Collectors.toMap(linha -> (Long) linha[0], linha -> (Long) linha[1], Long::sum));
         return repository.findByClinicaId(clinicaId).stream()
                 .sorted(Comparator.comparing(CondicaoClinicaEntity::getRotulo, String.CASE_INSENSITIVE_ORDER))
                 .map(c -> CondicaoClinicaResponse.from(c).comUso(usos.getOrDefault(c.getId(), 0L)))
@@ -92,10 +99,11 @@ public class CondicaoClinicaService {
         return CondicaoClinicaResponse.from(entity);
     }
 
-    /** Regra assinada ou relato já guardado: o tipo do dado não pode mais mudar. */
+    /** Regra assinada, regra de receita-modelo ou relato já guardado: o tipo do dado não pode mais mudar. */
     @Transactional(readOnly = true)
     public boolean emUso(Long id) {
         return regraPrescricaoRepository.existsByCondicaoClinicaId(id)
+                || regraReceitaModeloRepository.existsByCondicaoClinicaId(id)
                 || condicaoObservadaRepository.existsByCondicaoClinicaId(id);
     }
 
@@ -151,6 +159,9 @@ public class CondicaoClinicaService {
         encontrarOuFalhar(id);
         if (regraPrescricaoRepository.existsByCondicaoClinicaId(id)) {
             throw new CondicaoClinicaComVinculosException(id, "regras de prescrição");
+        }
+        if (regraReceitaModeloRepository.existsByCondicaoClinicaId(id)) {
+            throw new CondicaoClinicaComVinculosException(id, "regras de receita-modelo");
         }
         if (condicaoObservadaRepository.existsByCondicaoClinicaId(id)) {
             throw new CondicaoClinicaComVinculosException(id, "condições observadas");
