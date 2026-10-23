@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
     <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Nunito:wght@400;600;700&amp;display=swap"/>
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link rel="icon" th:href="@{/favicon.png}" type="image/png"/>
     <link rel="apple-touch-icon" th:href="@{/apple-touch-icon.png}"/>
@@ -15,44 +15,40 @@
 <body>
 <div class="app">
     <aside class="lateral" th:if="${usuario != null}">
-        <a class="marca" th:href="@{/}">
+        <a class="marca" th:href="@{/painel}">
             <img class="marca-filo" th:src="@{/images/filo.png}" alt="" width="34" height="31"/>
             <span>
                 <span class="marca-nome">PetBuddies</span><br/>
-                <span class="marca-sub" th:text="${usuario.vet} ? 'Clínica' : 'Tutor'">Clínica</span>
+                <span class="marca-sub">Painel da clínica</span>
             </span>
         </a>
-
-        <th:block th:if="${usuario.vet}">
-            <nav>
-                <a th:href="@{/painel}" th:classappend="${secao == 'painel'} ? 'atual'"><span class="ic">&#9704;</span>Painel</a>
-            </nav>
-            <div class="grupo">Acompanhamento</div>
-            <nav>
-                <a th:href="@{/pacientes}" th:classappend="${secao == 'pacientes'} ? 'atual'"><span class="ic">&#9636;</span>Pacientes</a>
-                <a th:href="@{/agenda}" th:classappend="${secao == 'agenda'} ? 'atual'"><span class="ic">&#9638;</span>Agenda</a>
-            </nav>
-            <div class="grupo">Pessoas</div>
-            <nav>
-                <a th:href="@{/equipe}" th:classappend="${secao == 'equipe'} ? 'atual'"><span class="ic">&#9673;</span>Equipe</a>
-                <a th:href="@{/tutores}" th:classappend="${secao == 'tutores'} ? 'atual'"><span class="ic">&#9678;</span>Tutores</a>
-            </nav>
-            <div class="grupo">Configuração</div>
-            <nav>
-                <a th:href="@{/clinica}" th:classappend="${secao == 'clinica'} ? 'atual'"><span class="ic">&#8962;</span>Dados da clínica</a>
-            </nav>
-        </th:block>
-
-        <th:block th:if="${usuario.tutor}">
-            <nav>
-                <a th:href="@{/meus-animais}" th:classappend="${secao == 'meus-animais'} ? 'atual'"><span class="ic">&#9636;</span>Meus animais</a>
-            </nav>
-        </th:block>
+        <nav>
+            <a th:href="@{/painel}" th:classappend="${secao == 'painel'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Início</a>
+        </nav>
+        <div class="grupo">Atendimento</div>
+        <nav>
+            <a th:href="@{/agenda}" th:classappend="${secao == 'agenda'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</a>
+            <a th:href="@{/horarios}" th:classappend="${secao == 'horarios'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Horários</a>
+            <a th:href="@{/pacientes}" th:classappend="${secao == 'pacientes'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="9" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="18" cy="9" r="2"/><path d="M12 11c-3 0-5 3-5 5.5 0 1.5 1 2.5 2.5 2.5 1 0 1.5-.5 2.5-.5s1.5.5 2.5.5c1.5 0 2.5-1 2.5-2.5C17 14 15 11 12 11z"/></svg>Pacientes</a>
+        </nav>
+        <div class="grupo">Catálogo clínico</div>
+        <nav>
+            <a th:href="@{/condicoes}" th:classappend="${secao == 'condicoes'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>Condições</a>
+            <a th:href="@{/receitas-modelo}" th:classappend="${secao == 'receitas-modelo'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Receitas-modelo</a>
+            <a th:href="@{/modelos-plano}" th:classappend="${secao == 'modelos-plano'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Modelos de plano</a>
+        </nav>
+        <div class="grupo">Pessoas</div>
+        <nav>
+            <a th:href="@{/equipe}" th:classappend="${secao == 'equipe'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a3 3 0 100-6M21 20c0-2.5-1.5-4.5-4-5.3"/></svg>Equipe</a>
+            <a th:href="@{/responsaveis}" th:classappend="${secao == 'responsaveis'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>Responsáveis</a>
+            <a th:href="@{/clinica}" th:classappend="${secao == 'clinica'} ? 'atual'"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V8l8-5 8 5v13"/><path d="M10 21v-6h4v6M12 9v3M10.5 10.5h3"/></svg>Dados da clínica</a>
+        </nav>
 
         <form class="usuario-logado" th:action="@{/logout}" method="post">
-            <span class="avatar" th:text="${#strings.toUpperCase(#strings.substring(usuario.username, 0, 2))}">AS</span>
+            <span class="avatar" th:text="${veterinario != null ? #strings.toUpperCase(#strings.substring(veterinario.nome, 0, 1)) : #strings.toUpperCase(#strings.substring(usuario.username, 0, 1))}">A</span>
             <span>
-                <span class="usuario-nome" th:text="${usuario.username}">usuario</span>
+                <span class="usuario-nome" th:text="${veterinario != null ? veterinario.nome : usuario.username}">Ana Souza</span><br/>
+                <span class="usuario-sub" th:if="${veterinario != null}" th:text="'CRMV ' + ${veterinario.crmv}">CRMV SP-12345</span>
             </span>
             <button type="submit" class="botao-link" title="Sair">&#10148;</button>
         </form>
@@ -67,5 +63,6 @@
         </main>
     </div>
 </div>
+<script th:src="@{/js/painel.js}"></script>
 </body>
 </html>
