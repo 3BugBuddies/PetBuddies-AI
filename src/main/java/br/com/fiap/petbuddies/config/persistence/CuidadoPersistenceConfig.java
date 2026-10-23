@@ -23,7 +23,7 @@ public class CuidadoPersistenceConfig {
 
     static final String PACOTE_ENTIDADES = "br.com.fiap.petbuddies.domain.entity";
 
-    // Sem hibernate.hbm2ddl.auto aqui: herdado de application.properties, pode ser desligado por propriedade.
+    // Sem hibernate.hbm2ddl.auto aqui: herdado de application.yml, pode ser desligado por propriedade.
     @Primary
     @Bean
     public LocalContainerEntityManagerFactoryBean cuidadoEntityManagerFactory(

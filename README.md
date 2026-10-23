@@ -131,7 +131,7 @@ cp .env.example .env
 # preencha ORACLE_PASSWORD, ORACLE_SYS_PASSWORD, PETBUDDIES_JWT_SECRET e GEMINI_API_KEY
 
 docker compose up -d --wait                          # sobe só o Oracle
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run
 ```
 
 Para rodar mais de uma instância em paralelo, parametrize porta e projeto:
@@ -148,7 +148,7 @@ Derrube com `docker compose down -v`. Os bancos desta sprint são resetados a ca
 cp .env.example .env
 # ORACLE_URL já aponta para o Oracle FIAP; preencha ORACLE_USER (seu RM) e ORACLE_PASSWORD
 
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run
 ```
 
 A aplicação sobe em `http://localhost:8080`, com o Swagger em `/swagger-ui.html`.
@@ -165,6 +165,7 @@ Todas em `.env.example`; `.env` está no `.gitignore`.
 | `ORACLE_PORT` | porta do Oracle no host, para rodar instâncias em paralelo |
 | `PETBUDDIES_JWT_SECRET` | segredo `HS256` do token — mínimo 32 bytes, o mesmo valor do .NET. Abaixo disso a aplicação recusa subir |
 | `GEMINI_API_KEY` | chave do Gemini. Ausente do ambiente, a aplicação não sobe; presente mas vazia, sobe e só as chamadas de IA falham |
+| `PETNETAPI_URL` | endereço do .NET, lido para o catálogo de protocolos. Default `http://localhost:5297` |
 
 ### Usuários de demonstração
 

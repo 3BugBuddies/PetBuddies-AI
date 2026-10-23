@@ -10,8 +10,7 @@ public class ChatClientConfig {
 
     @Bean
     public ChatClient chatClient(ChatClient.Builder builder) {
-        // temperature=0 tambem esta em application.properties; aqui e o valor que
-        // vale, porque sem ele a confianca da extracao sai 1.0 em tudo.
+        // sem temperature 0 a confianca da extracao sai 1.0 em tudo
         return builder
                 .defaultOptions(OpenAiChatOptions.builder().temperature(0.0).build())
                 .build();
