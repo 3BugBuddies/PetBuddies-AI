@@ -87,6 +87,7 @@ public class SecurityConfig {
                                 "/api-docs", "/api-docs/**").permitAll()
                         .requestMatchers("/painel/**", "/clinica/**", "/equipe/**",
                                 "/tutores/**", "/pacientes/**", "/agenda/**").hasRole("VET")
+                        .requestMatchers("/condicoes/**", "/modelos-plano/**").hasRole("VET")
                         .requestMatchers("/meus-animais", "/meus-animais/**").hasRole("TUTOR")
                         .anyRequest().authenticated())
                 .formLogin(formulario -> formulario.loginPage("/login").permitAll())

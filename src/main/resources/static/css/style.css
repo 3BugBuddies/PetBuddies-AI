@@ -655,3 +655,37 @@ form.formulario .campo-checkbox label { margin: 0; font-weight: 600; }
 .pc-linha-item b { display: block; font-size: 0.92rem; }
 .pc-linha-item span.detalhe { color: var(--cor-texto-forte); font-size: 0.86rem; }
 .pc-linha-item[hidden] { display: none; }
+
+/* condições: formulário em duas colunas, unidade só para tipo número */
+.pc-duas-colunas { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.pc-campos label { display: block; margin-top: 0.7rem; font-weight: 700; font-size: 0.85rem; }
+.pc-campos label:first-child { margin-top: 0; }
+.pc-campos input[type="text"], .pc-campos input[type="number"], .pc-campos input[type="date"],
+.pc-campos input[type="datetime-local"], .pc-campos select, .pc-campos textarea {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    margin-top: 0.3rem;
+    border: 1px solid var(--cor-borda-forte);
+    border-radius: var(--raio-campo);
+    font-family: inherit;
+    font-size: 0.93rem;
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+}
+.pc-campos input:focus, .pc-campos select:focus, .pc-campos textarea:focus {
+    outline: 2px solid var(--cor-marca);
+    outline-offset: 1px;
+    border-color: var(--cor-marca);
+}
+.pc-campos .campo-checkbox { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; }
+.pc-campos .campo-checkbox input { width: auto; margin: 0; accent-color: var(--cor-marca); }
+.pc-campos .campo-checkbox label { margin: 0; }
+.pc-opcao { margin: 0 !important; padding: 0.35rem 0.9rem; border-radius: 9px; cursor: pointer; font-weight: 700 !important; }
+.pc-opcao input { display: none; }
+.pc-opcao:has(input:checked) { background: var(--cor-superficie); box-shadow: 0 1px 3px rgba(21, 32, 57, 0.12); }
+.pc-unidade { display: none; }
+.pc-duas-colunas:has(input[value="NUMERICO"]:checked) .pc-unidade,
+.pc-duas-colunas:has(input[type="hidden"][name="tipoDado"][value="NUMERICO"]) .pc-unidade { display: block; }
+.pc-codigo { margin-top: 0.3rem; padding: 0.5rem 0.7rem; border-radius: var(--raio-campo); background: var(--cor-painel); color: var(--cor-texto-suave); font-family: ui-monospace, Menlo, monospace; }
+.pc-acoes-form { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+.pc-previa { position: sticky; top: 1rem; }
