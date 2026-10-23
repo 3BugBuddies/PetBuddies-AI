@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Receita-modelo · PetBuddies</title>
+</head>
+<body>
+<main class="rm">
+    <div class="rm-topo">
+        <div>
+            <div class="rm-sub">
+                <a th:href="@{/receitas-modelo}">Receitas-modelo</a>
+                <span th:text="${receitaId != null} ? ' · editar' : ' · nova'"> · nova</span>
+                <span th:if="${versao != null}" th:text="' · versão ' + ${versao}"></span>
+            </div>
+            <h1 th:text="${receitaId != null} ? 'Editar receita-modelo' : 'Nova receita-modelo'">Nova receita-modelo</h1>
+        </div>
+    </div>
+
+    <p class="mensagem-erro" th:if="${erroDominio}" th:text="${erroDominio}">erro</p>
+    <p class="mensagem-erro" th:if="${#fields.hasErrors('${receitaModeloRequest.*}')}">Revise os campos destacados.</p>
+
+    <form id="rm-form" method="post" th:action="@{${acaoFormulario}}" th:object="${receitaModeloRequest}">
+        <div class="rm-card">
+            <div class="rm-campo">
+                <label for="titulo">Título</label>
+                <input id="titulo" name="titulo" type="text" maxlength="120" th:value="*{titulo}"/>
+                <div class="erro-campo" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}">erro</div>
+            </div>
+            <div class="rm-dose">
+                <div class="rm-campo rm-campo-med">
+                    <label for="medicamento">Medicamento</label>
+                    <input id="medicamento" name="medicamento" type="text" maxlength="150" th:value="*{medicamento}"/>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('medicamento')}" th:errors="*{medicamento}">erro</div>
+                </div>
+                <div class="rm-campo">
+                    <label for="doseMin">Dose mín</label>
+                    <input id="doseMin" name="doseMin" type="number" step="any" min="0"
+                           th:value="*{doseMin != null} ? *{doseMin.stripTrailingZeros().toPlainString()}"/>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('doseMin')}" th:errors="*{doseMin}">erro</div>
+                </div>
+                <div class="rm-campo">
+                    <label for="doseMax">Dose máx</label>
+                    <input id="doseMax" name="doseMax" type="number" step="any" min="0"
+                           th:value="*{doseMax != null} ? *{doseMax.stripTrailingZeros().toPlainString()}"/>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('doseMax')}" th:errors="*{doseMax}">erro</div>
+                </div>
+                <div class="rm-campo">
+                    <label for="unidade">Unidade</label>
+                    <input id="unidade" name="unidade" type="text" maxlength="20" placeholder="mg" th:value="*{unidade}"/>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('unidade')}" th:errors="*{unidade}">erro</div>
+                </div>
+                <div class="rm-campo">
+                    <label for="frequenciaDia">Vezes ao dia</label>
+                    <input id="frequenciaDia" name="frequenciaDia" type="number" min="1" max="99" th:value="*{frequenciaDia}"/>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('frequenciaDia')}" th:errors="*{frequenciaDia}">erro</div>
+                </div>
+                <div class="rm-campo">
+                    <label for="duracaoDias">Dias</label>
+                    <input id="duracaoDias" name="duracaoDias" type="number" min="1" max="9999" th:value="*{duracaoDias}"/>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('duracaoDias')}" th:errors="*{duracaoDias}">erro</div>
+                </div>
+            </div>
+            <div class="erro-campo" th:if="${#fields.hasErrors('faixaDoseValida')}" th:errors="*{faixaDoseValida}">erro</div>
+            <div class="rm-campo">
+                <label for="orientacao">Orientação ao responsável</label>
+                <textarea id="orientacao" name="orientacao" rows="2" th:text="*{orientacao}"></textarea>
+            </div>
+        </div>
+
+        <div class="rm-card">
+            <div class="rm-linha rm-entre">
+                <h2>Regras · se → então</h2>
+                <button type="button" class="rm-btn rm-btn-linha rm-btn-pq" id="rm-add">+ Regra</button>
+            </div>
+            <p class="rm-sub" th:if="${#lists.isEmpty(condicoes)}">
+                A clínica ainda não tem condições ativas. Cadastre uma em Condições para usar nas regras.
+            </p>
+
+            <div id="rm-regras">
+                <div class="rm-regra" th:each="r, i : *{regras}">
+                    <span class="rm-n" th:text="${i.count}">1</span>
+                    <select class="rm-cond" th:name="|regras[${i.index}].condicaoClinicaId|">
+                        <option value="">Condição…</option>
+                        <option th:each="c : ${condicoes}" th:value="${c.id}"
+                                th:attr="data-tipo=${c.tipoDado},data-unidade=${c.unidade},data-rotulo=${c.rotulo}"
+                                th:text="${c.rotulo + (c.critica ? ' · sinal de alarme' : '')}"
+                                th:selected="${c.id == r.condicaoClinicaId}">Vômito</option>
+                    </select>
+                    <select class="rm-op" th:name="|regras[${i.index}].operador|">
+                        <option value="">—</option>
+                        <option th:each="o : ${operadores}" th:value="${o.valor}" th:attr="data-simbolo=${o.simbolo}"
+                                th:text="${o.rotulo}" th:selected="${r.operador != null and r.operador.name() == o.valor}">maior que</option>
+                    </select>
+                    <span class="rm-lim">
+                        <input type="number" step="any" placeholder="—" th:name="|regras[${i.index}].limite|"
+                               th:value="${r.limite != null} ? ${r.limite.stripTrailingZeros().toPlainString()}"/>
+                        <span class="rm-un"></span>
+                    </span>
+                    <span class="rm-seta">→</span>
+                    <select class="rm-acao" th:name="|regras[${i.index}].acaoDose|">
+                        <option value="">Ação…</option>
+                        <option th:each="a : ${acoes}" th:value="${a.valor}" th:text="${a.rotulo}"
+                                th:selected="${r.acaoDose != null and r.acaoDose.name() == a.valor}">dose mínima</option>
+                    </select>
+                    <button type="button" class="rm-x" aria-label="Remover regra">&times;</button>
+                </div>
+            </div>
+            <div class="erro-campo" th:if="${#fields.hasErrors('regras*')}" th:errors="*{regras*}">erro</div>
+
+            <div class="rm-linha rm-previa" id="rm-previa"></div>
+        </div>
+
+        <div class="rm-linha">
+            <button type="submit" class="rm-btn">Salvar</button>
+            <button type="submit" class="rm-btn rm-btn-linha" th:if="${receitaId != null}"
+                    form="rm-desativar" onclick="return confirm('Desativar esta receita-modelo? Receitas já assinadas não mudam.');">Desativar</button>
+            <a class="rm-btn rm-btn-texto" th:href="@{/receitas-modelo}">Cancelar</a>
+        </div>
+    </form>
+
+    <form id="rm-desativar" method="post" th:if="${receitaId != null}"
+          th:action="@{/receitas-modelo/{id}/desativar(id=${receitaId})}"></form>
+
+    <div class="rm-card rm-info">
+        <span class="rm-eyebrow">Como funciona</span>
+        <span>Ao usar uma receita-modelo, o conteúdo é copiado para a receita. Editar aqui não muda receita já assinada.</span>
+    </div>
+
+    <template id="rm-molde">
+        <div class="rm-regra">
+            <span class="rm-n"></span>
+            <select class="rm-cond" name="regras[__I__].condicaoClinicaId">
+                <option value="">Condição…</option>
+                <option th:each="c : ${condicoes}" th:value="${c.id}"
+                        th:attr="data-tipo=${c.tipoDado},data-unidade=${c.unidade},data-rotulo=${c.rotulo}"
+                        th:text="${c.rotulo + (c.critica ? ' · sinal de alarme' : '')}">Vômito</option>
+            </select>
+            <select class="rm-op" name="regras[__I__].operador">
+                <option value="">—</option>
+                <option th:each="o : ${operadores}" th:value="${o.valor}" th:attr="data-simbolo=${o.simbolo}"
+                        th:text="${o.rotulo}">maior que</option>
+            </select>
+            <span class="rm-lim">
+                <input type="number" step="any" placeholder="—" name="regras[__I__].limite"/>
+                <span class="rm-un"></span>
+            </span>
+            <span class="rm-seta">→</span>
+            <select class="rm-acao" name="regras[__I__].acaoDose">
+                <option value="">Ação…</option>
+                <option th:each="a : ${acoes}" th:value="${a.valor}" th:text="${a.rotulo}">dose mínima</option>
+            </select>
+            <button type="button" class="rm-x" aria-label="Remover regra">&times;</button>
+        </div>
+    </template>
+
+    <script>
+        (function () {
+            var lista = document.getElementById('rm-regras');
+            var previa = document.getElementById('rm-previa');
+            var molde = document.getElementById('rm-molde');
+
+            function numerica(linha) {
+                var op = linha.querySelector('.rm-cond').selectedOptions[0];
+                return !!op && op.dataset.tipo === 'NUMERICO';
+            }
+
+            // Operador e limite só existem para condição numérica; desabilitado não vai no POST.
+            function ajustar(linha) {
+                var num = numerica(linha);
+                var op = linha.querySelector('.rm-op');
+                var lim = linha.querySelector('.rm-lim input');
+                op.disabled = !num;
+                lim.disabled = !num;
+                if (!num) { op.value = ''; lim.value = ''; }
+                var cond = linha.querySelector('.rm-cond').selectedOptions[0];
+                linha.querySelector('.rm-un').textContent = num && cond.dataset.unidade ? cond.dataset.unidade : '';
+            }
+
+            function texto(select) {
+                return select.value ? select.selectedOptions[0].textContent.trim() : '';
+            }
+
+            function atualizarPrevia() {
+                previa.innerHTML = '';
+                lista.querySelectorAll('.rm-regra').forEach(function (linha) {
+                    var cond = linha.querySelector('.rm-cond').selectedOptions[0];
+                    var acao = texto(linha.querySelector('.rm-acao'));
+                    if (!cond || !cond.value || !acao) { return; }
+                    var s = cond.dataset.rotulo.toLowerCase();
+                    if (numerica(linha)) {
+                        var op = linha.querySelector('.rm-op').selectedOptions[0];
+                        var lim = linha.querySelector('.rm-lim input').value;
+                        if (op && op.dataset.simbolo && lim) {
+                            s += ' ' + op.dataset.simbolo + ' ' + lim.replace('.', ',')
+                                + (cond.dataset.unidade ? ' ' + cond.dataset.unidade : '');
+                        }
+                    }
+                    var chip = document.createElement('span');
+                    chip.className = 'rm-regra-previa';
+                    chip.textContent = s + ' → ' + acao;
+                    previa.appendChild(chip);
+                });
+            }
+
+            function reindexar() {
+                lista.querySelectorAll('.rm-regra').forEach(function (linha, i) {
+                    linha.querySelector('.rm-n').textContent = i + 1;
+                    linha.querySelectorAll('[name]').forEach(function (campo) {
+                        campo.name = campo.name.replace(/regras\[\d+\]/, 'regras[' + i + ']');
+                    });
+                });
+            }
+
+            function adicionar() {
+                var html = molde.innerHTML.replace(/__I__/g, lista.children.length);
+                var holder = document.createElement('div');
+                holder.innerHTML = html;
+                var linha = holder.firstElementChild;
+                lista.appendChild(linha);
+                reindexar();
+                ajustar(linha);
+                atualizarPrevia();
+            }
+
+            document.getElementById('rm-add').addEventListener('click', adicionar);
+            lista.addEventListener('click', function (e) {
+                if (e.target.classList.contains('rm-x')) {
+                    e.target.closest('.rm-regra').remove();
+                    reindexar();
+                    atualizarPrevia();
+                }
+            });
+            lista.addEventListener('change', function (e) {
+                var linha = e.target.closest('.rm-regra');
+                if (e.target.classList.contains('rm-cond')) { ajustar(linha); }
+                atualizarPrevia();
+            });
+            lista.addEventListener('input', atualizarPrevia);
+
+            lista.querySelectorAll('.rm-regra').forEach(ajustar);
+            atualizarPrevia();
+        })();
+    </script>
+</main>
+</body>
+</html>
