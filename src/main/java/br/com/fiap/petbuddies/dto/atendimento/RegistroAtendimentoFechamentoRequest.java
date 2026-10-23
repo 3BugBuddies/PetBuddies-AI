@@ -1,9 +1,12 @@
 package br.com.fiap.petbuddies.dto.atendimento;
 
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -35,4 +38,9 @@ public class RegistroAtendimentoFechamentoRequest {
     private LocalDate proximoRetorno;
 
     private LocalDate proximaVacina;
+
+    /** Peso medido na consulta; quando vem, atualiza o peso do animal na mesma transação. */
+    @Positive(message = "Peso deve ser maior que zero.")
+    @Digits(integer = 3, fraction = 2, message = "Peso excede a precisão NUMBER(5,2).")
+    private BigDecimal peso;
 }

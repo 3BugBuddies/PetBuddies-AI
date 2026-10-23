@@ -168,6 +168,13 @@ public class MotorPlanoService {
                 .map(ItemPlanoCuidadoDto::from);
     }
 
+    // Os cuidados que um animal nascido em `nascimento` receberia hoje do modelo; o plano auxiliar nunca e gravado.
+    public List<ItemPlanoCuidadoDto> prever(ProtocoloCatalogoDto protocolo, LocalDate nascimento) {
+        PlanoCuidadoEntity rascunho = new PlanoCuidadoEntity();
+        instanciarEventos(rascunho, protocolo, new Ancoragem(LocalDate.now(), nascimento, null));
+        return rascunho.getItens().stream().map(ItemPlanoCuidadoDto::from).toList();
+    }
+
     // Leitura 100% local — sem chamada ao catalogo do .NET.
     @Transactional(readOnly = true)
     public List<PlanoCuidadoEntity> buscarProtocoloAplicado(Long animalId) {

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Condições · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <div>
+            <h1>Condições</h1>
+            <p class="subtitulo">Catálogo clínico</p>
+        </div>
+        <a class="botao" th:href="@{/condicoes/nova}">+ Nova condição</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <div class="pc-cartao espera" th:unless="${temSinalDeAlarme}">
+        <b>Nenhuma condição ativa está marcada como sinal de alarme.</b>
+        <span>O check-in não vai escalar nada para a clínica. Marque as condições que merecem atenção imediata.</span>
+    </div>
+
+    <div class="pc-cartao info">
+        <span>O app usa esta lista no check-in e na receita. Condição em uso não é excluída: é desativada.</span>
+    </div>
+
+    <div class="pc-cartao">
+        <table class="pc-tabela">
+            <thead>
+            <tr>
+                <th>Condição</th>
+                <th>Tipo</th>
+                <th>Fonte</th>
+                <th>Sinal de alarme</th>
+                <th>Usada em</th>
+                <th>Situação</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${condicoes}">
+                <td>
+                    <b th:text="${c.rotulo}">Vômito</b>
+                    <span class="pc-sub" th:if="${c.unidade != null}" th:text="'em ' + ${c.unidade}">°C</span>
+                </td>
+                <td th:text="${@rotulos.de(c.tipoDado)}">Sim/não</td>
+                <td th:text="${@rotulos.de(c.fonteValor)}">Relato do responsável</td>
+                <td><span class="pc-chip marca" th:if="${c.critica}">sinal de alarme</span></td>
+                <td th:text="${c.usadaEmRegras == 0 ? '—' : c.usadaEmRegras + (c.usadaEmRegras == 1 ? ' regra' : ' regras')}">—</td>
+                <td>
+                    <span class="pc-chip ok" th:if="${c.ativo}">Ativa</span>
+                    <span class="pc-chip" th:unless="${c.ativo}">Inativa</span>
+                </td>
+                <td style="text-align: right; white-space: nowrap">
+                    <a class="botao pequeno secundario" th:href="@{/condicoes/{id}/editar(id=${c.id})}">Editar</a>
+                    <form style="display: inline" method="post" th:if="${c.ativo}" th:action="@{/condicoes/{id}/desativar(id=${c.id})}">
+                        <button type="submit" class="botao pequeno secundario">Desativar</button>
+                    </form>
+                    <form style="display: inline" method="post" th:unless="${c.ativo}" th:action="@{/condicoes/{id}/ativar(id=${c.id})}">
+                        <button type="submit" class="botao pequeno secundario">Reativar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="pc-vazio" th:if="${#lists.isEmpty(condicoes)}">Nenhuma condição cadastrada ainda.</p>
+    </div>
+</main>
+</body>
+</html>

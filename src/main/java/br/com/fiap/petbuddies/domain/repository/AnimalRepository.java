@@ -22,6 +22,11 @@ public interface AnimalRepository extends JpaRepository<AnimalEntity, Long> {
     @Query("SELECT a FROM AnimalEntity a JOIN FETCH a.responsavel")
     List<AnimalEntity> findAllComResponsavel();
 
+    // termo já vem em minúsculas e com os curingas; o telefone é comparado como foi digitado.
+    @Query("SELECT a FROM AnimalEntity a JOIN FETCH a.responsavel r "
+            + "WHERE LOWER(a.nome) LIKE :termo OR LOWER(r.nome) LIKE :termo OR r.contato.telefone LIKE :termo")
+    List<AnimalEntity> pesquisarComResponsavel(@Param("termo") String termo);
+
     @Query("SELECT a FROM AnimalEntity a JOIN FETCH a.responsavel WHERE a.id = :id")
     Optional<AnimalEntity> findComResponsavelById(@Param("id") Long id);
 

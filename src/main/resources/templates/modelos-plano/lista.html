@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Modelos de plano · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <div>
+            <h1>Modelos de plano</h1>
+            <p class="subtitulo">Catálogo clínico</p>
+        </div>
+    </div>
+
+    <div class="pc-cartao espera" th:unless="${disponivel}">
+        <b>Modelos indisponíveis agora</b>
+        <span>O catálogo fica no back-office da clínica e não respondeu. Tente de novo em instantes.</span>
+    </div>
+
+    <th:block th:if="${disponivel}">
+        <div class="pc-cartao info">
+            <span>Os modelos vêm do back-office da clínica. O plano de cada animal é gerado a partir deles no cadastro.</span>
+        </div>
+
+        <div class="pc-cartao" th:if="${#maps.isEmpty(porEspecie)}">
+            <p class="pc-vazio">Nenhum modelo de plano ativo no catálogo.</p>
+        </div>
+
+        <section th:each="grupo : ${porEspecie}">
+            <h2 class="pc-grupo" th:text="${@rotulos.de(grupo.key)}">Cão</h2>
+            <div class="pc-planos">
+                <div class="pc-cartao" th:each="m : ${grupo.value}">
+                    <div class="pc-linha-cab">
+                        <h2 th:text="${m.nome}">Preventivo anual — cão</h2>
+                        <span class="pc-chip ok">Ativo</span>
+                    </div>
+                    <span class="pc-sub"
+                          th:text="${@rotulos.de(m.categoria) + ' · ' + #lists.size(m.cuidados) + (#lists.size(m.cuidados) == 1 ? ' cuidado' : ' cuidados')}">Preventivo · 3 cuidados</span>
+                    <span class="pc-forte" th:text="${#strings.listJoin(m.cuidados.![nome], ', ')}">Antirrábica, Vermífugo</span>
+                    <div><a class="botao pequeno secundario" th:href="@{/modelos-plano/{id}(id=${m.id})}">Abrir</a></div>
+                </div>
+            </div>
+        </section>
+
+        <p class="pc-sub">Só leitura: criar e editar modelos continua no back-office.</p>
+    </th:block>
+</main>
+</body>
+</html>
