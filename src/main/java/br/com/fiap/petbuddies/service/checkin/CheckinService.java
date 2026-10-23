@@ -33,6 +33,7 @@ import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontrada
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
 import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
+import br.com.fiap.petbuddies.web.Formatador;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +60,7 @@ public class CheckinService {
     private final RegraPrescricaoRepository regraPrescricaoRepository;
     private final PrescricaoAtivaResolver prescricaoAtivaResolver;
     private final AvaliadorRegraService avaliadorRegraService;
+    private final Formatador formatador;
 
     public CheckinService(
             CheckinRepository checkinRepository,
@@ -69,7 +71,8 @@ public class CheckinService {
             PrescricaoRepository prescricaoRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
             PrescricaoAtivaResolver prescricaoAtivaResolver,
-            AvaliadorRegraService avaliadorRegraService) {
+            AvaliadorRegraService avaliadorRegraService,
+            Formatador formatador) {
         this.checkinRepository = checkinRepository;
         this.condicaoObservadaRepository = condicaoObservadaRepository;
         this.animalRepository = animalRepository;
@@ -79,6 +82,7 @@ public class CheckinService {
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.prescricaoAtivaResolver = prescricaoAtivaResolver;
         this.avaliadorRegraService = avaliadorRegraService;
+        this.formatador = formatador;
     }
 
     @Transactional(readOnly = true)
@@ -241,7 +245,7 @@ public class CheckinService {
                 .findFirst()
                 .orElse(null);
         String base = "Sinal de atenção identificado (" + rotulos + "). Procure a clínica";
-        return telefone == null ? base + "." : base + ": " + telefone + ".";
+        return telefone == null ? base + "." : base + ": " + formatador.telefone(telefone) + ".";
     }
 
     private CheckinResponse montarResposta(CheckinEntity checkin) {
@@ -257,7 +261,7 @@ public class CheckinService {
                         .collect(Collectors.toMap(PrescricaoEntity::getId, p -> p));
         List<CheckinDesfechoResponse> desfechos = itens.stream()
                 .map(item -> {
-                    PrescricaoEntity prescricao = prescricoes.get(item.getPrescricaoId());
+                    PrescricaoEntity prescricao = item.getPrescricaoId() == null ? null : prescricoes.get(item.getPrescricaoId());
                     // Com todas as colunas nulas, o Hibernate devolve o Desfecho inteiro como null.
                     Desfecho desfecho = item.getDesfecho();
                     return CheckinDesfechoResponse.of(

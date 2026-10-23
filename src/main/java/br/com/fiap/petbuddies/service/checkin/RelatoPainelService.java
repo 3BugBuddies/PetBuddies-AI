@@ -113,7 +113,10 @@ public class RelatoPainelService {
 
         Tipo tipo = alarme ? Tipo.ALARME : (regraAgiu ? Tipo.DOSE : Tipo.SEM_REGRA);
         List<String> frases = itens.stream()
-                .map(i -> frase(i, regras.get(i.getDesfecho().getRegraAplicadaId()), unidades.get(i.getPrescricaoId())))
+                // Map.of() lança NPE em get(null): alarme por sinal crítico não tem regra aplicada.
+                .map(i -> frase(i,
+                        i.getDesfecho().getRegraAplicadaId() == null ? null : regras.get(i.getDesfecho().getRegraAplicadaId()),
+                        i.getPrescricaoId() == null ? null : unidades.get(i.getPrescricaoId())))
                 .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
