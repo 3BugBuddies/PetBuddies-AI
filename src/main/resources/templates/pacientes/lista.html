@@ -7,35 +7,75 @@
 <body>
 <main>
     <div class="cabecalho-pagina">
-        <h1>Pacientes</h1>
-        <a class="botao" th:href="@{/pacientes/novo}">Novo paciente</a>
+        <div>
+            <h1>Pacientes</h1>
+        </div>
+        <a class="botao" th:href="@{/pacientes/novo}">Cadastrar paciente</a>
     </div>
 
     <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
 
-    <p th:if="${#lists.isEmpty(pacientes)}">Nenhum paciente cadastrado ainda.</p>
+    <div class="pc-barra">
+        <form class="pc-busca-form" method="get" th:action="@{/pacientes}">
+            <input class="pc-busca" type="search" name="busca" th:value="${busca}"
+                   placeholder="Buscar por animal ou responsável"/>
+            <input type="hidden" name="filtro" th:value="${filtro}"/>
+            <button type="submit" class="botao pequeno secundario">Buscar</button>
+        </form>
+        <div class="pc-seg">
+            <a th:each="f : ${filtros}" th:classappend="${f == filtro} ? 'on'" th:text="${f.rotulo}"
+               th:href="${busca != null and !#strings.isEmpty(busca)} ? @{/pacientes(filtro=${f}, busca=${busca})} : @{/pacientes(filtro=${f})}">Todos</a>
+        </div>
+    </div>
 
-    <table th:unless="${#lists.isEmpty(pacientes)}">
-        <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Espécie</th>
-            <th>Tutor</th>
-            <th>Ações</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="paciente : ${pacientes}">
-            <td th:text="${paciente.nome}">Rex</td>
-            <td th:text="${paciente.especie}">CACHORRO</td>
-            <td th:text="${nomesResponsaveis.get(paciente.responsavelId)}">Tutor</td>
-            <td>
-                <a th:href="@{/pacientes/{id}(id=${paciente.id})}">Ver ficha</a> ·
-                <a th:href="@{/pacientes/{id}/editar(id=${paciente.id})}">Editar</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="pc-cartao" th:if="${#lists.isEmpty(pacientes)}">
+        <p class="pc-vazio">Nenhum paciente encontrado para esse filtro.</p>
+    </div>
+
+    <div class="pc-cartao" th:unless="${#lists.isEmpty(pacientes)}">
+        <table class="pc-tabela">
+            <thead>
+            <tr>
+                <th>Animal</th>
+                <th>Responsável</th>
+                <th>Plano</th>
+                <th>Próximo cuidado</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${pacientes}">
+                <td>
+                    <b th:text="${p.nome}">Paçoca</b>
+                    <span class="pc-sub"
+                          th:text="${@rotulos.de(p.especie) + ' · ' + (p.raca == 'SEM_RACA' ? 'Sem raça definida' : p.raca) + ' · ' + @rotulos.de(p.sexo)}">Cão · Vira-lata · Fêmea</span>
+                </td>
+                <td>
+                    <span th:text="${p.responsavelNome}">Joana</span>
+                    <span class="pc-sub" th:text="${@formatador.telefone(p.responsavelTelefone)}">(11) 91234-5678</span>
+                </td>
+                <td>
+                    <span class="pc-chip" th:if="${p.planoCategoria == null}">Sem plano</span>
+                    <span class="pc-chip espera" th:if="${p.planoCategoria != null and p.planoAte != null}"
+                          th:text="${@rotulos.de(p.planoCategoria) + ' até ' + #temporals.format(p.planoAte, 'dd/MM')}">Tratamento até 28/10</span>
+                    <span class="pc-chip info" th:if="${p.planoCategoria != null and p.planoAte == null}"
+                          th:text="${@rotulos.de(p.planoCategoria)}">Preventivo</span>
+                </td>
+                <td>
+                    <th:block th:if="${p.proximoCuidado != null}">
+                        <span th:text="${p.proximoCuidado}">Amoxicilina</span>
+                        <span class="pc-sub" th:classappend="${p.proximoCuidadoVencido} ? 'pc-forte'"
+                              th:text="${(p.proximoCuidadoVencido ? 'atrasado desde ' : '') + #temporals.format(p.proximoCuidadoData, 'dd/MM/yyyy')}">28/10/2026</span>
+                    </th:block>
+                    <span class="texto-fraco" th:if="${p.proximoCuidado == null}">—</span>
+                </td>
+                <td style="text-align: right">
+                    <a class="botao pequeno secundario" th:href="@{/pacientes/{id}(id=${p.id})}">Abrir</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </main>
 </body>
 </html>

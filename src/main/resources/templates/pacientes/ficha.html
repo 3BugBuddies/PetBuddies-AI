@@ -2,24 +2,31 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: page(~{::title}, ~{::main})}">
 <head>
-    <title th:text="${animal.nome} + ' · PetBuddies'">Paciente · PetBuddies</title>
+    <title th:text="${ficha.animal.nome} + ' · PetBuddies'">Paciente · PetBuddies</title>
 </head>
 <body>
 <main>
-    <div class="cabecalho-pagina">
-        <h1 th:text="${animal.nome}">Rex</h1>
-        <a class="botao secundario" th:href="@{/pacientes/{id}/editar(id=${animal.id})}">Editar cadastro</a>
-    </div>
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
 
-    <section class="bloco">
-        <p>
-            <span th:text="${animal.especie}">CACHORRO</span> ·
-            <span th:text="${animal.raca}">SEM_RACA</span> ·
-            <span th:text="${animal.porte}">MEDIO</span> ·
-            <span th:text="${animal.sexo}">MACHO</span>
-        </p>
-        <p>Nascimento: <span th:text="${#temporals.format(animal.dataNascimento, 'dd/MM/yyyy')}">01/01/2020</span></p>
-        <p>Tutor: <span th:text="${responsavel.nome}">Maria</span> · <span th:text="${responsavel.telefone}">telefone</span></p>
+    <section class="pc-cartao pc-ficha-topo">
+        <div>
+            <a class="pc-voltar" th:href="@{/pacientes}">← Pacientes</a>
+            <h1 th:text="${ficha.animal.nome}">Paçoca</h1>
+            <p class="pc-meta"
+               th:text="${@rotulos.de(ficha.animal.especie) + ' · ' + (ficha.animal.raca == 'SEM_RACA' ? 'Sem raça definida' : ficha.animal.raca) + ' · ' + @rotulos.de(ficha.animal.porte) + ' · ' + @rotulos.de(ficha.animal.sexo) + ' · ' + ficha.idade + (ficha.animal.peso != null ? ' · ' + @rotulos.numero(ficha.animal.peso) + ' kg' : '')}">
+                Cão · Vira-lata · Médio · Fêmea · 5 anos · 12,4 kg</p>
+            <p class="pc-meta">Responsável: <b th:text="${ficha.animal.responsavelNome}">Joana</b>
+                · <span th:text="${@formatador.telefone(ficha.animal.responsavelTelefone)}">(11) 91234-5678</span></p>
+            <p class="pc-meta pc-aviso-clinico"
+               th:if="${ficha.animal.alergias != null and !#strings.isEmpty(ficha.animal.alergias)}">
+                Alergias: <b th:text="${ficha.animal.alergias}">nenhuma</b></p>
+        </div>
+        <div class="pc-acoes">
+            <a class="botao" th:if="${ficha.consultaAbertaId != null}"
+               th:href="@{/agenda/{id}/fechar(id=${ficha.consultaAbertaId})}">Atender</a>
+            <span class="pc-sub" th:if="${ficha.consultaAbertaId == null}">Sem consulta aberta para atender</span>
+            <a class="botao secundario" th:href="@{/pacientes/{id}/editar(id=${ficha.animal.id})}">Editar cadastro</a>
+        </div>
     </section>
 
     <section class="bloco" th:if="${planoResposta != null}">
@@ -32,54 +39,78 @@
             Já existe um plano ativo dessa categoria para este animal.
         </p>
         <p th:if="${planoResposta.motivo == 'SEM_PROTOCOLO_COMPATIVEL'}" class="mensagem-erro">
-            Nenhum protocolo compatível encontrado no catálogo. Confira se o serviço .NET está no ar.
+            Nenhum modelo de plano compatível encontrado. Confira se o serviço .NET está no ar.
         </p>
     </section>
 
-    <section class="bloco">
-        <h2>Plano preventivo ativo</h2>
-        <p th:if="${planoAtivo == null}">Nenhum plano preventivo ativo.</p>
-        <ul class="lista-eventos" th:if="${planoAtivo != null}">
-            <li th:each="evento : ${planoAtivo.eventos}">
-                <strong th:text="${evento.nome}">Vacina</strong> —
-                <span th:text="${#temporals.format(evento.dataAlvo, 'dd/MM/yyyy')}">01/01/2026</span>
-                <span class="selo" th:text="${evento.status}">PENDENTE</span>
+    <div class="pc-planos">
+        <th:block th:each="plano : ${ficha.planos}">
+            <section class="pc-cartao marca" th:each="t : ${plano.tratamentos}">
+                <span class="pc-eyebrow" th:text="'Plano ativo · ' + ${@rotulos.de(plano.categoria)}">Plano ativo · Tratamento</span>
+                <h2 th:text="${t.medicamento + ' · ' + #temporals.format(t.inicio, 'dd/MM') + ' a ' + #temporals.format(t.fim, 'dd/MM')}">Amoxicilina · 22 a 28/10</h2>
+                <span class="pc-sub" th:text="${t.dose + ', ' + t.frequencia}">10–20 mg, 2×/dia, 7 dias</span>
+                <div class="pc-regra" th:each="r : ${t.regras}" th:text="${r}">comeu pouco → dose mínima</div>
+                <div class="pc-progresso"><span th:style="'width:' + ${t.percentual} + '%'"></span></div>
+                <b th:text="${t.registrados + ' de ' + t.total + ' dias registrados'}">2 de 7 dias registrados</b>
+            </section>
+
+            <section class="pc-cartao" th:unless="${#lists.isEmpty(plano.cuidados)}">
+                <span class="pc-eyebrow" th:text="'Plano ativo · ' + ${@rotulos.de(plano.categoria)}">Plano ativo · Preventivo</span>
+                <ul class="pc-cuidados">
+                    <li th:each="c : ${plano.cuidados}">
+                        <span>
+                            <b th:text="${c.nome}">Antirrábica</b>
+                            <span class="pc-sub" th:text="${#temporals.format(c.dataAlvo, 'dd/MM/yyyy')}">01/01/2027</span>
+                        </span>
+                        <span class="pc-chip espera" th:if="${c.vencido}">vencido</span>
+                    </li>
+                </ul>
+                <span class="pc-sub" th:if="${plano.cuidadosOcultos > 0}"
+                      th:text="${'e mais ' + plano.cuidadosOcultos + ' cuidados adiante'}">e mais 3</span>
+                <span class="pc-sub" th:if="${plano.cuidadosFeitos > 0}"
+                      th:text="${plano.cuidadosFeitos + ' já feitos'}">2 já feitos</span>
+            </section>
+        </th:block>
+
+        <section class="pc-cartao contorno" th:if="${#lists.isEmpty(ficha.planos)}">
+            <span class="pc-eyebrow">Plano</span>
+            <h2>Sem plano ativo</h2>
+            <span class="pc-sub">O plano preventivo nasce com o cadastro; um tratamento nasce da receita assinada no atendimento.</span>
+        </section>
+    </div>
+
+    <section class="pc-cartao">
+        <div class="pc-linha-cab">
+            <h2>Linha do tempo</h2>
+            <div class="pc-seg">
+                <button type="button" class="on" data-filtro="TUDO">Tudo</button>
+                <button type="button" data-filtro="CONSULTA">Consultas</button>
+                <button type="button" data-filtro="CHECKIN">Check-ins</button>
+                <button type="button" data-filtro="PLANO">Plano</button>
+            </div>
+        </div>
+        <p class="pc-vazio" th:if="${#lists.isEmpty(ficha.linhaTempo)}">Nada registrado ainda para este paciente.</p>
+        <ul class="pc-linha">
+            <li class="pc-linha-item" th:each="e : ${ficha.linhaTempo}" th:attr="data-tipo=${e.tipo}">
+                <span class="pc-chip" th:classappend="${e.estilo}" th:text="${e.selo}">alarme</span>
+                <div>
+                    <b th:text="${e.comHora ? #temporals.format(e.quando, 'dd/MM · HH:mm') : #temporals.format(e.quando, 'dd/MM/yyyy')} + ' · ' + ${e.titulo}">22/10 · 21:00 · Check-in</b>
+                    <span class="detalhe" th:text="${e.detalhe}">detalhe</span>
+                </div>
             </li>
         </ul>
     </section>
 
-    <section class="bloco">
-        <h2>Consultas</h2>
-        <p th:if="${#lists.isEmpty(consultas)}">Nenhuma consulta registrada.</p>
-        <table th:unless="${#lists.isEmpty(consultas)}">
-            <thead>
-            <tr><th>Data</th><th>Tipo</th><th>Status</th><th>Ações</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="consulta : ${consultas}">
-                <td th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
-                <td th:text="${consulta.tipo}">ROTINA</td>
-                <td><span class="selo" th:text="${consulta.status}">AGENDADA</span></td>
-                <td>
-                    <a th:if="${statusFechavel.contains(consulta.status)}"
-                       th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
-                    <span th:unless="${statusFechavel.contains(consulta.status)}" class="texto-fraco">—</span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <section class="bloco">
-        <h2>Instanciar plano de cuidado</h2>
-        <p>O motor resolve o protocolo mais específico da clínica para este animal e materializa os eventos do plano.</p>
-        <form class="formulario" method="post" th:action="@{/pacientes/{id}/planos(id=${animal.id})}" th:object="${novoPlanoForm}">
+    <details class="pc-cartao contorno">
+        <summary>Instanciar plano de cuidado manualmente</summary>
+        <p class="pc-sub">O sistema escolhe o modelo de plano mais específico para este animal e cria os cuidados.</p>
+        <form class="formulario" method="post" th:action="@{/pacientes/{id}/planos(id=${ficha.animal.id})}" th:object="${novoPlanoForm}">
 
             <label for="categoria">Categoria do plano</label>
             <select id="categoria" th:field="*{categoria}">
                 <option value="">Selecione</option>
                 <option th:each="valor : ${categoriasProtocolo}"
-                        th:value="${valor}" th:text="${valor}">PREVENTIVO</option>
+                        th:value="${valor}" th:text="${@rotulos.de(valor)}">PREVENTIVO</option>
             </select>
             <div class="erro-campo" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">erro</div>
 
@@ -87,7 +118,7 @@
             <select id="consultaId" th:field="*{consultaId}">
                 <option value="">Nenhuma</option>
                 <option th:each="consulta : ${consultas}" th:value="${consulta.id}"
-                        th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')} + ' — ' + ${consulta.tipo}">
+                        th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')} + ' — ' + ${@rotulos.de(consulta.tipo)}">
                     consulta
                 </option>
             </select>
@@ -96,10 +127,12 @@
             </div>
 
             <div class="acoes-formulario">
-                <button type="submit">Instanciar plano</button>
+                <button type="submit" class="botao secundario">Instanciar plano</button>
             </div>
         </form>
-    </section>
+    </details>
+
+    <script th:src="@{/js/linha-do-tempo.js}" defer="defer"></script>
 </main>
 </body>
 </html>

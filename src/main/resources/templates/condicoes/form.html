@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Condição · PetBuddies</title>
+</head>
+<body>
+<main>
+    <div class="cabecalho-pagina">
+        <div>
+            <p class="subtitulo"><a th:href="@{/condicoes}">← Condições</a></p>
+            <h1 th:text="${condicaoId == null} ? 'Nova condição' : 'Editar condição'">Nova condição</h1>
+        </div>
+    </div>
+
+    <form method="post" th:action="@{${acaoFormulario}}" th:object="${condicaoForm}" id="condicao-form">
+        <div class="pc-duas-colunas">
+            <div class="pc-cartao pc-campos">
+                <label for="rotulo">Nome</label>
+                <input id="rotulo" type="text" th:field="*{rotulo}" placeholder="Ex.: Temperatura" autofocus="autofocus"/>
+                <div class="erro-campo" th:if="${#fields.hasErrors('rotulo')}" th:errors="*{rotulo}">erro</div>
+
+                <label>Tipo</label>
+                <th:block th:if="${tipoTravado}">
+                    <input type="hidden" name="tipoDado" th:value="${condicaoForm.tipoDado}"/>
+                    <p class="pc-sub">
+                        <b th:text="${@rotulos.de(condicaoForm.tipoDado)}">Número</b>
+                        · o tipo não muda porque a condição já tem regra ou relato.
+                    </p>
+                </th:block>
+                <div class="pc-seg" th:unless="${tipoTravado}">
+                    <label class="pc-opcao"><input type="radio" th:field="*{tipoDado}" value="BOOLEANO"/> Sim/não</label>
+                    <label class="pc-opcao"><input type="radio" th:field="*{tipoDado}" value="NUMERICO"/> Número</label>
+                </div>
+
+                <div id="campo-unidade" class="pc-unidade">
+                    <label for="unidade">Unidade</label>
+                    <input id="unidade" type="text" th:field="*{unidade}" placeholder="°C, kg, bpm"/>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('unidade')}" th:errors="*{unidade}">erro</div>
+                </div>
+                <div class="erro-campo" th:if="${#fields.hasErrors('unidadeQuandoNumerica')}" th:errors="*{unidadeQuandoNumerica}">erro</div>
+
+                <label for="fonteValor">Fonte</label>
+                <select id="fonteValor" th:field="*{fonteValor}">
+                    <option th:each="f : ${fontes}" th:value="${f}" th:text="${@rotulos.de(f)}">RELATO</option>
+                </select>
+
+                <div class="campo-checkbox">
+                    <input id="critica" type="checkbox" th:field="*{critica}"/>
+                    <label for="critica">Sinal de alarme</label>
+                </div>
+                <span class="pc-sub">Um relato com este sinal sempre chega à veterinária, mesmo quando há regra na receita.</span>
+
+                <label>Código gerado</label>
+                <div class="pc-codigo" id="codigo-gerado" th:attr="data-fixo=${codigoAtual}" th:text="${codigoAtual}">TEMPERATURA</div>
+            </div>
+
+            <div class="pc-cartao info pc-previa">
+                <span class="pc-eyebrow">Como aparece</span>
+                <span>Na regra de uma receita, a condição numérica ganha operador e limite:</span>
+                <div class="pc-regra" id="previa-numerica">temperatura &gt; 39,5 °C → acionar clínica</div>
+                <span class="pc-sub">Condição sim/não aparece sem limite:</span>
+                <div class="pc-regra" id="previa-booleana">comeu pouco → dose mínima</div>
+            </div>
+        </div>
+
+        <div class="pc-acoes-form">
+            <button type="submit">Salvar condição</button>
+            <a class="botao secundario" th:href="@{/condicoes}">Cancelar</a>
+        </div>
+    </form>
+
+    <script th:src="@{/js/condicao-form.js}" defer="defer"></script>
+</main>
+</body>
+</html>
