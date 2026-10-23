@@ -189,8 +189,9 @@ public class FechamentoAtendimentoService {
             prescricao.setDuracaoDias(pr.getDuracaoDias());
             prescricao.setDataInicio(pr.getDataInicio());
             prescricao.setOrientacao(pr.getOrientacao());
-            prescricao.setMaterialOrigemId(pr.getMaterialOrigemId());
-            prescricao.setVersaoOrigem(pr.getVersaoOrigem());
+            boolean daReceitaModelo = pr.getReceitaModeloId() != null;
+            prescricao.setMaterialOrigemId(daReceitaModelo ? pr.getReceitaModeloId() : pr.getMaterialOrigemId());
+            prescricao.setVersaoOrigem(daReceitaModelo ? pr.getReceitaModeloVersao() : pr.getVersaoOrigem());
             prescricao.setAnimal(animal);
             prescricao.setVeterinario(veterinario);
             prescricao.setRegistroAtendimento(registro);
