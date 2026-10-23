@@ -8,20 +8,20 @@ import br.com.fiap.petbuddies.domain.enums.cadastro.Sexo;
 import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalRequest;
 import br.com.fiap.petbuddies.dto.cadastro.AnimalResponse;
+import br.com.fiap.petbuddies.dto.paciente.FiltroPaciente;
 import br.com.fiap.petbuddies.dto.atendimento.ConsultaResponse;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResponse;
 import br.com.fiap.petbuddies.service.cadastro.AnimalService;
+import br.com.fiap.petbuddies.service.cadastro.PacientePainelService;
 import br.com.fiap.petbuddies.service.atendimento.ConsultaService;
 import br.com.fiap.petbuddies.service.cuidado.MotorPlanoService;
 import br.com.fiap.petbuddies.service.cadastro.ResponsavelService;
 import br.com.fiap.petbuddies.web.form.NovoPlanoForm;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 // Cadastro de pacientes e, na ficha, o fluxo de instanciar plano de cuidado a partir de protocolo.
@@ -41,16 +42,19 @@ public class PacientesWebController {
     private final ResponsavelService responsavelService;
     private final ConsultaService consultaService;
     private final MotorPlanoService motorPlanoService;
+    private final PacientePainelService pacientePainelService;
 
     public PacientesWebController(
             AnimalService animalService,
             ResponsavelService responsavelService,
             ConsultaService consultaService,
-            MotorPlanoService motorPlanoService) {
+            MotorPlanoService motorPlanoService,
+            PacientePainelService pacientePainelService) {
         this.animalService = animalService;
         this.responsavelService = responsavelService;
         this.consultaService = consultaService;
         this.motorPlanoService = motorPlanoService;
+        this.pacientePainelService = pacientePainelService;
     }
 
     // Os enums entram pelo Model, e nao por T(FQN) no template: assim o compilador
@@ -76,15 +80,14 @@ public class PacientesWebController {
     }
 
     @GetMapping
-    public String listar(Model model) {
-        List<AnimalResponse> pacientes = animalService.listar(null, null).stream()
-                .map(AnimalResponse::from)
-                .toList();
-        Map<Long, String> nomesResponsaveis = responsavelService.listar(null).stream()
-                .collect(Collectors.toMap(ResponsavelEntity::getId, ResponsavelEntity::getNome));
-
-        model.addAttribute("pacientes", pacientes);
-        model.addAttribute("nomesResponsaveis", nomesResponsaveis);
+    public String listar(
+            @RequestParam(required = false) String busca,
+            @RequestParam(defaultValue = "TODOS") FiltroPaciente filtro,
+            Model model) {
+        model.addAttribute("pacientes", pacientePainelService.listar(busca, filtro));
+        model.addAttribute("busca", busca);
+        model.addAttribute("filtro", filtro);
+        model.addAttribute("filtros", FiltroPaciente.values());
         return "pacientes/lista";
     }
 
@@ -147,6 +150,7 @@ public class PacientesWebController {
     public String ficha(@PathVariable Long id, Model model) {
         AnimalEntity animal = animalService.buscarPorId(id);
         carregarFicha(animal, model);
+        model.addAttribute("ficha", pacientePainelService.ficha(id));
         if (!model.containsAttribute("novoPlanoForm")) {
             model.addAttribute("novoPlanoForm", new NovoPlanoForm());
         }
@@ -164,6 +168,7 @@ public class PacientesWebController {
         AnimalEntity animal = animalService.buscarPorId(id);
         if (result.hasErrors()) {
             carregarFicha(animal, model);
+            model.addAttribute("ficha", pacientePainelService.ficha(id));
             return "pacientes/ficha";
         }
 
