@@ -34,9 +34,9 @@ public class Formatador {
         return d.substring(0, 2) + "." + d.substring(2, 5) + "." + d.substring(5, 8) + "/" + d.substring(8, 12) + "-" + d.substring(12);
     }
 
-    /** 21h ou 21h30. */
+    /** 09h ou 09h30. */
     public String hora(LocalTime hora) {
-        return hora.getMinute() == 0 ? hora.getHour() + "h" : String.format("%dh%02d", hora.getHour(), hora.getMinute());
+        return hora.getMinute() == 0 ? String.format("%02dh", hora.getHour()) : String.format("%02dh%02d", hora.getHour(), hora.getMinute());
     }
 
     public String hora(LocalDateTime dataHora) {
