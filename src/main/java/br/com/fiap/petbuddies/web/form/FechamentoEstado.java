@@ -19,13 +19,22 @@ public record FechamentoEstado(
         List<RegraEstado> regras,
         Map<String, String> tipos,
         Map<String, String> operadores,
-        Map<String, String> acoes) {
+        Map<String, String> acoes,
+        String receitaModeloId,
+        String receitaModeloVersao,
+        List<ReceitaOpcao> receitasModelo) {
 
     public record ItemAberto(String id, String nome, String tipo, String data, boolean vencido) {
     }
 
     /** {@code tipo} é BOOLEANO ou NUMERICO. */
     public record CondicaoOpcao(String id, String rotulo, String tipo, String unidade, boolean alarme) {
+    }
+
+    /** Receita-modelo ativa da clínica, com os números já em texto para preencher os campos como vieram. */
+    public record ReceitaOpcao(String id, String versao, String titulo, String medicamento, String doseMin,
+                               String doseMax, String unidade, String frequenciaDia, String duracaoDias,
+                               String orientacao, List<RegraEstado> regras) {
     }
 
     public record RegraEstado(String condicaoClinicaId, String operador, String limite, String acaoDose) {

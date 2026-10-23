@@ -138,6 +138,26 @@
                 </div>
 
                 <div x-show="prescrever">
+                    <div class="pc-aplicar" th:unless="${#lists.isEmpty(receitasModelo)}">
+                        <div>
+                            <label for="receitaModelo">Aplicar receita-modelo</label>
+                            <select id="receitaModelo" x-model="modeloEscolhido">
+                                <option value="">Escolha uma receita-modelo</option>
+                                <template x-for="modelo in receitasModelo" x-bind:key="modelo.id">
+                                    <option x-bind:value="modelo.id" x-text="modelo.titulo"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <button type="button" class="botao secundario" x-bind:disabled="modeloEscolhido === ''"
+                                x-on:click="aplicarReceitaModelo()">Aplicar</button>
+                    </div>
+                    <input type="hidden" name="prescricao.receitaModeloId" x-bind:value="origemId"/>
+                    <input type="hidden" name="prescricao.receitaModeloVersao" x-bind:value="origemVersao"/>
+                    <p class="pc-sub" x-show="origemId !== ''" x-cloak="x-cloak">
+                        Preenchido da receita-modelo &middot; revise. Editar aqui não muda a receita-modelo.
+                        <span x-show="regrasIgnoradas > 0"
+                              x-text="regrasIgnoradas + (regrasIgnoradas === 1 ? ' regra ficou de fora' : ' regras ficaram de fora') + ' porque a condição está desativada.'"></span>
+                    </p>
                     <div class="pc-grade4">
                         <div class="pc-largo">
                             <label for="medicamento">Medicamento</label>

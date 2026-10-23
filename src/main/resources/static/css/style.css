@@ -871,6 +871,8 @@ a.sem-cel.livre:hover { border-color: var(--cor-marca); color: var(--cor-marca-e
 .pc-pergunta { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.6rem; }
 .pc-pergunta h2 { margin: 0; }
 .pc-grade2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.2rem 1rem; }
+.pc-aplicar { display: flex; align-items: flex-end; gap: 0.75rem; margin-bottom: 0.4rem; }
+.pc-aplicar > div { flex: 1; }
 .pc-grade4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.2rem 1rem; }
 .pc-grade4 .pc-largo { grid-column: span 2; }
 .pc-mais { margin-top: 0.8rem; }

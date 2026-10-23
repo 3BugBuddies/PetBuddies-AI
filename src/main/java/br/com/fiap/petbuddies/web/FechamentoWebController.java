@@ -6,6 +6,7 @@ import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
 import br.com.fiap.petbuddies.dto.atendimento.FechamentoAtendimentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.FechamentoAtendimentoResponse;
+import br.com.fiap.petbuddies.dto.prescricao.ReceitaModeloResponse;
 import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoFechamentoRequest;
 import br.com.fiap.petbuddies.exception.atendimento.ItemPlanoInvalidoParaProcedimentoException;
 import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
@@ -15,6 +16,7 @@ import br.com.fiap.petbuddies.service.atendimento.FechamentoPainelService.Prepar
 import br.com.fiap.petbuddies.web.form.FechamentoEstado;
 import br.com.fiap.petbuddies.web.form.FechamentoEstado.CondicaoOpcao;
 import br.com.fiap.petbuddies.web.form.FechamentoEstado.ItemAberto;
+import br.com.fiap.petbuddies.web.form.FechamentoEstado.ReceitaOpcao;
 import br.com.fiap.petbuddies.web.form.FechamentoEstado.RegraEstado;
 import br.com.fiap.petbuddies.web.form.FechamentoPainelForm;
 import jakarta.validation.ConstraintViolation;
@@ -75,10 +77,11 @@ public class FechamentoWebController {
     public String abrir(@PathVariable Long consultaId, Model model) {
         PreparoFechamento preparo = fechamentoPainelService.preparar(consultaId);
         FechamentoPainelForm form = new FechamentoPainelForm();
-        LocalDateTime agora = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
-        form.getRegistro().setDataAtendimento(agora);
+        // O padrão é a hora da consulta: o atendimento já aconteceu nela, e fechar mais tarde não a muda.
+        LocalDateTime daConsulta = preparo.consulta().getDataHora().truncatedTo(ChronoUnit.MINUTES);
+        form.getRegistro().setDataAtendimento(daConsulta);
         form.getRegistro().setPeso(preparo.pesoAtual());
-        form.getProcedimento().setData(agora);
+        form.getProcedimento().setData(daConsulta);
         form.getPrescricao().setDataInicio(LocalDate.now());
         carregar(model, preparo, form, 1);
         model.addAttribute("fechamentoForm", form);
@@ -141,6 +144,7 @@ public class FechamentoWebController {
         model.addAttribute("consulta", preparo.consulta());
         model.addAttribute("animalNome", preparo.animalNome());
         model.addAttribute("condicoes", preparo.condicoes());
+        model.addAttribute("receitasModelo", preparo.receitasModelo());
         model.addAttribute("estado", estado(preparo, form, etapa));
     }
 
@@ -161,13 +165,32 @@ public class FechamentoWebController {
                         r.getLimite() == null ? "" : r.getLimite().toPlainString(),
                         r.getAcaoDose() == null ? "" : r.getAcaoDose().name()))
                 .toList();
+        List<ReceitaOpcao> receitasModelo = preparo.receitasModelo().stream().map(FechamentoWebController::opcao).toList();
+        var prescricao = form.getPrescricao();
         var procedimento = form.getProcedimento();
         return new FechamentoEstado(etapa, form.isHouveProcedimento(), form.isPrescrever(),
                 procedimento.getTipo() == null ? TipoProcedimento.VACINACAO.name() : procedimento.getTipo().name(),
                 procedimento.getItemPlanoId() == null ? "" : procedimento.getItemPlanoId().toString(),
                 procedimento.getNome() == null ? "" : procedimento.getNome(),
                 itens, condicoes, regras,
-                mapa(TipoProcedimento.values()), mapa(OperadorRegra.values()), mapa(TipoAcaoRegra.values()));
+                mapa(TipoProcedimento.values()), mapa(OperadorRegra.values()), mapa(TipoAcaoRegra.values()),
+                prescricao.getReceitaModeloId() == null ? "" : prescricao.getReceitaModeloId().toString(),
+                prescricao.getReceitaModeloVersao() == null ? "" : prescricao.getReceitaModeloVersao().toString(),
+                receitasModelo);
+    }
+
+    private static ReceitaOpcao opcao(ReceitaModeloResponse r) {
+        List<RegraEstado> regras = r.getRegras().stream()
+                .map(g -> new RegraEstado(
+                        g.getCondicaoClinicaId().toString(),
+                        g.getOperador() == null ? "" : g.getOperador().name(),
+                        g.getLimite() == null ? "" : g.getLimite().stripTrailingZeros().toPlainString(),
+                        g.getAcaoDose().name()))
+                .toList();
+        return new ReceitaOpcao(r.getId().toString(), r.getVersao().toString(), r.getTitulo(), r.getMedicamento(),
+                r.getDoseMin().toPlainString(), r.getDoseMax().toPlainString(), r.getUnidade(),
+                r.getFrequenciaDia().toString(), r.getDuracaoDias().toString(),
+                r.getOrientacao() == null ? "" : r.getOrientacao(), regras);
     }
 
     private Map<String, String> mapa(Enum<?>[] valores) {

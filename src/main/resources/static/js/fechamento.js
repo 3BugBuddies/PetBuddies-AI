@@ -15,6 +15,11 @@ document.addEventListener('alpine:init', function () {
             itensAbertos: inicial.itensAbertos,
             condicoes: inicial.condicoes,
             regras: inicial.regras,
+            receitasModelo: inicial.receitasModelo,
+            modeloEscolhido: '',
+            origemId: inicial.receitaModeloId,
+            origemVersao: inicial.receitaModeloVersao,
+            regrasIgnoradas: 0,
             resumo: { regras: [] },
 
             get comItemNoPlano() {
@@ -51,6 +56,35 @@ document.addEventListener('alpine:init', function () {
 
             novaRegra: function () {
                 this.regras.push({ condicaoClinicaId: '', operador: '', limite: '', acaoDose: '' });
+            },
+            // Copia o molde para os campos e guarda de onde veio; depois disso a receita é da consulta.
+            aplicarReceitaModelo: function () {
+                var id = this.modeloEscolhido;
+                var modelo = this.receitasModelo.find(function (m) { return m.id === id; });
+                if (!modelo) {
+                    return;
+                }
+                var self = this;
+                var campos = {
+                    'prescricao.medicamento': modelo.medicamento,
+                    'prescricao.doseMin': modelo.doseMin,
+                    'prescricao.doseMax': modelo.doseMax,
+                    'prescricao.unidade': modelo.unidade,
+                    'prescricao.frequenciaDia': modelo.frequenciaDia,
+                    'prescricao.duracaoDias': modelo.duracaoDias,
+                    'prescricao.orientacao': modelo.orientacao
+                };
+                Object.keys(campos).forEach(function (nome) {
+                    self.$refs.form.elements[nome].value = campos[nome];
+                });
+                var ativas = this.condicoes.map(function (c) { return c.id; });
+                var cabem = modelo.regras.filter(function (r) { return ativas.indexOf(r.condicaoClinicaId) >= 0; });
+                this.regrasIgnoradas = modelo.regras.length - cabem.length;
+                this.regras = cabem.map(function (r) {
+                    return { condicaoClinicaId: r.condicaoClinicaId, operador: r.operador, limite: r.limite, acaoDose: r.acaoDose };
+                });
+                this.origemId = modelo.id;
+                this.origemVersao = modelo.versao;
             },
             condicao: function (regra) {
                 return this.condicoes.find(function (c) { return c.id === String(regra.condicaoClinicaId); });
