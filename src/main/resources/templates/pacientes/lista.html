@@ -52,7 +52,7 @@
                 </td>
                 <td>
                     <span th:text="${p.responsavelNome}">Joana</span>
-                    <span class="pc-sub" th:text="${p.responsavelTelefone}">(11) 91234-5678</span>
+                    <span class="pc-sub" th:text="${@formatador.telefone(p.responsavelTelefone)}">(11) 91234-5678</span>
                 </td>
                 <td>
                     <span class="pc-chip" th:if="${p.planoCategoria == null}">Sem plano</span>

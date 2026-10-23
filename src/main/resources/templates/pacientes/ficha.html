@@ -16,7 +16,7 @@
                th:text="${@rotulos.de(ficha.animal.especie) + ' · ' + (ficha.animal.raca == 'SEM_RACA' ? 'Sem raça definida' : ficha.animal.raca) + ' · ' + @rotulos.de(ficha.animal.porte) + ' · ' + @rotulos.de(ficha.animal.sexo) + ' · ' + ficha.idade + (ficha.animal.peso != null ? ' · ' + @rotulos.numero(ficha.animal.peso) + ' kg' : '')}">
                 Cão · Vira-lata · Médio · Fêmea · 5 anos · 12,4 kg</p>
             <p class="pc-meta">Responsável: <b th:text="${ficha.animal.responsavelNome}">Joana</b>
-                · <span th:text="${ficha.animal.responsavelTelefone}">(11) 91234-5678</span></p>
+                · <span th:text="${@formatador.telefone(ficha.animal.responsavelTelefone)}">(11) 91234-5678</span></p>
             <p class="pc-meta pc-aviso-clinico"
                th:if="${ficha.animal.alergias != null and !#strings.isEmpty(ficha.animal.alergias)}">
                 Alergias: <b th:text="${ficha.animal.alergias}">nenhuma</b></p>
