@@ -10,6 +10,9 @@ import br.com.fiap.petbuddies.domain.enums.atendimento.StatusConsulta;
 import br.com.fiap.petbuddies.dto.atendimento.ConsultaAgendaDto;
 import br.com.fiap.petbuddies.dto.atendimento.JanelaAtendimentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.JanelaLivreDto;
+import br.com.fiap.petbuddies.dto.atendimento.ModeloSemanal;
+import br.com.fiap.petbuddies.dto.atendimento.ModeloSemanal.Faixa;
+import br.com.fiap.petbuddies.dto.atendimento.PrevisaoJanelas;
 import br.com.fiap.petbuddies.dto.atendimento.SemanaAgendaDto;
 import br.com.fiap.petbuddies.dto.atendimento.SemanaAgendaDto.Celula;
 import br.com.fiap.petbuddies.dto.atendimento.SemanaAgendaDto.Estado;
@@ -40,6 +43,7 @@ import java.util.TreeSet;
 public class JanelaAtendimentoService {
 
     private static final long MAX_DIAS_PERIODO = 62;
+    private static final int MAX_SEMANAS_GERADAS = 8;
 
     private final JanelaAtendimentoRepository repository;
     private final VeterinarioRepository veterinarioRepository;
@@ -160,6 +164,84 @@ public class JanelaAtendimentoService {
         Estado estado = consulta.getStatus() == StatusConsulta.REALIZADA ? Estado.REALIZADA : Estado.OCUPADA;
         return new Celula(estado, janelaId,
                 ConsultaAgendaDto.from(consulta, ConsultaService.STATUS_FECHAVEL.contains(consulta.getStatus())));
+    }
+
+    /** Conta o que o modelo abriria para o veterinário, a partir de amanhã, sem gravar nada. */
+    @Transactional(readOnly = true)
+    public PrevisaoJanelas prever(Long veterinarioId, ModeloSemanal modelo) {
+        validar(modelo);
+        LocalDate de = LocalDate.now().plusDays(1);
+        LocalDate ate = de.plusWeeks(modelo.semanas()).minusDays(1);
+
+        Set<LocalDateTime> existentes = new HashSet<>(
+                repository.findInicios(veterinarioId, de.atStartOfDay(), ate.plusDays(1).atStartOfDay()));
+        List<LocalDateTime> novas = new ArrayList<>();
+        int jaExistem = 0;
+        int bloqueadas = 0;
+        for (LocalDate dia = de; !dia.isAfter(ate); dia = dia.plusDays(1)) {
+            for (LocalDateTime inicio : iniciosDoDia(modelo, dia)) {
+                if (modelo.bloqueados().contains(dia)) {
+                    bloqueadas++;
+                } else if (existentes.contains(inicio)) {
+                    jaExistem++;
+                } else {
+                    novas.add(inicio);
+                }
+            }
+        }
+        return new PrevisaoJanelas(novas, jaExistem, bloqueadas, de, ate);
+    }
+
+    /** Abre as janelas que {@link #prever} contou. Devolve quantas foram criadas. */
+    @Transactional
+    public int gerar(Long veterinarioId, ModeloSemanal modelo) {
+        PrevisaoJanelas previsao = prever(veterinarioId, modelo);
+        VeterinarioEntity veterinario = veterinarioRepository.findById(veterinarioId)
+                .orElseThrow(() -> new VeterinarioNaoEncontradoException(veterinarioId));
+        List<JanelaAtendimentoEntity> janelas = previsao.inicios().stream().map(inicio -> {
+            JanelaAtendimentoEntity janela = new JanelaAtendimentoEntity();
+            janela.setDataHoraInicio(inicio);
+            janela.setVeterinario(veterinario);
+            return janela;
+        }).toList();
+        repository.saveAll(janelas);
+        return janelas.size();
+    }
+
+    // Faixas sobrepostas no mesmo dia não duplicam horário: o TreeSet ordena e deduplica.
+    private Set<LocalDateTime> iniciosDoDia(ModeloSemanal modelo, LocalDate dia) {
+        Set<LocalDateTime> inicios = new TreeSet<>();
+        for (Faixa faixa : modelo.faixas()) {
+            if (faixa.dia() != dia.getDayOfWeek()) {
+                continue;
+            }
+            int fim = faixa.fim().toSecondOfDay() / 60;
+            for (int minuto = faixa.inicio().toSecondOfDay() / 60; minuto + modelo.duracaoMinutos() <= fim;
+                    minuto += modelo.duracaoMinutos()) {
+                inicios.add(dia.atTime(LocalTime.ofSecondOfDay(minuto * 60L)));
+            }
+        }
+        return inicios;
+    }
+
+    private void validar(ModeloSemanal modelo) {
+        if (modelo.duracaoMinutos() < 5 || modelo.duracaoMinutos() > 240) {
+            throw new PeriodoInvalidoException("A duração da consulta deve ficar entre 5 e 240 minutos.");
+        }
+        if (modelo.semanas() < 1 || modelo.semanas() > MAX_SEMANAS_GERADAS) {
+            throw new PeriodoInvalidoException("O número de semanas deve ficar entre 1 e " + MAX_SEMANAS_GERADAS + ".");
+        }
+        if (modelo.faixas().isEmpty()) {
+            throw new PeriodoInvalidoException("Informe ao menos uma faixa de atendimento.");
+        }
+        for (Faixa faixa : modelo.faixas()) {
+            if (faixa.inicio() == null || faixa.fim() == null) {
+                throw new PeriodoInvalidoException("Preencha o início e o fim de cada faixa.");
+            }
+            if (!faixa.fim().isAfter(faixa.inicio())) {
+                throw new PeriodoInvalidoException("Em cada faixa, o fim deve ser depois do início.");
+            }
+        }
     }
 
     @Transactional

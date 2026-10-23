@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Horários · PetBuddies</title>
+</head>
+<body>
+<main class="pn-main">
+    <div class="pn-head">
+        <div>
+            <div class="sub">Modelo semanal · não fica gravado, só abre as janelas</div>
+            <h1 class="pn-h1">Horários da <span th:text="${vet.nome}">Ana Souza</span></h1>
+        </div>
+        <a class="pn-btn line" th:href="@{/agenda}">Ver a agenda</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+    <p class="mensagem-erro" th:if="${erroModelo}" th:text="${erroModelo}">erro</p>
+
+    <form method="post" th:action="@{/horarios/previa}" th:object="${horariosForm}" class="pn-main" id="form-horarios">
+        <div class="pn-card" style="padding:8px 16px">
+            <table class="pn-table">
+                <thead>
+                <tr><th style="width:110px">Dia</th><th>Faixas de atendimento</th><th style="width:70px">Horas</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="dia : ${diasDaSemana}" th:attr="data-dia=${dia.name()}">
+                    <td><b th:text="${@formatador.diaDaSemana(dia)}">Segunda</b></td>
+                    <td>
+                        <div class="horarios-dia">
+                            <th:block th:each="faixa, st : *{faixas}">
+                                <div class="faixa" th:if="${faixa != null and faixa.dia == dia}">
+                                    <input type="hidden" th:field="*{faixas[__${st.index}__].dia}"/>
+                                    <input type="time" class="pn-input" th:field="*{faixas[__${st.index}__].inicio}"/>
+                                    <span>às</span>
+                                    <input type="time" class="pn-input" th:field="*{faixas[__${st.index}__].fim}"/>
+                                    <button type="button" class="pn-btn ghost sm" data-remover title="Remover faixa">&times;</button>
+                                </div>
+                            </th:block>
+                            <div><button type="button" class="pn-btn line sm" data-add-faixa>+ faixa</button></div>
+                        </div>
+                    </td>
+                    <td><span data-horas>0h</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pn-split igual">
+            <div class="pn-card brand">
+                <div class="pn-row">
+                    <div class="pn-field" style="width:160px">
+                        <label for="duracao">Duração da consulta (min)</label>
+                        <input id="duracao" type="number" min="5" max="240" step="5" class="pn-input" th:field="*{duracao}"/>
+                    </div>
+                    <div class="pn-field" style="width:180px">
+                        <label for="semanas">Gerar para (semanas)</label>
+                        <input id="semanas" type="number" min="1" max="8" class="pn-input" th:field="*{semanas}"/>
+                    </div>
+                </div>
+                <div class="pn-erro" th:if="${#fields.hasErrors('duracao')}" th:errors="*{duracao}">erro</div>
+                <div class="pn-erro" th:if="${#fields.hasErrors('semanas')}" th:errors="*{semanas}">erro</div>
+
+                <div th:if="${previsao != null}">
+                    <b th:if="${previsao.aAbrir > 0}">
+                        Isso abre <span th:text="${previsao.aAbrir}">252</span> <span th:text="${previsao.aAbrir == 1} ? 'janela' : 'janelas'">janelas</span>,
+                        de <span th:text="${#temporals.format(previsao.de, 'dd/MM')}">23/10</span>
+                        a <span th:text="${#temporals.format(previsao.ate, 'dd/MM')}">19/11</span>.
+                    </b>
+                    <b th:unless="${previsao.aAbrir > 0}">Nenhuma janela nova de
+                        <span th:text="${#temporals.format(previsao.de, 'dd/MM')}">23/10</span> a
+                        <span th:text="${#temporals.format(previsao.ate, 'dd/MM')}">19/11</span>.</b>
+                    <div class="pn-muted">
+                        <span th:text="${previsao.jaExistem}">0</span> já existem e ficam como estão ·
+                        <span th:text="${previsao.bloqueadas}">0</span> caem em dia bloqueado.
+                        Conta a partir de amanhã.
+                    </div>
+                </div>
+                <div class="pn-muted" th:if="${previsao == null}">
+                    Calcule primeiro: a contagem aparece aqui antes de gerar. A conta começa amanhã.
+                </div>
+
+                <div class="pn-row">
+                    <button type="submit" class="pn-btn line">Calcular janelas</button>
+                    <button type="submit" class="pn-btn" th:formaction="@{/horarios/gerar}"
+                            th:disabled="${previsao == null or previsao.aAbrir == 0}">Gerar janelas</button>
+                </div>
+            </div>
+
+            <div class="pn-card flat">
+                <div class="pn-row pn-between">
+                    <h2 class="pn-h2">Dias bloqueados</h2>
+                    <button type="button" class="pn-btn line sm" data-add-bloqueio>+ Bloquear dia</button>
+                </div>
+                <p class="pn-muted">Feriados e folgas: nenhuma janela é aberta nesses dias.</p>
+                <div id="bloqueios" class="horarios-dia">
+                    <div class="faixa" th:each="dia, st : *{bloqueados}">
+                        <input type="date" class="pn-input" style="width:170px" th:field="*{bloqueados[__${st.index}__]}"/>
+                        <button type="button" class="pn-btn ghost sm" data-remover title="Remover">&times;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <template id="tpl-faixa">
+        <div class="faixa">
+            <input type="hidden" name="faixas[__I__].dia" value="__DIA__"/>
+            <input type="time" class="pn-input" name="faixas[__I__].inicio"/>
+            <span>às</span>
+            <input type="time" class="pn-input" name="faixas[__I__].fim"/>
+            <button type="button" class="pn-btn ghost sm" data-remover title="Remover faixa">&times;</button>
+        </div>
+    </template>
+    <template id="tpl-bloqueio">
+        <div class="faixa">
+            <input type="date" class="pn-input" style="width:170px" name="bloqueados[__I__]"/>
+            <button type="button" class="pn-btn ghost sm" data-remover title="Remover">&times;</button>
+        </div>
+    </template>
+
+    <script>
+        (function () {
+            var form = document.getElementById('form-horarios');
+            // Índices novos partem de um número alto: os da linha já renderizada não podem colidir.
+            var proximo = 1000;
+            function minutos(v) { var p = (v || '').split(':'); return p.length < 2 ? 0 : (+p[0]) * 60 + (+p[1]); }
+            function horas() {
+                form.querySelectorAll('tr[data-dia]').forEach(function (linha) {
+                    var total = 0;
+                    linha.querySelectorAll('.faixa').forEach(function (f) {
+                        var t = f.querySelectorAll('input[type=time]');
+                        if (t.length === 2 && t[0].value && t[1].value) total += Math.max(0, minutos(t[1].value) - minutos(t[0].value));
+                    });
+                    var h = total / 60;
+                    linha.querySelector('[data-horas]').textContent = (h % 1 === 0 ? h : h.toFixed(1)) + 'h';
+                });
+            }
+            function inserir(modelo, alvo, posicao, dia) {
+                var html = document.getElementById(modelo).innerHTML.split('__I__').join(proximo++).split('__DIA__').join(dia || '');
+                alvo.insertAdjacentHTML(posicao, html);
+                horas();
+            }
+            form.addEventListener('click', function (e) {
+                var add = e.target.closest('[data-add-faixa]');
+                if (add) { inserir('tpl-faixa', add.parentNode, 'beforebegin', add.closest('tr').dataset.dia); return; }
+                if (e.target.closest('[data-add-bloqueio]')) { inserir('tpl-bloqueio', document.getElementById('bloqueios'), 'beforeend'); return; }
+                var rem = e.target.closest('[data-remover]');
+                if (rem) { rem.closest('.faixa').remove(); horas(); }
+            });
+            form.addEventListener('input', horas);
+            horas();
+        })();
+    </script>
+</main>
+</body>
+</html>
