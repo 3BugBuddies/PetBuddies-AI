@@ -161,9 +161,11 @@ public class CheckinExtracaoService {
                 Mencionar e negar é diferente de não mencionar: "as fezes estavam normais" gera um
                 item com valorBooleano=false, nunca a ausência do item.
 
-                Se a narrativa citar algo clinicamente relevante que NÃO está no vocabulário acima
+                Se a narrativa citar um sintoma ANORMAL ou preocupante que NÃO está no vocabulário acima
                 (ex.: mancando, gemendo, sangramento em outro lugar), copie a frase para "redFlags"
                 como texto livre — nunca invente um código do vocabulário para isso.
+                Sinal de bem-estar ou de melhora NUNCA é redFlag: "comeu bem", "está animado",
+                "brincou", "dormiu bem", "tomou o remédio". Relato sem sintoma anormal = "redFlags":[].
 
                 Responda APENAS com JSON válido, sem explicação:
                 {"condicoes":[{"codigo":"...","valorBooleano":null,"valorNumerico":null,"trecho":"...","literal":true,"confianca":0.0}],"redFlags":[]}
