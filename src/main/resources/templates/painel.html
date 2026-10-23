@@ -65,7 +65,7 @@
                         <span>&ldquo;<span th:text="${relato.narrativa}">relato</span>&rdquo;
                             <span th:text="${relato.tipo.name() == 'SEM_REGRA'} ? ${relato.resumo} : '→ ' + ${relato.resumo}">→ regra</span></span>
                     </div>
-                    <a class="pn-btn sm" th:classappend="${relato.tipo.name() != 'ALARME'} ? 'line'"
+                    <a class="pn-btn sm line"
                        th:href="@{/pacientes/{id}(id=${relato.animalId})}"
                        th:text="${relato.tipo.name() == 'SEM_REGRA'} ? 'Responder' : 'Abrir ficha'">Abrir ficha</a>
                 </div>

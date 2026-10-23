@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Receitas-modelo · PetBuddies</title>
+</head>
+<body>
+<main class="rm">
+    <div class="rm-topo">
+        <div>
+            <div class="rm-sub">Prescrição</div>
+            <h1>Receitas-modelo</h1>
+        </div>
+        <a class="rm-btn" th:href="@{/receitas-modelo/novo}">+ Nova receita-modelo</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <div class="rm-card">
+        <p class="rm-vazio" th:if="${#lists.isEmpty(receitas)}">
+            Nenhuma receita-modelo ainda. Crie a primeira para reaproveitar a receita nos atendimentos.
+        </p>
+        <table class="rm-tabela" th:unless="${#lists.isEmpty(receitas)}">
+            <thead>
+            <tr><th>Título</th><th>Medicamento e dose</th><th>Duração</th><th>Regras</th><th>Autor</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${receitas}">
+                <td><b th:text="${r.titulo}">Amoxicilina · 7 dias</b></td>
+                <td th:text="${r.medicamento + ' ' + r.doseMin.stripTrailingZeros().toPlainString() + '–' + r.doseMax.stripTrailingZeros().toPlainString() + ' ' + r.unidade + ' · ' + r.frequenciaDia + '×/dia'}">Amoxicilina 10–20 mg · 2×/dia</td>
+                <td th:text="${r.duracaoDias + (r.duracaoDias == 1 ? ' dia' : ' dias')}">7 dias</td>
+                <td th:text="${#lists.size(r.regras) + (#lists.size(r.regras) == 1 ? ' regra' : ' regras')}">1 regra</td>
+                <td th:text="${r.autorNome}">Ana Souza</td>
+                <td><a class="rm-btn rm-btn-texto" th:href="@{/receitas-modelo/{id}/editar(id=${r.id})}">Editar</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="rm-card rm-info">
+        <span class="rm-eyebrow">Como funciona</span>
+        <span>Ao usar uma receita-modelo, o conteúdo é copiado para a receita. Editar aqui não muda receita já assinada.</span>
+    </div>
+</main>
+</body>
+</html>

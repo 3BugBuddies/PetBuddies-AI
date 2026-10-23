@@ -201,7 +201,7 @@ a:hover { text-decoration: underline; }
 /* ---------- botoes ---------- */
 
 .botao,
-button[type="submit"]:not(.botao-link) {
+:where(button[type="submit"]:not(.botao-link)) {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -216,7 +216,7 @@ button[type="submit"]:not(.botao-link) {
     font-family: inherit;
 }
 .botao:hover,
-button[type="submit"]:not(.botao-link):hover {
+:where(button[type="submit"]:not(.botao-link)):hover {
     background: var(--cor-marca-escura);
     border-color: var(--cor-marca-escura);
     text-decoration: none;
@@ -538,7 +538,77 @@ form.formulario .campo-checkbox label { margin: 0; font-weight: 600; }
     .conteudo { padding: 1.2rem 1rem 2rem; }
 }
 
-/* ======================================================================
+/* ---------- receitas-modelo ---------- */
+
+.rm { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
+.rm form { display: flex; flex-direction: column; gap: 14px; }
+.rm-topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.rm-sub { font-size: 0.82rem; color: var(--cor-texto-suave); margin-bottom: 2px; }
+.rm-eyebrow { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cor-texto-suave); }
+.rm-card {
+    background: var(--cor-superficie);
+    border-radius: var(--raio);
+    box-shadow: 0 8px 24px rgba(21, 32, 57, 0.06);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+.rm-card.rm-info { background: var(--cor-info-fundo); box-shadow: none; }
+.rm-vazio { margin: 0; color: var(--cor-texto-suave); }
+.rm-linha { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.rm-entre { justify-content: space-between; }
+
+.rm-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 38px; padding: 0 16px; border-radius: 12px; border: 0;
+    background: var(--cor-marca); color: #fff;
+    font: 600 0.9rem "Bricolage Grotesque", "Nunito", sans-serif;
+    cursor: pointer; white-space: nowrap; text-decoration: none;
+    box-shadow: 0 6px 16px rgba(255, 132, 0, 0.22);
+}
+.rm-btn:hover { background: var(--cor-marca-escura); text-decoration: none; }
+.rm-btn-linha { background: var(--cor-superficie); color: var(--cor-texto); border: 1.5px solid var(--cor-texto); box-shadow: none; }
+.rm-btn-linha:hover { background: var(--cor-painel); }
+.rm-btn-texto { background: transparent; color: var(--cor-texto); box-shadow: none; padding: 0 8px; text-decoration: underline; text-underline-offset: 3px; }
+.rm-btn-texto:hover { background: transparent; }
+.rm-btn-pq { height: 30px; padding: 0 12px; font-size: 0.82rem; border-radius: 10px; }
+
+.rm-tabela { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.rm-tabela th { text-align: left; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cor-texto-suave); font-weight: 700; padding: 8px 10px; border-bottom: 1.5px solid var(--cor-borda); }
+.rm-tabela td { padding: 10px; border-bottom: 1px solid var(--cor-borda-forte); vertical-align: middle; }
+.rm-tabela tbody tr:last-child td { border-bottom: 0; }
+
+.rm-campo { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.rm-campo label { font-size: 0.8rem; font-weight: 600; color: var(--cor-texto-forte); }
+.rm :is(input, select, textarea) {
+    height: 38px; border-radius: 12px; border: 1.5px solid var(--cor-borda); background: var(--cor-superficie);
+    padding: 0 12px; font: inherit; font-size: 0.9rem; color: var(--cor-texto); width: 100%; min-width: 0;
+}
+.rm textarea { height: auto; min-height: 62px; padding: 9px 12px; resize: vertical; }
+.rm :is(input, select, textarea):focus { outline: none; border-color: var(--cor-marca); }
+.rm :is(input, select):disabled { background: var(--cor-painel); color: var(--cor-texto-fraco); }
+.rm .erro-campo { color: var(--cor-erro); font-size: 0.8rem; }
+
+.rm-dose { display: grid; grid-template-columns: 1.6fr 0.8fr 0.8fr 0.8fr 0.9fr 0.7fr; gap: 8px; }
+
+.rm-regra { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
+.rm-regra :is(input, select) { height: 34px; }
+.rm-n { width: 14px; flex: none; font-size: 0.8rem; color: var(--cor-texto-suave); }
+.rm-cond { flex: 1.4; }
+.rm-op { flex: 1; }
+.rm-lim { flex: 0.9; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rm-un { font-size: 0.8rem; color: var(--cor-texto-suave); white-space: nowrap; }
+.rm-seta { flex: none; }
+.rm-acao { flex: 1.3; }
+.rm-x { flex: none; width: 30px; height: 30px; border: 0; border-radius: 10px; background: transparent; color: var(--cor-texto-suave); font-size: 1.3rem; line-height: 1; cursor: pointer; }
+.rm-x:hover { background: var(--cor-painel); color: var(--cor-texto); }
+
+.rm-previa { gap: 6px; }
+.rm-regra-previa { font: 600 0.78rem ui-monospace, "SF Mono", Menlo, monospace; background: var(--cor-info-fundo); border-radius: 10px; padding: 7px 10px; color: var(--cor-texto); }
+
+/* ===============================================================
    Painel da clinica (D1) - paginas de conteudo com prefixo pn-
    ====================================================================== */
 
@@ -626,7 +696,7 @@ a.sem-cel.livre:hover { border-color: var(--cor-marca); color: var(--cor-marca-e
 .hora-opcao input:checked + span { background: var(--cor-texto); color: var(--cor-fundo); }
 .hora-opcao input:focus-visible + span { outline: 2px solid var(--cor-marca); outline-offset: 2px; }
 .hora-opcao { position: relative; }
-
+=======
 /* ---------- painel clínico ---------- */
 
 .pc-sub { color: var(--cor-texto-suave); font-size: 0.82rem; }
@@ -778,3 +848,45 @@ a.sem-cel.livre:hover { border-color: var(--cor-marca); color: var(--cor-marca-e
 .pc-codigo { margin-top: 0.3rem; padding: 0.5rem 0.7rem; border-radius: var(--raio-campo); background: var(--cor-painel); color: var(--cor-texto-suave); font-family: ui-monospace, Menlo, monospace; }
 .pc-acoes-form { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
 .pc-previa { position: sticky; top: 1rem; }
+
+/* modelos de plano */
+.pc-grupo { margin: 1.2rem 0 0.6rem; }
+
+/* fechar atendimento: quatro etapas num formulário só */
+.pc-fechar .pc-campos { gap: 0.2rem; }
+.pc-etapas { list-style: none; display: flex; gap: 0.4rem; margin: 0 0 1rem; padding: 0; flex-wrap: wrap; }
+.pc-etapas button {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    border: 0; background: transparent; cursor: pointer; font-family: inherit;
+    padding: 0.35rem 0.8rem; border-radius: var(--raio-pilula);
+    font-size: 0.86rem; font-weight: 700; color: var(--cor-texto-suave);
+}
+.pc-etapas button i {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--cor-painel);
+    display: grid; place-items: center; font-style: normal; font-size: 0.74rem;
+}
+.pc-etapas .on button { background: var(--cor-marca-fundo); color: var(--cor-texto); }
+.pc-etapas .on button i { background: var(--cor-marca); color: #fff; }
+.pc-etapas .feita button i { background: #d8e022; color: var(--cor-texto); }
+.pc-pergunta { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.6rem; }
+.pc-pergunta h2 { margin: 0; }
+.pc-grade2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.2rem 1rem; }
+.pc-aplicar { display: flex; align-items: flex-end; gap: 0.75rem; margin-bottom: 0.4rem; }
+.pc-aplicar > div { flex: 1; }
+.pc-grade4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.2rem 1rem; }
+.pc-grade4 .pc-largo { grid-column: span 2; }
+.pc-mais { margin-top: 0.8rem; }
+.pc-mais summary { cursor: pointer; font-weight: 700; font-size: 0.85rem; color: var(--cor-texto-suave); }
+.pc-sub-titulo { margin: 1.1rem 0 0.4rem; }
+.pc-etapa { display: block; }
+.pc-etapa[hidden], [x-cloak] { display: none !important; }
+.pc-regra-linha {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    padding: 0.6rem 0; border-bottom: 1px solid var(--cor-borda);
+}
+.pc-regra-linha select, .pc-regra-linha input { width: auto !important; margin-top: 0 !important; }
+.pc-regra-linha .pc-regra { flex-basis: 100%; }
+.pc-regra-limite { display: inline-flex; gap: 0.4rem; align-items: center; }
+.pc-regra-limite input { width: 110px !important; }
+.pc-erros { margin: 0.3rem 0 0; padding-left: 1.2rem; font-weight: 600; }
+.pc-ao-fechar { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.3rem; }

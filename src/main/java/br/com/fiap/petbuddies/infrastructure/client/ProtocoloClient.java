@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 // A unica dependencia entre os dois servicos — so e chamado ao criar um plano; depois de materializado, o plano nao volta a consulta-lo.
 @Component
@@ -50,6 +51,21 @@ public class ProtocoloClient {
             log.warn("Catalogo de protocolos indisponivel no .NET (categoria={}, especie={}): {}",
                     categoria, especie, ex.getMessage());
             return List.of();
+        }
+    }
+
+    // Optional vazio = catalogo fora do ar; lista vazia = catalogo no ar e sem modelo ativo. A tela de modelos precisa distinguir os dois.
+    public Optional<List<ProtocoloCatalogoDto>> listarAtivos() {
+        try {
+            ProtocoloCatalogoDto[] resposta = restClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/api/protocolo").queryParam("ativo", true).build())
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenService.emitirServico())
+                    .retrieve()
+                    .body(ProtocoloCatalogoDto[].class);
+            return Optional.of(resposta == null ? List.of() : List.of(resposta));
+        } catch (RestClientException ex) {
+            log.warn("Catalogo de protocolos indisponivel no .NET (listagem): {}", ex.getMessage());
+            return Optional.empty();
         }
     }
 }

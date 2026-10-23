@@ -6,146 +6,277 @@
 </head>
 <body>
 <main>
-    <h1>Fechar atendimento</h1>
+    <form method="post" class="pc-fechar" id="fechamento" th:action="@{/agenda/{id}/fechar(id=${consulta.id})}"
+          th:object="${fechamentoForm}" x-data="fechamento" x-ref="form"
+          x-on:keydown.enter="if ($event.target.tagName !== 'TEXTAREA' &amp;&amp; etapa !== 4) $event.preventDefault()">
 
-    <section class="bloco">
-        <p>
-            Consulta de <span th:text="${consulta.tipo}">ROTINA</span> em
-            <span th:text="${#temporals.format(consulta.dataHora, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span> —
-            status atual <span class="selo" th:text="${consulta.status}">AGENDADA</span>.
-        </p>
-    </section>
+        <div class="cabecalho-pagina">
+            <div>
+                <p class="subtitulo">
+                    <a th:href="@{/pacientes/{id}(id=${consulta.animalId})}">← Ficha</a>
+                </p>
+                <h1>Fechar atendimento</h1>
+                <p class="subtitulo"
+                   th:text="${animalNome + ' · ' + consulta.tipo.rotulo + ' · ' + #temporals.format(consulta.dataHora, 'dd/MM HH:mm')}">
+                    Paçoca · Vacinação · 22/10 14:00</p>
+            </div>
+            <span class="pc-chip info" x-text="'etapa ' + etapa + ' de 4'">etapa 1 de 4</span>
+        </div>
 
-    <form class="formulario" method="post" th:action="@{/agenda/{id}/fechar(id=${consulta.id})}"
-          th:object="${fechamentoRequest}">
+        <ol class="pc-etapas">
+            <li x-bind:class="{ on: etapa === 1, feita: etapa !== 1 }"><button type="button" x-on:click="ir(1)"><i>1</i>Registro</button></li>
+            <li x-bind:class="{ on: etapa === 2, feita: etapa >= 3 }"><button type="button" x-on:click="ir(2)"><i>2</i>Procedimento</button></li>
+            <li x-bind:class="{ on: etapa === 3, feita: etapa === 4 }"><button type="button" x-on:click="ir(3)"><i>3</i>Prescrição</button></li>
+            <li x-bind:class="{ on: etapa === 4 }"><button type="button" x-on:click="ir(4)"><i>4</i>Revisar</button></li>
+        </ol>
 
-        <h2>Registro do atendimento</h2>
+        <div class="mensagem-erro" th:if="${#fields.hasAnyErrors()}">
+            <b>Confira antes de fechar:</b>
+            <ul class="pc-erros">
+                <li th:each="erro : ${#fields.detailedErrors()}" th:text="${erro.message}">erro</li>
+            </ul>
+        </div>
 
-        <label for="dataAtendimento">Data do atendimento</label>
-        <input id="dataAtendimento" type="datetime-local" th:field="*{registroAtendimento.dataAtendimento}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.dataAtendimento')}"
-             th:errors="*{registroAtendimento.dataAtendimento}">erro</div>
+        <!-- Etapa 1 · Registro -->
+        <section class="pc-cartao pc-campos" x-show="etapa === 1" x-cloak="x-cloak">
+            <h2>Registro do atendimento</h2>
 
-        <label for="anamnese">Anamnese</label>
-        <textarea id="anamnese" rows="3" th:field="*{registroAtendimento.anamnese}"></textarea>
-        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.anamnese')}"
-             th:errors="*{registroAtendimento.anamnese}">erro</div>
+            <label for="dataAtendimento">Data e hora do atendimento</label>
+            <input id="dataAtendimento" type="datetime-local" th:field="*{registro.dataAtendimento}"/>
 
-        <label for="diagnostico">Diagnóstico</label>
-        <textarea id="diagnostico" rows="3" th:field="*{registroAtendimento.diagnostico}"></textarea>
-        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.diagnostico')}"
-             th:errors="*{registroAtendimento.diagnostico}">erro</div>
+            <label for="anamnese">Anamnese</label>
+            <textarea id="anamnese" rows="3" th:field="*{registro.anamnese}"></textarea>
 
-        <label for="tratamento">Tratamento</label>
-        <textarea id="tratamento" rows="3" th:field="*{registroAtendimento.tratamento}"></textarea>
-        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.tratamento')}"
-             th:errors="*{registroAtendimento.tratamento}">erro</div>
+            <label for="diagnostico">Diagnóstico</label>
+            <textarea id="diagnostico" rows="3" th:field="*{registro.diagnostico}"></textarea>
 
-        <label for="observacaoRegistro">Observação</label>
-        <textarea id="observacaoRegistro" rows="2" th:field="*{registroAtendimento.observacao}"></textarea>
-        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.observacao')}"
-             th:errors="*{registroAtendimento.observacao}">erro</div>
+            <div class="pc-grade2">
+                <div>
+                    <label for="peso">Peso (kg)</label>
+                    <input id="peso" type="number" step="0.01" min="0" th:field="*{registro.peso}"/>
+                </div>
+                <div>
+                    <label for="proximoRetorno">Próximo retorno</label>
+                    <input id="proximoRetorno" type="date" th:field="*{registro.proximoRetorno}"/>
+                </div>
+            </div>
 
-        <label for="proximoRetorno">Próximo retorno</label>
-        <input id="proximoRetorno" type="date" th:field="*{registroAtendimento.proximoRetorno}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.proximoRetorno')}"
-             th:errors="*{registroAtendimento.proximoRetorno}">erro</div>
+            <details class="pc-mais">
+                <summary>Mais campos do registro</summary>
+                <label for="tratamento">Tratamento</label>
+                <textarea id="tratamento" rows="2" th:field="*{registro.tratamento}"></textarea>
+                <label for="observacaoRegistro">Observação</label>
+                <textarea id="observacaoRegistro" rows="2" th:field="*{registro.observacao}"></textarea>
+                <label for="proximaVacina">Próxima vacina</label>
+                <input id="proximaVacina" type="date" th:field="*{registro.proximaVacina}"/>
+            </details>
+        </section>
 
-        <label for="proximaVacina">Próxima vacina</label>
-        <input id="proximaVacina" type="date" th:field="*{registroAtendimento.proximaVacina}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('registroAtendimento.proximaVacina')}"
-             th:errors="*{registroAtendimento.proximaVacina}">erro</div>
+        <!-- Etapa 2 · Procedimento (opcional) -->
+        <section class="pc-etapa" x-show="etapa === 2" x-cloak="x-cloak">
+            <div class="pc-cartao pc-campos">
+                <div class="pc-pergunta">
+                    <h2>Houve procedimento?</h2>
+                    <div class="pc-seg">
+                        <button type="button" x-bind:class="{ on: !houveProcedimento }" x-on:click="houveProcedimento = false">Não</button>
+                        <button type="button" x-bind:class="{ on: houveProcedimento }" x-on:click="houveProcedimento = true">Sim</button>
+                    </div>
+                    <input type="hidden" name="houveProcedimento" x-bind:value="houveProcedimento"/>
+                </div>
 
-        <h2>Procedimento realizado</h2>
+                <div x-show="houveProcedimento">
+                    <div class="pc-grade2">
+                        <div>
+                            <label for="procTipo">Tipo</label>
+                            <select id="procTipo" name="procedimento.tipo" x-model="tipo" x-on:change="trocouTipo()">
+                                <option th:each="t : ${tiposProcedimento}" th:value="${t}" th:text="${t.rotulo}">VACINACAO</option>
+                            </select>
+                        </div>
+                        <div x-show="comItemNoPlano">
+                            <label for="procItem">Item do plano</label>
+                            <select id="procItem" name="procedimento.itemPlanoId" x-model="itemPlanoId"
+                                    x-on:change="escolherItem()" x-bind:disabled="!comItemNoPlano || !houveProcedimento">
+                                <option value="">Avulsa (fora do plano)</option>
+                                <template x-for="item in itensDoTipo" x-bind:key="item.id">
+                                    <option x-bind:value="item.id" x-bind:selected="item.id === itemPlanoId"
+                                            x-text="item.nome + ' · ' + item.data + (item.vencido ? ' (atrasado)' : '')"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="procNome">Nome</label>
+                            <input id="procNome" type="text" name="procedimento.nome" x-model="nome" placeholder="Ex.: Vacina V10"/>
+                        </div>
+                        <div>
+                            <label for="procLote">Lote</label>
+                            <input id="procLote" type="text" th:field="*{procedimento.lote}" placeholder="Ex.: Zoetis 12345"/>
+                        </div>
+                        <div>
+                            <label for="procData">Data de realização</label>
+                            <input id="procData" type="datetime-local" th:field="*{procedimento.data}"/>
+                        </div>
+                    </div>
+                    <label for="procObs">Observação</label>
+                    <textarea id="procObs" rows="2" th:field="*{procedimento.observacao}"></textarea>
+                </div>
+            </div>
+            <div class="pc-cartao info" x-show="houveProcedimento">
+                <span class="pc-forte">Vira procedimento no prontuário, com o lote. Escolhendo um item do plano, ele é marcado como feito.</span>
+            </div>
+        </section>
 
-        <label for="procedimentoTipo">Tipo</label>
-        <select id="procedimentoTipo" th:field="*{procedimentos[0].tipo}">
-            <option value="">Selecione</option>
-            <option th:each="valor : ${tiposProcedimento}"
-                    th:value="${valor}" th:text="${valor}">EXAME_LABORATORIAL</option>
-        </select>
-        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].tipo')}"
-             th:errors="*{procedimentos[0].tipo}">erro</div>
+        <!-- Etapa 3 · Prescrição (opcional) -->
+        <section class="pc-etapa" x-show="etapa === 3" x-cloak="x-cloak">
+            <div class="pc-cartao pc-campos">
+                <div class="pc-pergunta">
+                    <h2>Prescrever?</h2>
+                    <div class="pc-seg">
+                        <button type="button" x-bind:class="{ on: !prescrever }" x-on:click="prescrever = false">Não</button>
+                        <button type="button" x-bind:class="{ on: prescrever }" x-on:click="prescrever = true">Sim</button>
+                    </div>
+                    <input type="hidden" name="prescrever" x-bind:value="prescrever"/>
+                </div>
 
-        <label for="procedimentoNome">Nome</label>
-        <input id="procedimentoNome" type="text" th:field="*{procedimentos[0].nome}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].nome')}"
-             th:errors="*{procedimentos[0].nome}">erro</div>
+                <div x-show="prescrever">
+                    <div class="pc-aplicar" th:unless="${#lists.isEmpty(receitasModelo)}">
+                        <div>
+                            <label for="receitaModelo">Aplicar receita-modelo</label>
+                            <select id="receitaModelo" x-model="modeloEscolhido">
+                                <option value="">Escolha uma receita-modelo</option>
+                                <template x-for="modelo in receitasModelo" x-bind:key="modelo.id">
+                                    <option x-bind:value="modelo.id" x-text="modelo.titulo"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <button type="button" class="botao secundario" x-bind:disabled="modeloEscolhido === ''"
+                                x-on:click="aplicarReceitaModelo()">Aplicar</button>
+                    </div>
+                    <input type="hidden" name="prescricao.receitaModeloId" x-bind:value="origemId"/>
+                    <input type="hidden" name="prescricao.receitaModeloVersao" x-bind:value="origemVersao"/>
+                    <p class="pc-sub" x-show="origemId !== ''" x-cloak="x-cloak">
+                        Preenchido da receita-modelo &middot; revise. Editar aqui não muda a receita-modelo.
+                        <span x-show="regrasIgnoradas > 0"
+                              x-text="regrasIgnoradas + (regrasIgnoradas === 1 ? ' regra ficou de fora' : ' regras ficaram de fora') + ' porque a condição está desativada.'"></span>
+                    </p>
+                    <div class="pc-grade4">
+                        <div class="pc-largo">
+                            <label for="medicamento">Medicamento</label>
+                            <input id="medicamento" type="text" th:field="*{prescricao.medicamento}"/>
+                        </div>
+                        <div>
+                            <label for="doseMin">Dose mínima</label>
+                            <input id="doseMin" type="number" step="0.001" min="0" th:field="*{prescricao.doseMin}"/>
+                        </div>
+                        <div>
+                            <label for="doseMax">Dose máxima</label>
+                            <input id="doseMax" type="number" step="0.001" min="0" th:field="*{prescricao.doseMax}"/>
+                        </div>
+                        <div>
+                            <label for="unidade">Unidade</label>
+                            <input id="unidade" type="text" th:field="*{prescricao.unidade}" placeholder="mg"/>
+                        </div>
+                        <div>
+                            <label for="frequencia">Vezes ao dia</label>
+                            <input id="frequencia" type="number" min="1" max="99" th:field="*{prescricao.frequenciaDia}"/>
+                        </div>
+                        <div>
+                            <label for="duracao">Duração (dias)</label>
+                            <input id="duracao" type="number" min="1" max="9999" th:field="*{prescricao.duracaoDias}"/>
+                        </div>
+                        <div>
+                            <label for="inicio">Data de início</label>
+                            <input id="inicio" type="date" th:field="*{prescricao.dataInicio}"/>
+                        </div>
+                    </div>
 
-        <label for="procedimentoDescricao">Descrição</label>
-        <textarea id="procedimentoDescricao" rows="2" th:field="*{procedimentos[0].descricao}"></textarea>
-        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].descricao')}"
-             th:errors="*{procedimentos[0].descricao}">erro</div>
+                    <label for="orientacao">Orientação ao responsável</label>
+                    <textarea id="orientacao" rows="2" th:field="*{prescricao.orientacao}"></textarea>
 
-        <label for="procedimentoInicio">Data prevista de início</label>
-        <input id="procedimentoInicio" type="datetime-local" th:field="*{procedimentos[0].dataPrevistaInicio}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].dataPrevistaInicio')}"
-             th:errors="*{procedimentos[0].dataPrevistaInicio}">erro</div>
+                    <h3 class="pc-sub-titulo">Regras do check-in</h3>
+                    <p class="pc-sub" th:if="${#lists.isEmpty(condicoes)}">
+                        Nenhuma condição ativa. Cadastre em <a th:href="@{/condicoes}">Condições</a> para criar regras.
+                    </p>
+                    <template x-for="(regra, i) in regras" x-bind:key="i">
+                        <div class="pc-regra-linha">
+                            <select x-bind:name="'prescricao.regras[' + i + '].condicaoClinicaId'" x-model="regra.condicaoClinicaId">
+                                <option value="">Se… (condição)</option>
+                                <option th:each="c : ${condicoes}" th:value="${c.id}"
+                                        th:text="${c.rotulo + (c.critica ? ' (sinal de alarme)' : '')}">Vômito</option>
+                            </select>
+                            <template x-if="numerica(regra)">
+                                <span class="pc-regra-limite">
+                                    <select x-bind:name="'prescricao.regras[' + i + '].operador'" x-model="regra.operador">
+                                        <option value="">Operador</option>
+                                        <option th:each="o : ${operadores}" th:value="${o}" th:text="${o.rotulo}">MAIOR_QUE</option>
+                                    </select>
+                                    <input type="number" step="any" placeholder="Limite"
+                                           x-bind:name="'prescricao.regras[' + i + '].limite'" x-model="regra.limite"/>
+                                    <span class="pc-sub" x-text="unidadeDe(regra)"></span>
+                                </span>
+                            </template>
+                            <select x-bind:name="'prescricao.regras[' + i + '].acaoDose'" x-model="regra.acaoDose">
+                                <option value="">então… (ação)</option>
+                                <option th:each="a : ${acoes}" th:value="${a}" th:text="${a.rotulo}">DOSE_MIN</option>
+                            </select>
+                            <button type="button" class="botao pequeno secundario" x-on:click="regras.splice(i, 1)">Remover</button>
+                            <div class="pc-regra" x-text="previa(regra)"></div>
+                        </div>
+                    </template>
+                    <button type="button" class="botao pequeno secundario" x-on:click="novaRegra()"
+                            th:unless="${#lists.isEmpty(condicoes)}">+ Regra</button>
+                </div>
+            </div>
+        </section>
 
-        <label for="procedimentoFim">Data prevista de fim</label>
-        <input id="procedimentoFim" type="datetime-local" th:field="*{procedimentos[0].dataPrevistaFim}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].dataPrevistaFim')}"
-             th:errors="*{procedimentos[0].dataPrevistaFim}">erro</div>
+        <!-- Etapa 4 · Revisar -->
+        <section class="pc-etapa" x-show="etapa === 4" x-cloak="x-cloak">
+            <div class="pc-planos">
+                <div class="pc-cartao contorno">
+                    <div class="pc-linha-cab"><h2>Registro</h2>
+                        <button type="button" class="botao pequeno secundario" x-on:click="ir(1)">Editar</button></div>
+                    <span class="pc-forte" x-text="resumo.anamnese || 'Sem anamnese registrada'"></span>
+                    <span class="pc-sub" x-text="resumo.registroLinha"></span>
+                </div>
+                <div class="pc-cartao contorno">
+                    <div class="pc-linha-cab"><h2>Procedimento</h2>
+                        <button type="button" class="botao pequeno secundario" x-on:click="ir(2)">Editar</button></div>
+                    <span class="pc-forte" x-text="resumo.procedimento"></span>
+                    <span class="pc-sub" x-text="resumo.procedimentoLinha"></span>
+                </div>
+                <div class="pc-cartao contorno">
+                    <div class="pc-linha-cab"><h2>Prescrição</h2>
+                        <button type="button" class="botao pequeno secundario" x-on:click="ir(3)">Editar</button></div>
+                    <span class="pc-forte" x-text="resumo.prescricao"></span>
+                    <span class="pc-sub" x-text="resumo.prescricaoLinha"></span>
+                    <template x-for="linha in resumo.regras">
+                        <div class="pc-regra" x-text="linha"></div>
+                    </template>
+                </div>
+            </div>
 
-        <label for="procedimentoAnexos">URL dos anexos</label>
-        <input id="procedimentoAnexos" type="text" th:field="*{procedimentos[0].anexosUrl}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].anexosUrl')}"
-             th:errors="*{procedimentos[0].anexosUrl}">erro</div>
+            <div class="pc-cartao marca">
+                <h2>Ao fechar</h2>
+                <ol class="pc-ao-fechar">
+                    <li>A consulta vira <b>realizada</b>.</li>
+                    <li x-show="baixaItem">O item escolhido sai do plano como <b>feito</b>.</li>
+                    <li x-show="prescrever">Nasce um plano de <b>tratamento</b> com <span x-text="resumo.duracao"></span> dias de acompanhamento.</li>
+                    <li x-show="prescrever">O responsável vê a receita e as tarefas no app.</li>
+                </ol>
+            </div>
+        </section>
 
-        <label for="procedimentoObservacao">Observação</label>
-        <textarea id="procedimentoObservacao" rows="2" th:field="*{procedimentos[0].observacao}"></textarea>
-        <div class="erro-campo" th:if="${#fields.hasErrors('procedimentos[0].observacao')}"
-             th:errors="*{procedimentos[0].observacao}">erro</div>
-
-        <h2>Prescrição</h2>
-
-        <label for="prescricaoMedicamento">Medicamento</label>
-        <input id="prescricaoMedicamento" type="text" th:field="*{prescricoes[0].medicamento}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].medicamento')}"
-             th:errors="*{prescricoes[0].medicamento}">erro</div>
-
-        <label for="prescricaoDoseMin">Dose mínima</label>
-        <input id="prescricaoDoseMin" type="number" step="0.001" min="0" th:field="*{prescricoes[0].doseMin}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].doseMin')}"
-             th:errors="*{prescricoes[0].doseMin}">erro</div>
-
-        <label for="prescricaoDoseMax">Dose máxima</label>
-        <input id="prescricaoDoseMax" type="number" step="0.001" min="0" th:field="*{prescricoes[0].doseMax}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].doseMax')}"
-             th:errors="*{prescricoes[0].doseMax}">erro</div>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].faixaDoseValida')}"
-             th:errors="*{prescricoes[0].faixaDoseValida}">erro</div>
-
-        <label for="prescricaoUnidade">Unidade</label>
-        <input id="prescricaoUnidade" type="text" th:field="*{prescricoes[0].unidade}" placeholder="mg/kg"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].unidade')}"
-             th:errors="*{prescricoes[0].unidade}">erro</div>
-
-        <label for="prescricaoFrequencia">Frequência ao dia</label>
-        <input id="prescricaoFrequencia" type="number" min="1" max="99" th:field="*{prescricoes[0].frequenciaDia}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].frequenciaDia')}"
-             th:errors="*{prescricoes[0].frequenciaDia}">erro</div>
-
-        <label for="prescricaoDuracao">Duração em dias</label>
-        <input id="prescricaoDuracao" type="number" min="1" max="9999" th:field="*{prescricoes[0].duracaoDias}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].duracaoDias')}"
-             th:errors="*{prescricoes[0].duracaoDias}">erro</div>
-
-        <label for="prescricaoDataInicio">Data de início</label>
-        <input id="prescricaoDataInicio" type="date" th:field="*{prescricoes[0].dataInicio}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].dataInicio')}"
-             th:errors="*{prescricoes[0].dataInicio}">erro</div>
-
-        <label for="prescricaoOrientacao">Orientação</label>
-        <textarea id="prescricaoOrientacao" rows="2" th:field="*{prescricoes[0].orientacao}"></textarea>
-        <div class="erro-campo" th:if="${#fields.hasErrors('prescricoes[0].orientacao')}"
-             th:errors="*{prescricoes[0].orientacao}">erro</div>
-
-        <div class="acoes-formulario">
-            <button type="submit">Fechar atendimento</button>
-            <a class="botao secundario" th:href="@{/agenda}">Cancelar</a>
+        <div class="pc-acoes-form">
+            <button type="button" class="botao" x-show="etapa !== 4" x-on:click="ir(etapa + 1)"
+                    x-text="'Continuar · ' + proxima()">Continuar</button>
+            <button type="submit" x-show="etapa === 4" x-cloak="x-cloak">Fechar atendimento</button>
+            <button type="button" class="botao secundario" x-show="etapa !== 1" x-on:click="ir(etapa - 1)">Voltar</button>
+            <a class="botao secundario" th:href="@{/pacientes/{id}(id=${consulta.animalId})}">Cancelar</a>
         </div>
     </form>
+
+    <script th:inline="javascript">window.FECHAMENTO = /*[[${estado}]]*/ {};</script>
+    <script th:src="@{/js/fechamento.js}" defer="defer"></script>
+    <script th:src="@{/js/vendor/alpine-3.14.1.min.js}" defer="defer"></script>
 </main>
 </body>
 </html>
