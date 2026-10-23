@@ -6,5 +6,5 @@ package br.com.fiap.petbuddies.domain.enums.cuidado;
  * compila.
  */
 public enum StatusItem {
-    PENDENTE, REALIZADO, CANCELADO, ATRASADO
+    PENDENTE, REALIZADO, SUSPENSO, ENCAMINHADO, CANCELADO, ATRASADO
 }

@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,9 +63,9 @@ public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuida
             @Param("hoje") LocalDate hoje);
 
     @Query("SELECT COUNT(i) FROM ItemPlanoCuidadoEntity i JOIN i.plano p "
-            + "WHERE p.status = :statusPlano AND i.status = :status AND i.dataAlvo >= :desde")
+            + "WHERE p.status = :statusPlano AND i.status IN :statuses AND i.dataAlvo >= :desde")
     long contarPorStatusDesde(
             @Param("statusPlano") StatusPlano statusPlano,
-            @Param("status") StatusItem status,
+            @Param("statuses") Collection<StatusItem> statuses,
             @Param("desde") LocalDate desde);
 }

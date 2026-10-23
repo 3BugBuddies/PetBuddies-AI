@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -56,17 +57,20 @@ public class MotorPlanoService {
     private final ProtocoloClient protocoloClient;
     private final AnimalRepository animalRepository;
     private final ConsultaRepository consultaRepository;
+    private final PlanoCuidadoGravador gravador;
 
     public MotorPlanoService(PlanoCuidadoRepository planoRepository,
                              ItemPlanoCuidadoRepository itemRepository,
                              ProtocoloClient protocoloClient,
                              AnimalRepository animalRepository,
-                             ConsultaRepository consultaRepository) {
+                             ConsultaRepository consultaRepository,
+                             PlanoCuidadoGravador gravador) {
         this.planoRepository = planoRepository;
         this.itemRepository = itemRepository;
         this.protocoloClient = protocoloClient;
         this.animalRepository = animalRepository;
         this.consultaRepository = consultaRepository;
+        this.gravador = gravador;
     }
 
     // Sem @Transactional de proposito: ha chamada HTTP ao catalogo entre a checagem e a criacao — nao pode segurar conexao do pool durante a rede.
@@ -92,9 +96,9 @@ public class MotorPlanoService {
         PlanoCuidadoEntity plano = criarPlano(req.getAnimalId(), null, protocolo.get());
         instanciarEventos(plano, protocolo.get(),
                 new Ancoragem(LocalDate.now(), req.getDataNascimento(), null));
-        planoRepository.save(plano);
+        PlanoCuidadoEntity salvo = gravador.gravar(plano);
 
-        return PlanoResponse.from(plano, true, null);
+        return PlanoResponse.from(salvo, true, null);
     }
 
     // Sem @Transactional de proposito, pelo mesmo motivo do instanciarPreventivo.
@@ -280,7 +284,8 @@ public class MotorPlanoService {
     // Ordenado aqui, pela data ja resolvida — offset em unidades diferentes nao e comparavel antes disso.
     private void instanciarEventos(PlanoCuidadoEntity plano, ProtocoloCatalogoDto protocolo,
                                     Ancoragem ancoragem) {
-        LocalDate limite = ancoragem.instanciacao().plusMonths(HORIZONTE_MESES);
+        LocalDate hoje = ancoragem.instanciacao();
+        LocalDate limite = hoje.plusMonths(HORIZONTE_MESES);
         List<ItemPlanoCuidadoEntity> itens = new ArrayList<>();
 
         for (RegraCatalogoDto ep : protocolo.regras()) {
@@ -291,16 +296,18 @@ public class MotorPlanoService {
             }
 
             LocalDate primeira = somar(base, ep.offset(), ep.unidadeOffset());
-            int repeticoes = ep.repeticoes() != null ? Math.max(ep.repeticoes(), 1) : 1;
+            boolean serie = ep.intervalo() != null && ep.intervalo() > 0 && ep.unidadeIntervalo() != null
+                    && ep.repeticoes() != null && ep.repeticoes() > 1;
 
-            for (int i = 0; i < repeticoes; i++) {
-                LocalDate alvo = primeira;
-                if (i > 0) {
-                    if (ep.intervalo() == null || ep.unidadeIntervalo() == null) {
-                        break; // sem recorrencia declarada: ocorrencia unica
-                    }
-                    alvo = somar(primeira, ep.intervalo() * i, ep.unidadeIntervalo());
+            if (!serie) {
+                if (!primeira.isBefore(hoje) && !primeira.isAfter(limite)) {
+                    itens.add(novoItem(plano, ep, primeira));
                 }
+                continue;
+            }
+
+            for (int i = primeiraOcorrenciaDeHoje(primeira, ep.intervalo(), ep.unidadeIntervalo(), hoje); ; i++) {
+                LocalDate alvo = somar(primeira, ep.intervalo() * i, ep.unidadeIntervalo());
                 if (alvo.isAfter(limite)) {
                     break;
                 }
@@ -310,6 +317,23 @@ public class MotorPlanoService {
 
         itens.sort(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo));
         plano.getItens().addAll(itens);
+    }
+
+    // Indice da primeira ocorrencia >= hoje, calculado sem iterar desde a ancora.
+    private static int primeiraOcorrenciaDeHoje(LocalDate primeira, int intervalo, UnidadeTempo unidade, LocalDate hoje) {
+        if (!primeira.isBefore(hoje)) {
+            return 0;
+        }
+        long decorridos = switch (unidade) {
+            case DIAS -> ChronoUnit.DAYS.between(primeira, hoje);
+            case SEMANAS -> ChronoUnit.WEEKS.between(primeira, hoje);
+            case MESES -> ChronoUnit.MONTHS.between(primeira, hoje);
+        };
+        int i = (int) (decorridos / intervalo);
+        while (somar(primeira, intervalo * i, unidade).isBefore(hoje)) {
+            i++;
+        }
+        return i;
     }
 
     private ItemPlanoCuidadoEntity novoItem(PlanoCuidadoEntity plano, RegraCatalogoDto ep,

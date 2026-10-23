@@ -31,6 +31,9 @@ public class AcompanhamentoService {
     /** Janela da adesão, em dias. O rótulo da tela vem daqui. */
     private static final int JANELA_ADESAO_DIAS = 30;
 
+    private static final List<StatusItem> STATUS_ENCERRADOS =
+            List.of(StatusItem.REALIZADO, StatusItem.SUSPENSO, StatusItem.ENCAMINHADO);
+
     private final PlanoCuidadoRepository planoRepository;
     private final ItemPlanoCuidadoRepository itemRepository;
     private final AnimalRepository animalRepository;
@@ -56,7 +59,7 @@ public class AcompanhamentoService {
                 .filter(i -> !i.getDataAlvo().isBefore(desde))
                 .count();
         long realizadosNaJanela =
-                itemRepository.contarPorStatusDesde(StatusPlano.ATIVO, StatusItem.REALIZADO, desde);
+                itemRepository.contarPorStatusDesde(StatusPlano.ATIVO, STATUS_ENCERRADOS, desde);
         long previstosNaJanela = realizadosNaJanela + vencidosNaJanela;
 
         // Sem nenhum cuidado previsto na janela, uma adesão de 0% ou de 100% mentiria

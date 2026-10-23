@@ -7,6 +7,8 @@ import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
+import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
+import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
 import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoRequest;
 import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoResponse;
@@ -16,6 +18,7 @@ import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import br.com.fiap.petbuddies.infrastructure.ia.ExtratorIA;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -41,18 +44,24 @@ public class CheckinExtracaoService {
     private final RegraPrescricaoRepository regraPrescricaoRepository;
     private final CondicaoClinicaRepository condicaoClinicaRepository;
     private final PrescricaoAtivaResolver prescricaoAtivaResolver;
+    private final PrescricaoRepository prescricaoRepository;
+    private final ConsultaRepository consultaRepository;
 
     public CheckinExtracaoService(
             ExtratorIA extratorIA,
             AnimalRepository animalRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository,
-            PrescricaoAtivaResolver prescricaoAtivaResolver) {
+            PrescricaoAtivaResolver prescricaoAtivaResolver,
+            PrescricaoRepository prescricaoRepository,
+            ConsultaRepository consultaRepository) {
         this.extratorIA = extratorIA;
         this.animalRepository = animalRepository;
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
         this.prescricaoAtivaResolver = prescricaoAtivaResolver;
+        this.prescricaoRepository = prescricaoRepository;
+        this.consultaRepository = consultaRepository;
     }
 
     public CheckinExtracaoResponse extrair(CheckinExtracaoRequest request) {
@@ -80,7 +89,7 @@ public class CheckinExtracaoService {
         return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), condicoes, redFlags, degradado);
     }
 
-    // Uniao de condicoes por regra ativa com toda condicao critica ativa; restrita a RELATO — ANIMAL/HISTORICO nao e algo que o tutor narra.
+    // Uniao de condicoes por regra ativa com as condicoes criticas ativas da clinica; restrita a RELATO — ANIMAL/HISTORICO nao e algo que o tutor narra.
     private List<CondicaoClinicaEntity> montarVocabulario(Long animalId, LocalDate referencia) {
         List<PrescricaoEntity> ativas = prescricaoAtivaResolver.listar(animalId, referencia);
 
@@ -94,12 +103,25 @@ public class CheckinExtracaoService {
         if (!idsPorRegra.isEmpty()) {
             condicaoClinicaRepository.findAllById(idsPorRegra).forEach(c -> vocabulario.put(c.getId(), c));
         }
-        condicaoClinicaRepository.findByCriticaTrueAndAtivoTrue().forEach(c -> vocabulario.putIfAbsent(c.getId(), c));
+        Set<Long> clinicaIds = clinicasDoAnimal(animalId, ativas);
+        if (!clinicaIds.isEmpty()) {
+            condicaoClinicaRepository.findByClinicaIdInAndCriticaTrueAndAtivoTrue(clinicaIds)
+                    .forEach(c -> vocabulario.putIfAbsent(c.getId(), c));
+        }
 
         return vocabulario.values().stream()
                 .filter(CondicaoClinicaEntity::isAtivo)
                 .filter(c -> c.getFonteValor() == TipoFonteValor.RELATO)
                 .toList();
+    }
+
+    // Clinica da prescricao ativa; sem prescricao, a da consulta mais recente (o animal nao guarda clinica).
+    private Set<Long> clinicasDoAnimal(Long animalId, List<PrescricaoEntity> ativas) {
+        if (!ativas.isEmpty()) {
+            return new LinkedHashSet<>(prescricaoRepository.findClinicaIdsPorPrescricoes(
+                    ativas.stream().map(PrescricaoEntity::getId).toList()));
+        }
+        return new LinkedHashSet<>(consultaRepository.findClinicaIdsPorAnimal(animalId, PageRequest.of(0, 1)));
     }
 
     private String montarPrompt(List<CondicaoClinicaEntity> vocabulario) {
