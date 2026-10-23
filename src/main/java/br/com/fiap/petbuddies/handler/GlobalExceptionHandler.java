@@ -14,6 +14,7 @@ import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoProvisionadaException;
 import br.com.fiap.petbuddies.exception.cadastro.RegistroIncompletoException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaNoPassadoException;
+import br.com.fiap.petbuddies.exception.prescricao.ReceitaModeloIncoerenteException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -138,6 +139,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
     public ResponseEntity<ErrorDto> handleRegraPrescricaoIncoerente(RegraPrescricaoIncoerenteException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("REGRA_PRESCRICAO_INCOERENTE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReceitaModeloIncoerenteException.class)
+    public ResponseEntity<ErrorDto> handleReceitaModeloIncoerente(ReceitaModeloIncoerenteException ex) {
+        return ResponseEntity.unprocessableEntity().body(new ErrorDto("REGRA_RECEITA_MODELO_INCOERENTE", ex.getMessage()));
     }
 
     @ExceptionHandler(CondicaoObservadaIncoerenteException.class)
