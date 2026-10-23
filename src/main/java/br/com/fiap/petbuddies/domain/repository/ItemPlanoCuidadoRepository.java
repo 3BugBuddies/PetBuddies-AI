@@ -27,6 +27,8 @@ public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuida
     // So enxerga os itens que existiam para receber a baixa — a resposta do POST inclui tambem prescricoes avaliadas sem item.
     List<ItemPlanoCuidadoEntity> findByDesfechoCheckinId(Long checkinId);
 
+    List<ItemPlanoCuidadoEntity> findByDesfechoCheckinIdIn(Collection<Long> checkinIds);
+
     List<ItemPlanoCuidadoEntity> findByDataAlvoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusItem status);
 
     @Query(value = "SELECT e FROM ItemPlanoCuidadoEntity e JOIN e.plano p WHERE p.animalId = :animalId "

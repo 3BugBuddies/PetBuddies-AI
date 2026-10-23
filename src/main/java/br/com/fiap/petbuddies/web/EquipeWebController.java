@@ -6,8 +6,10 @@ import br.com.fiap.petbuddies.dto.cadastro.VeterinarioRequest;
 import br.com.fiap.petbuddies.dto.cadastro.VeterinarioResponse;
 import br.com.fiap.petbuddies.service.cadastro.ClinicaService;
 import br.com.fiap.petbuddies.service.cadastro.VeterinarioService;
+import br.com.fiap.petbuddies.security.UsuarioPrincipal;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -63,6 +65,26 @@ public class EquipeWebController {
         }
         VeterinarioEntity criado = veterinarioService.criar(request);
         redirect.addFlashAttribute("sucesso", "Veterinário(a) " + criado.getNome() + " cadastrado(a).");
+        return "redirect:/equipe";
+    }
+
+    @PostMapping("/{id}/desativar")
+    public String desativar(
+            @PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal usuario, RedirectAttributes redirect) {
+        // Quem desativa a si mesma perde o acesso no meio da sessão e deixa a clínica sem quem reative.
+        if (id.equals(usuario.getVeterinarioId())) {
+            redirect.addFlashAttribute("erro", "Você não pode desativar o próprio cadastro.");
+            return "redirect:/equipe";
+        }
+        VeterinarioEntity vet = veterinarioService.alterarSituacao(id, false);
+        redirect.addFlashAttribute("sucesso", vet.getNome() + " desativado(a). O histórico de atendimentos foi mantido.");
+        return "redirect:/equipe";
+    }
+
+    @PostMapping("/{id}/reativar")
+    public String reativar(@PathVariable Long id, RedirectAttributes redirect) {
+        VeterinarioEntity vet = veterinarioService.alterarSituacao(id, true);
+        redirect.addFlashAttribute("sucesso", vet.getNome() + " reativado(a).");
         return "redirect:/equipe";
     }
 

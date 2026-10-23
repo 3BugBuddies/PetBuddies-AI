@@ -5,32 +5,43 @@
     <title>Veterinário · PetBuddies</title>
 </head>
 <body>
-<main>
-    <h1 th:text="${veterinarioId != null ? 'Editar veterinário' : 'Novo veterinário'}">Novo veterinário</h1>
-
-    <form class="formulario" method="post" th:action="@{${acaoFormulario}}" th:object="${veterinarioRequest}">
-        <input type="hidden" th:field="*{clinicaId}"/>
-
-        <label for="nome">Nome</label>
-        <input id="nome" type="text" th:field="*{nome}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">erro</div>
-
-        <label for="crmv">CRMV</label>
-        <input id="crmv" type="text" th:field="*{crmv}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('crmv')}" th:errors="*{crmv}">erro</div>
-
-        <label for="email">E-mail</label>
-        <input id="email" type="email" th:field="*{email}"/>
-        <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">erro</div>
-
-        <div class="campo-checkbox">
-            <input id="ativo" type="checkbox" th:field="*{ativo}"/>
-            <label for="ativo" style="margin:0;">Ativo</label>
+<main class="pn-main">
+    <div class="pn-head">
+        <div>
+            <div class="sub">Equipe</div>
+            <h1 class="pn-h1" th:text="${veterinarioId != null ? 'Editar veterinário(a)' : 'Novo(a) veterinário(a)'}">Novo veterinário</h1>
         </div>
+        <a class="pn-btn ghost" th:href="@{/equipe}">Voltar à equipe</a>
+    </div>
 
-        <div class="acoes-formulario">
-            <button type="submit">Salvar</button>
-            <a class="botao secundario" th:href="@{/equipe}">Cancelar</a>
+    <form method="post" th:action="@{${acaoFormulario}}" th:object="${veterinarioRequest}" class="pn-main">
+        <input type="hidden" th:field="*{clinicaId}"/>
+        <div class="pn-card">
+            <div class="pn-field">
+                <label for="nome">Nome</label>
+                <input id="nome" type="text" class="pn-input" th:field="*{nome}"/>
+                <div class="pn-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">erro</div>
+            </div>
+            <div class="pn-grid3">
+                <div class="pn-field">
+                    <label for="crmv">CRMV</label>
+                    <input id="crmv" type="text" class="pn-input" th:field="*{crmv}"/>
+                    <div class="pn-erro" th:if="${#fields.hasErrors('crmv')}" th:errors="*{crmv}">erro</div>
+                </div>
+                <div class="pn-field" style="grid-column: span 2">
+                    <label for="email">E-mail</label>
+                    <input id="email" type="email" class="pn-input" th:field="*{email}"/>
+                    <div class="pn-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">erro</div>
+                </div>
+            </div>
+            <div class="campo-checkbox">
+                <input id="ativo" type="checkbox" th:field="*{ativo}"/>
+                <label for="ativo" style="margin:0;">Ativo(a)</label>
+            </div>
+        </div>
+        <div class="pn-row">
+            <button type="submit" class="pn-btn">Salvar</button>
+            <a class="pn-btn ghost" th:href="@{/equipe}">Cancelar</a>
         </div>
     </form>
 </main>

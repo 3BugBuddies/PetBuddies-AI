@@ -87,6 +87,16 @@ public class VeterinarioService {
             throw new CrmvDuplicadoException(request.getCrmv());
         }
         aplicar(request, entity);
+        sincronizarAcesso(entity);
+        return repository.save(entity);
+    }
+
+    /** Desativar mantém o histórico e tira o acesso ao painel; reativar devolve os dois. */
+    @Transactional
+    public VeterinarioEntity alterarSituacao(Long id, boolean ativo) {
+        VeterinarioEntity entity = encontrarOuFalhar(id);
+        entity.setAtivo(ativo);
+        sincronizarAcesso(entity);
         return repository.save(entity);
     }
 
@@ -112,6 +122,11 @@ public class VeterinarioService {
             throw new VeterinarioComVinculosException(id, "prescrições");
         }
         repository.deleteById(id);
+    }
+
+    // O login da veterinária segue a situação dela: ativa no cadastro e inativa no acesso não faria sentido.
+    private void sincronizarAcesso(VeterinarioEntity entity) {
+        usuarioRepository.findByVeterinarioId(entity.getId()).forEach(usuario -> usuario.setAtivo(entity.isAtivo()));
     }
 
     private VeterinarioEntity encontrarOuFalhar(Long id) {

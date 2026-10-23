@@ -30,5 +30,8 @@ public interface AnimalRepository extends JpaRepository<AnimalEntity, Long> {
     @Query("SELECT a FROM AnimalEntity a JOIN FETCH a.responsavel WHERE a.id IN :ids")
     List<AnimalEntity> findComResponsavelPorIds(@Param("ids") Collection<Long> ids);
 
+    @Query("SELECT a FROM AnimalEntity a WHERE a.responsavel.id IN :responsavelIds ORDER BY a.nome")
+    List<AnimalEntity> findPorResponsaveis(@Param("responsavelIds") Collection<Long> responsavelIds);
+
     boolean existsByResponsavelId(Long responsavelId);
 }

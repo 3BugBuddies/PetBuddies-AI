@@ -26,7 +26,8 @@ public interface ConsultaRepository extends JpaRepository<ConsultaEntity, Long> 
     @Query("SELECT c FROM ConsultaEntity c JOIN FETCH c.animal JOIN FETCH c.veterinario WHERE c.id = :id")
     Optional<ConsultaEntity> findComAnimalEVeterinarioById(@Param("id") Long id);
 
-    @Query("SELECT c FROM ConsultaEntity c JOIN FETCH c.animal JOIN FETCH c.veterinario "
+    // O painel mostra o responsável do animal em cada consulta do dia.
+    @Query("SELECT c FROM ConsultaEntity c JOIN FETCH c.animal a JOIN FETCH a.responsavel JOIN FETCH c.veterinario "
             + "WHERE c.dataHora >= :inicio AND c.dataHora < :fim ORDER BY c.dataHora")
     List<ConsultaEntity> findNoPeriodo(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Acesso pelo app · PetBuddies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="icon" th:href="@{/favicon.png}" type="image/png"/>
+</head>
+<body class="pagina-login">
+<main class="caixa-login">
+    <img class="logo-login" th:src="@{/images/petbuddies-logo.png}" alt="PetBuddies" width="150" height="156"/>
+    <h1>Este painel é da clínica</h1>
+    <p class="subtitulo">O responsável acompanha pelo app PetBuddies.</p>
+    <form class="formulario" th:action="@{/logout}" method="post">
+        <div class="acoes-formulario">
+            <button type="submit">Sair</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

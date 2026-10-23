@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Responsável · PetBuddies</title>
+</head>
+<body>
+<main class="pn-main">
+    <div class="pn-head">
+        <div>
+            <div class="sub">Responsáveis</div>
+            <h1 class="pn-h1" th:text="${responsavelId != null ? 'Editar responsável' : 'Novo responsável'}">Novo responsável</h1>
+        </div>
+        <a class="pn-btn ghost" th:href="@{/responsaveis}">Voltar à lista</a>
+    </div>
+
+    <form method="post" th:action="@{${acaoFormulario}}" th:object="${responsavelRequest}" class="pn-main">
+        <div class="pn-card">
+            <div class="pn-field">
+                <label for="nome">Nome</label>
+                <input id="nome" type="text" class="pn-input" th:field="*{nome}"/>
+                <div class="pn-erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">erro</div>
+            </div>
+            <div class="pn-grid3">
+                <div class="pn-field">
+                    <label for="telefone">Telefone</label>
+                    <input id="telefone" type="text" class="pn-input" data-mascara="telefone" inputmode="tel" th:field="*{telefone}"/>
+                    <div class="pn-erro" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}">erro</div>
+                </div>
+                <div class="pn-field" style="grid-column: span 2">
+                    <label for="email">E-mail</label>
+                    <input id="email" type="email" class="pn-input" th:field="*{email}"/>
+                    <div class="pn-erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">erro</div>
+                </div>
+            </div>
+            <div class="pn-field">
+                <label for="endereco">Endereço</label>
+                <input id="endereco" type="text" class="pn-input" th:field="*{endereco}"/>
+                <div class="pn-erro" th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}">erro</div>
+            </div>
+        </div>
+        <div class="pn-row">
+            <button type="submit" class="pn-btn">Salvar</button>
+            <a class="pn-btn ghost" th:href="@{/responsaveis}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

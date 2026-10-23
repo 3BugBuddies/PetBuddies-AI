@@ -8,7 +8,9 @@ import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,12 @@ public class ClinicaWebController {
 
     public ClinicaWebController(ClinicaService clinicaService) {
         this.clinicaService = clinicaService;
+    }
+
+    @InitBinder("clinicaRequest")
+    public void binder(WebDataBinder binder) {
+        binder.registerCustomEditor(String.class, "cnpj", new DigitosEditor());
+        binder.registerCustomEditor(String.class, "telefone", new DigitosEditor());
     }
 
     @GetMapping
