@@ -3,6 +3,7 @@ package br.com.fiap.petbuddies.service.cadastro;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
+import br.com.fiap.petbuddies.domain.event.AnimalCadastrado;
 import br.com.fiap.petbuddies.domain.enums.identidade.PerfilUsuario;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CheckinRepository;
@@ -19,6 +20,7 @@ import br.com.fiap.petbuddies.exception.cadastro.AnimalDeOutroTutorException;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.cadastro.ResponsavelNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +41,7 @@ public class AnimalService {
     private final ProcedimentoRepository procedimentoRepository;
     private final PrescricaoRepository prescricaoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ApplicationEventPublisher eventos;
 
     public AnimalService(
             AnimalRepository repository,
@@ -49,7 +52,8 @@ public class AnimalService {
             RegistroAtendimentoRepository registroAtendimentoRepository,
             ProcedimentoRepository procedimentoRepository,
             PrescricaoRepository prescricaoRepository,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository,
+            ApplicationEventPublisher eventos) {
         this.repository = repository;
         this.responsavelRepository = responsavelRepository;
         this.consultaRepository = consultaRepository;
@@ -59,6 +63,7 @@ public class AnimalService {
         this.procedimentoRepository = procedimentoRepository;
         this.prescricaoRepository = prescricaoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.eventos = eventos;
     }
 
     @Transactional(readOnly = true)
@@ -81,7 +86,9 @@ public class AnimalService {
     public AnimalEntity criar(AnimalRequest request) {
         AnimalEntity entity = new AnimalEntity();
         aplicar(request, entity);
-        return repository.save(entity);
+        AnimalEntity salvo = repository.save(entity);
+        eventos.publishEvent(new AnimalCadastrado(salvo));
+        return salvo;
     }
 
     @Transactional
