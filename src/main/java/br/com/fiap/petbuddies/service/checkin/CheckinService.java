@@ -257,7 +257,7 @@ public class CheckinService {
                         .collect(Collectors.toMap(PrescricaoEntity::getId, p -> p));
         List<CheckinDesfechoResponse> desfechos = itens.stream()
                 .map(item -> {
-                    PrescricaoEntity prescricao = prescricoes.get(item.getPrescricaoId());
+                    PrescricaoEntity prescricao = item.getPrescricaoId() == null ? null : prescricoes.get(item.getPrescricaoId());
                     // Com todas as colunas nulas, o Hibernate devolve o Desfecho inteiro como null.
                     Desfecho desfecho = item.getDesfecho();
                     return CheckinDesfechoResponse.of(
