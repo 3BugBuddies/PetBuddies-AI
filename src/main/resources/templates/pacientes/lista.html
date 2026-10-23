@@ -48,7 +48,7 @@
                 <td>
                     <b th:text="${p.nome}">Paçoca</b>
                     <span class="pc-sub"
-                          th:text="${@rotulos.de(p.especie) + ' · ' + (p.raca == 'SEM_RACA' ? 'Sem raça definida' : p.raca) + ' · ' + @rotulos.de(p.sexo)}">Cão · Vira-lata · Fêmea</span>
+                          th:text="${p.especie.rotulo + ' · ' + (p.raca == 'SEM_RACA' ? 'Sem raça definida' : p.raca) + ' · ' + p.sexo.rotulo}">Cão · Vira-lata · Fêmea</span>
                 </td>
                 <td>
                     <span th:text="${p.responsavelNome}">Joana</span>
@@ -57,9 +57,9 @@
                 <td>
                     <span class="pc-chip" th:if="${p.planoCategoria == null}">Sem plano</span>
                     <span class="pc-chip espera" th:if="${p.planoCategoria != null and p.planoAte != null}"
-                          th:text="${@rotulos.de(p.planoCategoria) + ' até ' + #temporals.format(p.planoAte, 'dd/MM')}">Tratamento até 28/10</span>
+                          th:text="${p.planoCategoria.rotulo + ' até ' + #temporals.format(p.planoAte, 'dd/MM')}">Tratamento até 28/10</span>
                     <span class="pc-chip info" th:if="${p.planoCategoria != null and p.planoAte == null}"
-                          th:text="${@rotulos.de(p.planoCategoria)}">Preventivo</span>
+                          th:text="${p.planoCategoria.rotulo}">Preventivo</span>
                 </td>
                 <td>
                     <th:block th:if="${p.proximoCuidado != null}">

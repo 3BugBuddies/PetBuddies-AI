@@ -5,5 +5,21 @@ package br.com.fiap.petbuddies.domain.enums.cuidado;
  * do plano. E o mesmo enum de propósito: a regra descreve o que o item vai ser.
  */
 public enum TipoCuidado {
-    VACINACAO, VERMIFUGACAO, EXAME, RETORNO, CIRURGIA, MEDICACAO, HIGIENE
+    VACINACAO("Vacinação"),
+    VERMIFUGACAO("Vermifugação"),
+    EXAME("Exame"),
+    RETORNO("Retorno"),
+    CIRURGIA("Cirurgia"),
+    MEDICACAO("Medicação"),
+    HIGIENE("Higiene");
+
+    private final String rotulo;
+
+    TipoCuidado(String rotulo) {
+        this.rotulo = rotulo;
+    }
+
+    public String getRotulo() {
+        return rotulo;
+    }
 }

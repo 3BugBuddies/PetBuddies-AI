@@ -1,6 +1,5 @@
 package br.com.fiap.petbuddies.service.cadastro;
 
-import br.com.fiap.petbuddies.apresentacao.Rotulos;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
@@ -28,15 +27,16 @@ import br.com.fiap.petbuddies.dto.checkin.CheckinResponse;
 import br.com.fiap.petbuddies.dto.checkin.CondicaoObservadaResponse;
 import br.com.fiap.petbuddies.dto.paciente.FichaPacienteResponse;
 import br.com.fiap.petbuddies.dto.paciente.FichaPacienteResponse.CuidadoFicha;
+import br.com.fiap.petbuddies.dto.paciente.FichaPacienteResponse.EfeitoCheckin;
 import br.com.fiap.petbuddies.dto.paciente.FichaPacienteResponse.EntradaLinhaTempo;
 import br.com.fiap.petbuddies.dto.paciente.FichaPacienteResponse.PlanoFicha;
+import br.com.fiap.petbuddies.dto.paciente.FichaPacienteResponse.RegraFicha;
 import br.com.fiap.petbuddies.dto.paciente.FichaPacienteResponse.TratamentoFicha;
 import br.com.fiap.petbuddies.dto.paciente.FiltroPaciente;
 import br.com.fiap.petbuddies.dto.paciente.PacienteResumoResponse;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.service.atendimento.ConsultaService;
 import br.com.fiap.petbuddies.service.checkin.CheckinService;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -76,7 +76,6 @@ public class PacientePainelService {
     private final RegraPrescricaoRepository regraRepository;
     private final CondicaoClinicaRepository condicaoRepository;
     private final CheckinService checkinService;
-    private final Rotulos rotulos;
 
     public PacientePainelService(
             AnimalRepository animalRepository,
@@ -86,8 +85,7 @@ public class PacientePainelService {
             PrescricaoRepository prescricaoRepository,
             RegraPrescricaoRepository regraRepository,
             CondicaoClinicaRepository condicaoRepository,
-            CheckinService checkinService,
-            Rotulos rotulos) {
+            CheckinService checkinService) {
         this.animalRepository = animalRepository;
         this.planoRepository = planoRepository;
         this.consultaRepository = consultaRepository;
@@ -96,7 +94,6 @@ public class PacientePainelService {
         this.regraRepository = regraRepository;
         this.condicaoRepository = condicaoRepository;
         this.checkinService = checkinService;
-        this.rotulos = rotulos;
     }
 
     @Transactional(readOnly = true)
@@ -211,18 +208,15 @@ public class PacientePainelService {
     }
 
     private TratamentoFicha tratamento(PrescricaoEntity prescricao, List<ItemPlanoCuidadoEntity> itens) {
-        BigDecimal min = prescricao.getFaixaDose().getDoseMin();
-        BigDecimal max = prescricao.getFaixaDose().getDoseMax();
-        String dose = (min.compareTo(max) == 0 ? rotulos.numero(min) : rotulos.numero(min) + "–" + rotulos.numero(max))
-                + " " + prescricao.getFaixaDose().getUnidade();
-        String frequencia = prescricao.getFrequenciaDia() + "×/dia · " + prescricao.getDuracaoDias() + " dias";
-        List<String> regras = regraRepository.findByPrescricaoIdOrderByOrdemAsc(prescricao.getId()).stream()
-                .map(r -> rotulos.regra(r.getCondicaoCongelada().getRotulo(), r.getOperador(), r.getLimite(),
+        List<RegraFicha> regras = regraRepository.findByPrescricaoIdOrderByOrdemAsc(prescricao.getId()).stream()
+                .map(r -> new RegraFicha(r.getCondicaoCongelada().getRotulo(), r.getOperador(), r.getLimite(),
                         r.getCondicaoClinica().getUnidade(), r.getAcaoDose()))
                 .toList();
         int total = itens.size();
         int registrados = (int) itens.stream().filter(i -> ENCERRADOS.contains(i.getStatus())).count();
-        return new TratamentoFicha(prescricao.getMedicamento(), dose, frequencia, prescricao.getDataInicio(),
+        return new TratamentoFicha(prescricao.getMedicamento(), prescricao.getFaixaDose().getDoseMin(),
+                prescricao.getFaixaDose().getDoseMax(), prescricao.getFaixaDose().getUnidade(),
+                prescricao.getFrequenciaDia(), prescricao.getDuracaoDias(), prescricao.getDataInicio(),
                 prescricao.getDataInicio().plusDays(Math.max(0, prescricao.getDuracaoDias() - 1L)), regras,
                 registrados, total, total == 0 ? 0 : registrados * 100 / total);
     }
@@ -253,22 +247,15 @@ public class PacientePainelService {
         boolean acionou = checkin.getDesfechos().stream().anyMatch(d -> d.getDesfecho() == TipoDesfecho.ACIONAR_CLINICA);
         boolean alarme = checkin.isEscalado() || acionou;
 
-        List<String> efeitos = new ArrayList<>();
         String sinais = checkin.getCondicoesObservadas().stream()
                 .filter(o -> o.getCondicaoClinicaId() != null && condicoes.containsKey(o.getCondicaoClinicaId()))
                 .filter(o -> condicoes.get(o.getCondicaoClinicaId()).isCritica())
                 .filter(o -> Boolean.TRUE.equals(o.getValorBooleano()) || o.getValorNumerico() != null)
                 .map(o -> condicoes.get(o.getCondicaoClinicaId()).getRotulo().toLowerCase())
                 .distinct().collect(Collectors.joining(", "));
-        if (!sinais.isEmpty()) {
-            efeitos.add("sinal de alarme (" + sinais + ") → acionar clínica");
-        }
-        for (CheckinDesfechoResponse d : checkin.getDesfechos()) {
-            efeitos.add(efeitoDaDose(d, regras.get(d.getRegraAplicadaId())));
-        }
-        if (efeitos.isEmpty()) {
-            efeitos.add("nenhuma regra se aplicou");
-        }
+        List<EfeitoCheckin> efeitos = checkin.getDesfechos().stream()
+                .map(d -> efeitoDaDose(d, regras.get(d.getRegraAplicadaId())))
+                .toList();
 
         boolean semDose = checkin.getDesfechos().stream().anyMatch(d -> d.getDesfecho() == TipoDesfecho.SEM_DOSE);
         boolean dose = checkin.getDesfechos().stream().anyMatch(d -> d.getDesfecho() == TipoDesfecho.DOSE_CALCULADA);
@@ -288,20 +275,12 @@ public class PacientePainelService {
             estilo = "neutro";
         }
         return new EntradaLinhaTempo("CHECKIN", checkin.getRegistradoEm(), true, selo, estilo, "Check-in",
-                "“" + resumo(checkin.getNarrativa()) + "” → " + String.join("; ", efeitos));
+                resumo(checkin.getNarrativa()), sinais.isEmpty() ? null : sinais, efeitos, null, null, null);
     }
 
-    private String efeitoDaDose(CheckinDesfechoResponse d, RegraPrescricaoEntity regra) {
-        String remedio = d.getMedicamento() == null ? "" : d.getMedicamento() + ": ";
-        if (d.getDesfecho() == null) {
-            return remedio + "sem desfecho";
-        }
-        return switch (d.getDesfecho()) {
-            case ACIONAR_CLINICA -> remedio + "acionar clínica";
-            case SEM_DOSE -> remedio + "sem dose";
-            case DOSE_CALCULADA -> remedio + (regra == null ? "" : rotulos.de(regra.getAcaoDose()) + " · ")
-                    + rotulos.numero(d.getDoseAplicada()) + " " + (d.getUnidade() == null ? "" : d.getUnidade());
-        };
+    private EfeitoCheckin efeitoDaDose(CheckinDesfechoResponse d, RegraPrescricaoEntity regra) {
+        return new EfeitoCheckin(d.getMedicamento(), d.getDesfecho(), regra == null ? null : regra.getAcaoDose(),
+                d.getDoseAplicada(), d.getUnidade());
     }
 
     private List<EntradaLinhaTempo> entradasDeConsulta(Long animalId, List<ConsultaEntity> consultas) {
@@ -320,9 +299,8 @@ public class PacientePainelService {
 
         List<EntradaLinhaTempo> entradas = new ArrayList<>();
         for (ConsultaEntity c : consultas) {
-            String tipo = rotulos.de(c.getTipo());
             String vet = c.getVeterinario().getNome();
-            String selo = rotulos.de(c.getStatus());
+            String selo = null;
             String estilo = c.getStatus() == StatusConsulta.REALIZADA ? "neutro" : "espera";
             String detalhe = "Com " + vet;
             if (c == proxima) {
@@ -338,8 +316,8 @@ public class PacientePainelService {
             } else if (registro != null && registro.getDiagnostico() != null && !registro.getDiagnostico().isBlank()) {
                 detalhe = "Diagnóstico: " + resumo(registro.getDiagnostico()) + " · com " + vet;
             }
-            entradas.add(new EntradaLinhaTempo("CONSULTA", c.getDataHora(), true, selo, estilo,
-                    tipo + " · " + rotulos.de(c.getStatus()).toLowerCase(), detalhe));
+            entradas.add(new EntradaLinhaTempo("CONSULTA", c.getDataHora(), true, selo, estilo, null, detalhe,
+                    null, List.of(), c.getTipo(), c.getStatus(), null));
         }
         return entradas;
     }
@@ -354,10 +332,10 @@ public class PacientePainelService {
             if (ENCERRADOS.contains(i.getStatus())) {
                 LocalDateTime quando = i.getExecutadoEm() != null ? i.getExecutadoEm() : i.getDataAlvo().atStartOfDay();
                 entradas.add(new EntradaLinhaTempo("PLANO", quando, i.getExecutadoEm() != null, "feito", "ok",
-                        i.getNome(), rotulos.statusItem(i.getStatus(), false) + " no plano preventivo"));
+                        i.getNome(), null, null, List.of(), null, null, i.getStatus()));
             } else if (i.getDataAlvo().isBefore(hoje) || i.getStatus() == StatusItem.ATRASADO) {
                 entradas.add(new EntradaLinhaTempo("PLANO", i.getDataAlvo().atStartOfDay(), false, "vencido", "espera",
-                        i.getNome(), "Previsto no plano para esta data e ainda sem registro"));
+                        i.getNome(), "Previsto no plano para esta data e ainda sem registro", null, List.of(), null, null, null));
             }
         }
         molde.stream()
@@ -365,7 +343,7 @@ public class PacientePainelService {
                 .sorted(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo))
                 .limit(PLANO_FUTURO_NA_LINHA)
                 .forEach(i -> entradas.add(new EntradaLinhaTempo("PLANO", i.getDataAlvo().atStartOfDay(), false,
-                        "previsto", "info", i.getNome(), "Previsto no plano")));
+                        "previsto", "info", i.getNome(), "Previsto no plano", null, List.of(), null, null, null)));
         return entradas;
     }
 
