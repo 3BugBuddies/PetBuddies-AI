@@ -11,6 +11,7 @@ import br.com.fiap.petbuddies.domain.repository.ReceitaModeloRepository;
 import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.prescricao.ReceitaModeloRequest;
+import br.com.fiap.petbuddies.dto.prescricao.ReceitaModeloResponse;
 import br.com.fiap.petbuddies.dto.prescricao.RegraReceitaModeloRequest;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
@@ -49,6 +50,14 @@ public class ReceitaModeloService {
     public List<ReceitaModeloEntity> listar(Long usuarioId) {
         Long clinicaId = veterinarioDoUsuario(usuarioId).getClinica().getId();
         return repository.findByClinicaIdAndAtivoTrueOrderByTituloAsc(clinicaId);
+    }
+
+    /** As ativas da clínica já como resposta: o fechamento as oferece fora de uma sessão do usuário-autor. */
+    @Transactional(readOnly = true)
+    public List<ReceitaModeloResponse> listarAtivasDaClinica(Long clinicaId) {
+        return repository.findByClinicaIdAndAtivoTrueOrderByTituloAsc(clinicaId).stream()
+                .map(ReceitaModeloResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
