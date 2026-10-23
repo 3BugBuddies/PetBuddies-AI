@@ -25,5 +25,7 @@ public interface RegistroAtendimentoRepository extends JpaRepository<RegistroAte
 
     boolean existsByAnimalId(Long animalId);
 
+    boolean existsByIdAndAnimalId(Long id, Long animalId);
+
     boolean existsByConsultaId(Long consultaId);
 }
