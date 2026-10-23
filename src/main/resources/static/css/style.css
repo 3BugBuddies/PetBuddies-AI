@@ -689,3 +689,6 @@ form.formulario .campo-checkbox label { margin: 0; font-weight: 600; }
 .pc-codigo { margin-top: 0.3rem; padding: 0.5rem 0.7rem; border-radius: var(--raio-campo); background: var(--cor-painel); color: var(--cor-texto-suave); font-family: ui-monospace, Menlo, monospace; }
 .pc-acoes-form { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
 .pc-previa { position: sticky; top: 1rem; }
+
+/* modelos de plano */
+.pc-grupo { margin: 1.2rem 0 0.6rem; }

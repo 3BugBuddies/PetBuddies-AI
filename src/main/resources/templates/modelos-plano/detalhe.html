@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Modelo de plano · PetBuddies</title>
+</head>
+<body>
+<main>
+    <p class="subtitulo"><a th:href="@{/modelos-plano}">← Modelos de plano</a></p>
+
+    <div class="pc-cartao espera" th:unless="${disponivel}">
+        <b>Modelos indisponíveis agora</b>
+        <span>O catálogo fica no back-office da clínica e não respondeu. Tente de novo em instantes.</span>
+    </div>
+
+    <th:block th:if="${disponivel}">
+        <div class="cabecalho-pagina">
+            <div>
+                <h1 th:text="${modelo.nome}">Preventivo anual — cão</h1>
+                <p class="subtitulo" th:text="${@rotulos.de(modelo.categoria) + ' · ' + @rotulos.de(modelo.especie)}">Preventivo · Cão</p>
+            </div>
+            <span class="pc-chip espera">Só leitura</span>
+        </div>
+
+        <p th:if="${modelo.descricao != null and !#strings.isEmpty(modelo.descricao)}" th:text="${modelo.descricao}">descrição</p>
+
+        <div class="pc-cartao">
+            <table class="pc-tabela">
+                <thead>
+                <tr><th>Cuidado</th><th>Tipo</th><th>Começa</th><th>Repete</th><th>Vezes</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${modelo.cuidados}">
+                    <td><b th:text="${c.nome}">Antirrábica</b></td>
+                    <td th:text="${@rotulos.de(c.tipo)}">Vacinação</td>
+                    <td th:text="${c.comeca}">aos 12 meses</td>
+                    <td th:text="${c.repete}">a cada 12 meses</td>
+                    <td th:text="${c.vezes}">5</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pc-cartao">
+            <div class="pc-linha-cab">
+                <h2>Prévia para um animal</h2>
+                <form method="get" class="pc-busca-form" th:action="@{/modelos-plano/{id}(id=${modelo.id})}"
+                      th:unless="${#lists.isEmpty(modelo.animais)}">
+                    <select name="animalId" onchange="this.form.submit()" class="pc-busca">
+                        <option value="">Escolha um animal</option>
+                        <option th:each="a : ${modelo.animais}" th:value="${a.id}"
+                                th:selected="${modelo.animalDaPrevia != null and modelo.animalDaPrevia.id == a.id}"
+                                th:text="${a.nome + ' · nasceu ' + #temporals.format(a.dataNascimento, 'dd/MM/yyyy')}">Rex</option>
+                    </select>
+                    <noscript><button type="submit" class="botao pequeno">Ver</button></noscript>
+                </form>
+            </div>
+            <span class="pc-sub" th:if="${#lists.isEmpty(modelo.animais)}">Nenhum animal dessa espécie cadastrado.</span>
+            <span class="pc-sub" th:if="${modelo.avisoPrevia != null}" th:text="${modelo.avisoPrevia}">aviso</span>
+
+            <th:block th:if="${modelo.animalDaPrevia != null}">
+                <span class="pc-eyebrow" th:text="'Contando do nascimento, de hoje em diante · ' + ${modelo.animalDaPrevia.nome}">Contando do nascimento</span>
+                <p class="pc-vazio" th:if="${#lists.isEmpty(modelo.previa)}">Nenhum cuidado cai nos próximos 12 meses.</p>
+                <ul class="pc-cuidados" th:unless="${#lists.isEmpty(modelo.previa)}">
+                    <li th:each="i : ${modelo.previa}">
+                        <span><b th:text="${i.nome}">Vermífugo</b></span>
+                        <span th:text="${#temporals.format(i.dataAlvo, 'dd/MM/yyyy')}">22/01/2027</span>
+                    </li>
+                </ul>
+                <span class="pc-sub">Só entram datas de hoje em diante, até 12 meses à frente; o que já passou não vira pendência.</span>
+            </th:block>
+        </div>
+    </th:block>
+</main>
+</body>
+</html>
