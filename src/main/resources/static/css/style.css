@@ -201,7 +201,7 @@ a:hover { text-decoration: underline; }
 /* ---------- botoes ---------- */
 
 .botao,
-button[type="submit"]:not(.botao-link) {
+:where(button[type="submit"]:not(.botao-link)) {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -216,7 +216,7 @@ button[type="submit"]:not(.botao-link) {
     font-family: inherit;
 }
 .botao:hover,
-button[type="submit"]:not(.botao-link):hover {
+:where(button[type="submit"]:not(.botao-link)):hover {
     background: var(--cor-marca-escura);
     border-color: var(--cor-marca-escura);
     text-decoration: none;

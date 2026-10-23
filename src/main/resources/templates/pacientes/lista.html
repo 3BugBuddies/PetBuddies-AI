@@ -20,7 +20,7 @@
             <input class="pc-busca" type="search" name="busca" th:value="${busca}"
                    placeholder="Buscar por animal ou responsável"/>
             <input type="hidden" name="filtro" th:value="${filtro}"/>
-            <button type="submit" class="botao pequeno">Buscar</button>
+            <button type="submit" class="botao pequeno secundario">Buscar</button>
         </form>
         <div class="pc-seg">
             <a th:each="f : ${filtros}" th:classappend="${f == filtro} ? 'on'" th:text="${f.rotulo}"

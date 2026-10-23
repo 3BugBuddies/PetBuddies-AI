@@ -52,7 +52,7 @@
                                 th:selected="${modelo.animalDaPrevia != null and modelo.animalDaPrevia.id == a.id}"
                                 th:text="${a.nome + ' · nasceu ' + #temporals.format(a.dataNascimento, 'dd/MM/yyyy')}">Rex</option>
                     </select>
-                    <noscript><button type="submit" class="botao pequeno">Ver</button></noscript>
+                    <noscript><button type="submit" class="botao pequeno secundario">Ver</button></noscript>
                 </form>
             </div>
             <span class="pc-sub" th:if="${#lists.isEmpty(modelo.animais)}">Nenhum animal dessa espécie cadastrado.</span>
