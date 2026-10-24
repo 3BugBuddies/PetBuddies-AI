@@ -197,15 +197,22 @@ public class PrescricaoExtracaoService {
                 4. Cada regra condicional em "regras" referencia, no campo "condicao", EXATAMENTE um dos
                    códigos listados abaixo — copie o código literalmente. Se a narrativa mencionar uma
                    condição que não está na lista (ex.: um sintoma sem código correspondente), gere a regra
-                   com "condicao" null e descreva a condição nova em "condicaoNovaRotulo" (substantivo curto
-                   com inicial maiúscula, como num prontuário: "Vômito", "Tosse", "Temperatura" — nunca o verbo) e "condicaoNovaTipoDado" (BOOLEANO ou NUMERICO). Nunca preencha
+                   com "condicao" null e descreva a condição nova em "condicaoNovaRotulo" (o estado relatado do
+                   jeito que o veterinário falou, curto e com inicial maiúscula, como num prontuário:
+                   "Comeu pouco", "Vômito", "Fezes moles", "Tosse" — nunca a categoria genérica como
+                   "Apetite" ou "Fezes", nem o verbo no infinitivo ou condicional "se vomitar") e "condicaoNovaTipoDado" (BOOLEANO ou NUMERICO). Uma condição da lista só vale
+                   quando o rótulo dela descreve o estado que o veterinário relatou; se o rótulo é uma
+                   categoria genérica ("Apetite") e a narrativa diz um estado específico ("comer pouco"),
+                   use "condicao" null e "condicaoNovaRotulo" "Comeu pouco". Nunca preencha
                    "condicao" e "condicaoNovaRotulo" na mesma regra.
                 5. Se a condição da regra é do tipo BOOLEANO, os campos "operador" e "limite" da
                    regra devem vir null — não há o que comparar. Se é NUMERICO, os dois são obrigatórios.
                 6. "operador" só pode ser um destes literais, exatamente: MAIOR_QUE, MAIOR_OU_IGUAL,
                    MENOR_QUE, MENOR_OU_IGUAL, IGUAL.
                 7. "acaoDose" só pode ser um destes literais, exatamente: DOSE_MIN, DOSE_MAX,
-                   DOSE_PADRAO, ACIONAR_CLINICA, SUSPENDER.
+                   DOSE_PADRAO, ACIONAR_CLINICA, SUSPENDER. Se a frase manda acionar, procurar ou ligar
+                   para a clínica, a ação é ACIONAR_CLINICA, mesmo que também diga "suspender".
+                   SUSPENDER é só "não dar a dose de hoje", sem acionar ninguém.
                 8. "dataInicio" é uma data no formato ISO (yyyy-MM-dd). Hoje é %s — resolva expressões
                    relativas ("a partir de amanhã", "começando segunda") contra essa data, com
                    literalDataInicio=false. Se a narrativa não mencionar quando começar, devolva null.
@@ -217,6 +224,11 @@ public class PrescricaoExtracaoService {
                    refere, repita-a nas regras do medicamento imediatamente anterior apenas. Se a narrativa
                    cita um só medicamento, "medicamentos" tem um único item. Os campos "regras" de cada
                    item seguem as regras 4 a 7.
+
+                10. "unidade" é exatamente a que o veterinário falou: mL, gotas, comprimidos, mg, UI.
+                   Nunca troque por mg. Preencha "trechoUnidade" com a
+                   citação da narrativa e "literalUnidade" true. Se nenhuma unidade foi dita, unidade,
+                   trecho e literal voltam null.
 
                 Condições clínicas cadastradas nesta clínica — o vocabulário fechado que você pode usar:
                 %s
@@ -230,7 +242,8 @@ public class PrescricaoExtracaoService {
         if (valor == null || valor.isBlank() || valor.length() > 150 || semTrecho(ia.trechoMedicamento())) {
             return;
         }
-        prescricao.setMedicamento(valor.trim());
+        String nome = valor.trim();
+        prescricao.setMedicamento(nome.substring(0, 1).toUpperCase() + nome.substring(1));
         confiancas.put("medicamento", confiancaDe(ia.literalMedicamento()));
     }
 
