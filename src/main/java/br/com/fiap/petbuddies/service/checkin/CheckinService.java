@@ -185,8 +185,9 @@ public class CheckinService {
             checkin = checkinRepository.save(checkin);
         }
 
+        boolean escalado = escalarPorCritica || acionouClinica(desfechos);
         List<CondicaoObservadaResponse> condicoesResponse = observadas.stream().map(CondicaoObservadaResponse::from).toList();
-        return CheckinResponse.of(checkin, condicoesResponse, desfechos, escalarPorCritica,
+        return CheckinResponse.of(checkin, condicoesResponse, desfechos, escalado,
                 contatoClinicaService.doAnimal(animal.getId(), prescricoesParaAvaliar));
     }
 
@@ -291,6 +292,10 @@ public class CheckinService {
         return telefone == null ? base + "." : base + ": " + formatador.telefone(telefone) + ".";
     }
 
+    private boolean acionouClinica(List<CheckinDesfechoResponse> desfechos) {
+        return desfechos.stream().anyMatch(d -> d.getDesfecho() == TipoDesfecho.ACIONAR_CLINICA);
+    }
+
     private CheckinResponse montarResposta(CheckinEntity checkin) {
         List<CondicaoObservadaEntity> observadas = condicaoObservadaRepository.findByCheckin_Id(checkin.getId());
         List<CondicaoObservadaResponse> condicoes = observadas.stream().map(CondicaoObservadaResponse::from).toList();
@@ -318,10 +323,8 @@ public class CheckinService {
                 })
                 .toList();
 
-        // Mesmo critério do POST (escalarPorCritica): condição crítica
-        // observada, não "algum item terminou ACIONAR_CLINICA" — a
-        // escalação vale mesmo quando não existe item pra gravar.
-        boolean escalado = observadas.stream().anyMatch(this::observacaoCritica);
+        // Mesmo critério do POST e do painel: condição crítica ou algum desfecho ACIONAR_CLINICA.
+        boolean escalado = observadas.stream().anyMatch(this::observacaoCritica) || acionouClinica(desfechos);
         return CheckinResponse.of(checkin, condicoes, desfechos, escalado,
                 contatoClinicaService.doAnimal(checkin.getAnimal().getId(), prescricoes.values()));
     }
