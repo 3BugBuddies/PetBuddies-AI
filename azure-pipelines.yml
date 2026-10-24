@@ -1,0 +1,99 @@
+trigger:
+  branches:
+    include:
+      - deploy/next
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  JAVA_VERSION: '21'
+  JDK_VERSION: '1.21'
+  ARTIFACT_NAME: 'app'
+  TEST_RUN_TITLE: 'Testes de Código'
+  azureSubscription: 'sc-petbuddies-azure'
+
+stages:
+  - stage: CI
+    displayName: 'CI - Build e Testes'
+    jobs:
+      - job: Build
+        displayName: 'Instalar e Configurar Java'
+        steps:
+          - task: JavaToolInstaller@0
+            displayName: 'Configurar Java 21'
+            inputs:
+              versionSpec: $(JAVA_VERSION)
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - task: Maven@4
+            displayName: 'Maven - Compilar e executar testes'
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'clean package'
+              options: ''
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              testRunTitle: $(TEST_RUN_TITLE)
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: $(JDK_VERSION)
+              mavenVersionOption: 'Default'
+
+          - task: CopyFiles@2
+            displayName: 'Preparar artefato JAR'
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)'
+              Contents: '**/target/*.jar'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/$(ARTIFACT_NAME)'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publicar artefato app'
+            inputs:
+              targetPath: '$(Build.ArtifactStagingDirectory)/$(ARTIFACT_NAME)'
+              artifact: '$(ARTIFACT_NAME)'
+              publishLocation: 'pipeline'
+
+  - stage: CD
+    displayName: 'CD - Deploy no Azure Web App'
+    dependsOn: CI
+    condition: succeeded()
+    jobs:
+      - deployment: Deploy
+        displayName: 'Deploy Spring Boot'
+        environment: 'petbuddies-java'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: 'app'
+
+                - task: AzureAppServiceSettings@1
+                  displayName: 'Configurar variáveis de ambiente do Web App'
+                  inputs:
+                    azureSubscription: '$(azureSubscription)'
+                    appName: '$(NOME_WEBAPP)'
+                    resourceGroupName: 'rg-petbuddies'
+                    appSettings: |
+                      [
+                        { "name": "ORACLE_URL", "value": "$(ORACLE_URL)", "slotSetting": false },
+                        { "name": "ORACLE_USER", "value": "$(ORACLE_USER)", "slotSetting": false },
+                        { "name": "ORACLE_PASSWORD", "value": "$(ORACLE_PASSWORD)", "slotSetting": false },
+                        { "name": "GEMINI_API_KEY", "value": "$(GEMINI_API_KEY)", "slotSetting": false },
+                        { "name": "PETBUDDIES_JWT_SECRET", "value": "$(PETBUDDIES_JWT_SECRET)", "slotSetting": false },
+                        { "name": "PETNETAPI_URL", "value": "$(PETNETAPI_URL)", "slotSetting": false },
+                        { "name": "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE", "value": "5", "slotSetting": false },
+                        { "name": "SPRING_DATASOURCE_HIKARI_MAX_LIFETIME", "value": "1500000", "slotSetting": false },
+                        { "name": "WEBSITES_CONTAINER_START_TIME_LIMIT", "value": "600", "slotSetting": false },
+                        { "name": "TZ", "value": "America/Sao_Paulo", "slotSetting": false }
+                      ]
+
+                - task: AzureWebApp@1
+                  displayName: 'Deploy via Zip Deploy'
+                  inputs:
+                    azureSubscription: '$(azureSubscription)'
+                    appType: 'webAppLinux'
+                    appName: '$(NOME_WEBAPP)'
+                    package: '$(Pipeline.Workspace)/app/**/*.jar'
+                    deploymentMethod: 'zipDeploy'
