@@ -140,7 +140,8 @@
                 <div x-show="prescrever">
                     <div class="pc-aplicar" th:unless="${#lists.isEmpty(receitasModelo)}">
                         <div>
-                            <label for="receitaModelo">Aplicar receita-modelo</label>
+                            <label for="receitaModelo"
+                                   x-text="medicamentos.length > 1 ? 'Aplicar receita-modelo no medicamento ' + (atual + 1) : 'Aplicar receita-modelo'">Aplicar receita-modelo</label>
                             <select id="receitaModelo" x-model="modeloEscolhido">
                                 <option value="">Escolha uma receita-modelo</option>
                                 <template x-for="modelo in receitasModelo" x-bind:key="modelo.id">
@@ -151,79 +152,91 @@
                         <button type="button" class="botao secundario" x-bind:disabled="modeloEscolhido === ''"
                                 x-on:click="aplicarReceitaModelo()">Aplicar</button>
                     </div>
-                    <input type="hidden" name="prescricao.receitaModeloId" x-bind:value="origemId"/>
-                    <input type="hidden" name="prescricao.receitaModeloVersao" x-bind:value="origemVersao"/>
-                    <p class="pc-sub" x-show="origemId !== ''" x-cloak="x-cloak">
-                        Preenchido da receita-modelo &middot; revise. Editar aqui não muda a receita-modelo.
-                        <span x-show="regrasIgnoradas > 0"
-                              x-text="regrasIgnoradas + (regrasIgnoradas === 1 ? ' regra ficou de fora' : ' regras ficaram de fora') + ' porque a condição está desativada.'"></span>
-                    </p>
-                    <div class="pc-grade4">
-                        <div class="pc-largo">
-                            <label for="medicamento">Medicamento</label>
-                            <input id="medicamento" type="text" th:field="*{prescricao.medicamento}"/>
-                        </div>
-                        <div>
-                            <label for="doseMin">Dose mínima</label>
-                            <input id="doseMin" type="number" step="0.001" min="0" th:field="*{prescricao.doseMin}"/>
-                        </div>
-                        <div>
-                            <label for="doseMax">Dose máxima</label>
-                            <input id="doseMax" type="number" step="0.001" min="0" th:field="*{prescricao.doseMax}"/>
-                        </div>
-                        <div>
-                            <label for="unidade">Unidade</label>
-                            <input id="unidade" type="text" th:field="*{prescricao.unidade}" placeholder="mg"/>
-                        </div>
-                        <div>
-                            <label for="frequencia">Vezes ao dia</label>
-                            <input id="frequencia" type="number" min="1" max="99" th:field="*{prescricao.frequenciaDia}"/>
-                        </div>
-                        <div>
-                            <label for="duracao">Duração (dias)</label>
-                            <input id="duracao" type="number" min="1" max="9999" th:field="*{prescricao.duracaoDias}"/>
-                        </div>
-                        <div>
-                            <label for="inicio">Data de início</label>
-                            <input id="inicio" type="date" th:field="*{prescricao.dataInicio}"/>
-                        </div>
-                    </div>
+                    <template x-for="(med, m) in medicamentos" x-bind:key="med.chave">
+                        <div class="pc-medicamento" x-on:focusin="atual = m" x-bind:class="{ 'em-edicao': medicamentos.length > 1 &amp;&amp; atual === m }">
+                            <div class="pc-linha-cab" x-show="medicamentos.length > 1">
+                                <h3 class="pc-sub-titulo" x-text="'Medicamento ' + (m + 1)">Medicamento 1</h3>
+                                <button type="button" class="botao pequeno secundario" x-on:click="removerMedicamento(m)">Remover</button>
+                            </div>
+                            <ul class="pc-erros" x-show="med.erros.length > 0">
+                                <template x-for="erro in med.erros"><li x-text="erro"></li></template>
+                            </ul>
+                            <input type="hidden" x-bind:name="'prescricoes[' + m + '].receitaModeloId'" x-bind:value="med.receitaModeloId"/>
+                            <input type="hidden" x-bind:name="'prescricoes[' + m + '].receitaModeloVersao'" x-bind:value="med.receitaModeloVersao"/>
+                            <p class="pc-sub" x-show="med.receitaModeloId !== ''" x-cloak="x-cloak">
+                                Preenchido da receita-modelo &middot; revise. Editar aqui não muda a receita-modelo.
+                                <span x-show="med.regrasIgnoradas > 0"
+                                      x-text="med.regrasIgnoradas + (med.regrasIgnoradas === 1 ? ' regra ficou de fora' : ' regras ficaram de fora') + ' porque a condição está desativada.'"></span>
+                            </p>
+                            <div class="pc-grade4">
+                                <div class="pc-largo">
+                                    <label x-bind:for="'medicamento' + m">Medicamento</label>
+                                    <input x-bind:id="'medicamento' + m" type="text" x-bind:name="'prescricoes[' + m + '].medicamento'" x-model="med.medicamento"/>
+                                </div>
+                                <div>
+                                    <label x-bind:for="'doseMin' + m">Dose mínima</label>
+                                    <input x-bind:id="'doseMin' + m" type="number" step="0.001" min="0" x-bind:name="'prescricoes[' + m + '].doseMin'" x-model="med.doseMin"/>
+                                </div>
+                                <div>
+                                    <label x-bind:for="'doseMax' + m">Dose máxima</label>
+                                    <input x-bind:id="'doseMax' + m" type="number" step="0.001" min="0" x-bind:name="'prescricoes[' + m + '].doseMax'" x-model="med.doseMax"/>
+                                </div>
+                                <div>
+                                    <label x-bind:for="'unidade' + m">Unidade</label>
+                                    <input x-bind:id="'unidade' + m" type="text" placeholder="mg" x-bind:name="'prescricoes[' + m + '].unidade'" x-model="med.unidade"/>
+                                </div>
+                                <div>
+                                    <label x-bind:for="'frequencia' + m">Vezes ao dia</label>
+                                    <input x-bind:id="'frequencia' + m" type="number" min="1" max="99" x-bind:name="'prescricoes[' + m + '].frequenciaDia'" x-model="med.frequenciaDia"/>
+                                </div>
+                                <div>
+                                    <label x-bind:for="'duracao' + m">Duração (dias)</label>
+                                    <input x-bind:id="'duracao' + m" type="number" min="1" max="9999" x-bind:name="'prescricoes[' + m + '].duracaoDias'" x-model="med.duracaoDias"/>
+                                </div>
+                                <div>
+                                    <label x-bind:for="'inicio' + m">Data de início</label>
+                                    <input x-bind:id="'inicio' + m" type="date" x-bind:name="'prescricoes[' + m + '].dataInicio'" x-model="med.dataInicio"/>
+                                </div>
+                            </div>
 
-                    <label for="orientacao">Orientação ao responsável</label>
-                    <textarea id="orientacao" rows="2" th:field="*{prescricao.orientacao}"></textarea>
+                            <label x-bind:for="'orientacao' + m">Orientação ao responsável</label>
+                            <textarea x-bind:id="'orientacao' + m" rows="2" x-bind:name="'prescricoes[' + m + '].orientacao'" x-model="med.orientacao"></textarea>
 
-                    <h3 class="pc-sub-titulo">Regras do check-in</h3>
-                    <p class="pc-sub" th:if="${#lists.isEmpty(condicoes)}">
-                        Nenhuma condição ativa. Cadastre em <a th:href="@{/condicoes}">Condições</a> para criar regras.
-                    </p>
-                    <template x-for="(regra, i) in regras" x-bind:key="i">
-                        <div class="pc-regra-linha">
-                            <select x-bind:name="'prescricao.regras[' + i + '].condicaoClinicaId'" x-model="regra.condicaoClinicaId">
-                                <option value="">Se… (condição)</option>
-                                <option th:each="c : ${condicoes}" th:value="${c.id}"
-                                        th:text="${c.rotulo + (c.critica ? ' (sinal de alarme)' : '')}">Vômito</option>
-                            </select>
-                            <template x-if="numerica(regra)">
-                                <span class="pc-regra-limite">
-                                    <select x-bind:name="'prescricao.regras[' + i + '].operador'" x-model="regra.operador">
-                                        <option value="">Operador</option>
-                                        <option th:each="o : ${operadores}" th:value="${o}" th:text="${o.rotulo}">MAIOR_QUE</option>
+                            <h3 class="pc-sub-titulo">Regras do check-in</h3>
+                            <p class="pc-sub" th:if="${#lists.isEmpty(condicoes)}">
+                                Nenhuma condição ativa. Cadastre em <a th:href="@{/condicoes}">Condições</a> para criar regras.
+                            </p>
+                            <template x-for="(regra, i) in med.regras" x-bind:key="i">
+                                <div class="pc-regra-linha">
+                                    <select x-bind:name="'prescricoes[' + m + '].regras[' + i + '].condicaoClinicaId'" x-model="regra.condicaoClinicaId">
+                                        <option value="">Se… (condição)</option>
+                                        <option th:each="c : ${condicoes}" th:value="${c.id}"
+                                                th:text="${c.rotulo + (c.critica ? ' (sinal de alarme)' : '')}">Vômito</option>
                                     </select>
-                                    <input type="number" step="any" placeholder="Limite"
-                                           x-bind:name="'prescricao.regras[' + i + '].limite'" x-model="regra.limite"/>
-                                    <span class="pc-sub" x-text="unidadeDe(regra)"></span>
-                                </span>
+                                    <template x-if="numerica(regra)">
+                                        <span class="pc-regra-limite">
+                                            <select x-bind:name="'prescricoes[' + m + '].regras[' + i + '].operador'" x-model="regra.operador">
+                                                <option value="">Operador</option>
+                                                <option th:each="o : ${operadores}" th:value="${o}" th:text="${o.rotulo}">MAIOR_QUE</option>
+                                            </select>
+                                            <input type="number" step="any" placeholder="Limite"
+                                                   x-bind:name="'prescricoes[' + m + '].regras[' + i + '].limite'" x-model="regra.limite"/>
+                                            <span class="pc-sub" x-text="unidadeDe(regra)"></span>
+                                        </span>
+                                    </template>
+                                    <select x-bind:name="'prescricoes[' + m + '].regras[' + i + '].acaoDose'" x-model="regra.acaoDose">
+                                        <option value="">então… (ação)</option>
+                                        <option th:each="a : ${acoes}" th:value="${a}" th:text="${a.rotulo}">DOSE_MIN</option>
+                                    </select>
+                                    <button type="button" class="botao pequeno secundario" x-on:click="med.regras.splice(i, 1)">Remover</button>
+                                    <div class="pc-regra" x-text="previa(regra)"></div>
+                                </div>
                             </template>
-                            <select x-bind:name="'prescricao.regras[' + i + '].acaoDose'" x-model="regra.acaoDose">
-                                <option value="">então… (ação)</option>
-                                <option th:each="a : ${acoes}" th:value="${a}" th:text="${a.rotulo}">DOSE_MIN</option>
-                            </select>
-                            <button type="button" class="botao pequeno secundario" x-on:click="regras.splice(i, 1)">Remover</button>
-                            <div class="pc-regra" x-text="previa(regra)"></div>
+                            <button type="button" class="botao pequeno secundario" x-on:click="novaRegra(med)"
+                                    th:unless="${#lists.isEmpty(condicoes)}">+ Regra</button>
                         </div>
                     </template>
-                    <button type="button" class="botao pequeno secundario" x-on:click="novaRegra()"
-                            th:unless="${#lists.isEmpty(condicoes)}">+ Regra</button>
+                    <button type="button" class="botao pequeno secundario" x-on:click="adicionarMedicamento()">+ Adicionar medicamento</button>
                 </div>
             </div>
         </section>
@@ -246,10 +259,15 @@
                 <div class="pc-cartao contorno">
                     <div class="pc-linha-cab"><h2>Prescrição</h2>
                         <button type="button" class="botao pequeno secundario" x-on:click="ir(3)">Editar</button></div>
-                    <span class="pc-forte" x-text="resumo.prescricao"></span>
-                    <span class="pc-sub" x-text="resumo.prescricaoLinha"></span>
-                    <template x-for="linha in resumo.regras">
-                        <div class="pc-regra" x-text="linha"></div>
+                    <span class="pc-forte" x-show="!prescrever">Sem prescrição</span>
+                    <template x-for="med in resumo.medicamentos">
+                        <div>
+                            <span class="pc-forte" x-text="med.titulo"></span>
+                            <span class="pc-sub" x-text="med.linha"></span>
+                            <template x-for="linha in med.regras">
+                                <div class="pc-regra" x-text="linha"></div>
+                            </template>
+                        </div>
                     </template>
                 </div>
             </div>
@@ -259,7 +277,7 @@
                 <ol class="pc-ao-fechar">
                     <li>A consulta vira <b>realizada</b>.</li>
                     <li x-show="baixaItem">O item escolhido sai do plano como <b>feito</b>.</li>
-                    <li x-show="prescrever">Nasce um plano de <b>tratamento</b> com <span x-text="resumo.duracao"></span> dias de acompanhamento.</li>
+                    <li x-show="prescrever">Nasce um plano de <b>tratamento</b> com <span x-text="resumo.duracao"></span> dias de acompanhamento<span x-show="medicamentos.length > 1"> (o mais longo dos medicamentos)</span>.</li>
                     <li x-show="prescrever">O responsável vê a receita e as tarefas no app.</li>
                 </ol>
             </div>

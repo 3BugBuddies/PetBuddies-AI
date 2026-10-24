@@ -27,7 +27,7 @@ public class FechamentoPainelForm {
     private boolean houveProcedimento;
     private ProcedimentoPainel procedimento = new ProcedimentoPainel();
     private boolean prescrever;
-    private PrescricaoFechamentoRequest prescricao = new PrescricaoFechamentoRequest();
+    private List<PrescricaoFechamentoRequest> prescricoes = new ArrayList<>(List.of(new PrescricaoFechamentoRequest()));
 
     @Getter
     @Setter
@@ -45,7 +45,7 @@ public class FechamentoPainelForm {
         FechamentoAtendimentoRequest request = new FechamentoAtendimentoRequest();
         request.setRegistroAtendimento(registro);
         request.setProcedimentos(houveProcedimento ? List.of(procedimentoRequest()) : List.of());
-        request.setPrescricoes(prescrever ? List.of(prescricaoRequest()) : List.of());
+        request.setPrescricoes(prescrever ? prescricoesRequest() : List.of());
         return request;
     }
 
@@ -72,25 +72,26 @@ public class FechamentoPainelForm {
         return obs.isEmpty() ? "Lote " + lote : "Lote " + lote + ". " + obs;
     }
 
-    private PrescricaoFechamentoRequest prescricaoRequest() {
-        List<RegraPrescricaoFechamentoRequest> regras = prescricao.getRegras() == null
-                ? new ArrayList<>() : prescricao.getRegras();
-        for (int i = 0; i < regras.size(); i++) {
-            regras.get(i).setOrdem(i + 1);
+    private List<PrescricaoFechamentoRequest> prescricoesRequest() {
+        for (PrescricaoFechamentoRequest prescricao : prescricoes) {
+            List<RegraPrescricaoFechamentoRequest> regras = prescricao.getRegras() == null
+                    ? new ArrayList<>() : prescricao.getRegras();
+            for (int i = 0; i < regras.size(); i++) {
+                regras.get(i).setOrdem(i + 1);
+            }
+            prescricao.setRegras(regras);
         }
-        prescricao.setRegras(regras);
-        return prescricao;
+        return prescricoes;
     }
 
     /** Caminho de violação do request → campo deste formulário; nulo quando não há campo equivalente. */
     public static String campoDoFormulario(String caminho) {
         String campo = caminho
                 .replace("registroAtendimento.", "registro.")
-                .replace("procedimentos[0].", "procedimento.")
-                .replace("prescricoes[0].", "prescricao.");
+                .replace("procedimentos[0].", "procedimento.");
         campo = campo.replace("procedimento.dataPrevistaInicio", "procedimento.data")
                 .replace("procedimento.dataPrevistaFim", "procedimento.data");
-        return campo.startsWith("registro.") || campo.startsWith("procedimento.") || campo.startsWith("prescricao.")
+        return campo.startsWith("registro.") || campo.startsWith("procedimento.") || campo.startsWith("prescricoes[")
                 ? campo : null;
     }
 

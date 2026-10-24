@@ -1,6 +1,8 @@
 package br.com.fiap.petbuddies.service.prescricao;
 
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
+import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +23,11 @@ public class PrescricaoAtivaResolver {
 
     private final PrescricaoRepository repository;
 
-    public PrescricaoAtivaResolver(PrescricaoRepository repository) {
+    private final ItemPlanoCuidadoRepository itemRepository;
+
+    public PrescricaoAtivaResolver(PrescricaoRepository repository, ItemPlanoCuidadoRepository itemRepository) {
         this.repository = repository;
+        this.itemRepository = itemRepository;
     }
 
     public List<PrescricaoEntity> listar(Long animalId, LocalDate referencia) {
@@ -32,7 +37,14 @@ public class PrescricaoAtivaResolver {
     }
 
     private boolean vigente(PrescricaoEntity prescricao, LocalDate referencia) {
+        if (prescricao.getDataInicio() == null || prescricao.getDuracaoDias() == null) {
+            return false;
+        }
         LocalDate fim = prescricao.getDataInicio().plusDays(prescricao.getDuracaoDias());
-        return !referencia.isBefore(prescricao.getDataInicio()) && referencia.isBefore(fim);
+        boolean naJanela = !referencia.isBefore(prescricao.getDataInicio()) && referencia.isBefore(fim);
+        // Plano suspenso pelo alarme não tem dose a avaliar até a veterinária reabrir o tratamento.
+        return naJanela && itemRepository.findFirstByPrescricaoIdOrderByDataAlvoAsc(prescricao.getId())
+                .map(i -> i.getPlano().getStatus() != StatusPlano.SUSPENSO)
+                .orElse(true);
     }
 }

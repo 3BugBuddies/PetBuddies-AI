@@ -123,6 +123,13 @@ public class CheckinService {
         if (checkinRepository.findExistente(animal.getId(), referencia, request.getItemPlanoCuidadoId()).isPresent()) {
             throw new CheckinDuplicadoException(animal.getId(), referencia, request.getItemPlanoCuidadoId());
         }
+        // Relato geral e relato por item no mesmo dia avaliariam a mesma prescrição duas vezes.
+        if (itemRelatado != null && checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(animal.getId(), referencia)) {
+            throw new CheckinDuplicadoException(animal.getId(), referencia, "Já existe relato geral neste dia; o relato por item não é aceito.");
+        }
+        if (itemRelatado == null && checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNotNull(animal.getId(), referencia)) {
+            throw new CheckinDuplicadoException(animal.getId(), referencia, "Já existe relato por item neste dia; o relato geral não é aceito.");
+        }
 
         CheckinEntity checkin = new CheckinEntity();
         checkin.setAnimal(animal);
@@ -143,6 +150,8 @@ public class CheckinService {
                 : prescricaoAtivaResolver.listar(animal.getId(), referencia);
 
         List<CheckinDesfechoResponse> desfechos = new ArrayList<>();
+        // A suspensão roda depois do laço: suspender no meio faria o plano parecer SUSPENSO para as prescrições seguintes do mesmo relato.
+        Map<PrescricaoEntity, ItemPlanoCuidadoEntity> aSuspender = new java.util.LinkedHashMap<>();
         for (PrescricaoEntity prescricao : prescricoesParaAvaliar) {
             List<RegraPrescricaoEntity> regras = regraPrescricaoRepository.findByPrescricaoIdOrderByOrdemAsc(prescricao.getId());
             AvaliadorRegraService.Resultado resultado =
@@ -151,21 +160,25 @@ public class CheckinService {
             ItemPlanoCuidadoEntity item = itemParaGravar(itemRelatado, prescricao, referencia);
             if (item != null) {
                 item.setDesfecho(new Desfecho(checkin.getId(), resultado.desfecho(), resultado.doseAplicada(), resultado.regraAplicadaId()));
-                if (item.getOrigem() == TipoOrigemItem.PRESCRICAO) {
+                // Plano suspenso pelo alarme: o desfecho é registrado, mas o item não volta para REALIZADO.
+                if (item.getOrigem() == TipoOrigemItem.PRESCRICAO && item.getPlano().getStatus() != StatusPlano.SUSPENSO) {
                     item.setStatus(statusPorDesfecho(resultado.desfecho()));
                     item.setExecutadoEm(checkin.getRegistradoEm());
                 }
                 itemPlanoCuidadoRepository.save(item);
             }
             if (resultado.desfecho() == TipoDesfecho.ACIONAR_CLINICA) {
-                suspenderTratamento(prescricao, item, referencia);
+                aSuspender.put(prescricao, item);
             }
 
             desfechos.add(CheckinDesfechoResponse.of(
                     prescricao.getId(), prescricao.getMedicamento(), item == null ? null : item.getId(),
                     resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId(),
-                    prescricao));
+                    prescricao).comRegra(regras.stream()
+                            .filter(r -> r.getId().equals(resultado.regraAplicadaId())).findFirst().orElse(null)));
         }
+
+        aSuspender.forEach((prescricao, item) -> suspenderTratamento(prescricao, item, referencia));
 
         if (escalarPorCritica) {
             checkin.setObservacoesGerais(montarObservacaoEscalacao(observadas, prescricoesParaAvaliar));
@@ -300,7 +313,8 @@ public class CheckinService {
                             desfecho == null ? null : desfecho.getDoseAplicada(),
                             prescricao == null ? null : prescricao.getFaixaDose().getUnidade(),
                             desfecho == null ? null : desfecho.getRegraAplicadaId(),
-                            prescricao);
+                            prescricao).comRegra(desfecho == null || desfecho.getRegraAplicadaId() == null ? null
+                            : regraPrescricaoRepository.findById(desfecho.getRegraAplicadaId()).orElse(null));
                 })
                 .toList();
 
