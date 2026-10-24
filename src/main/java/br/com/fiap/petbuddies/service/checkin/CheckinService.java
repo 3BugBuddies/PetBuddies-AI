@@ -174,7 +174,8 @@ public class CheckinService {
             desfechos.add(CheckinDesfechoResponse.of(
                     prescricao.getId(), prescricao.getMedicamento(), item == null ? null : item.getId(),
                     resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId(),
-                    prescricao));
+                    prescricao).comRegra(regras.stream()
+                            .filter(r -> r.getId().equals(resultado.regraAplicadaId())).findFirst().orElse(null)));
         }
 
         aSuspender.forEach((prescricao, item) -> suspenderTratamento(prescricao, item, referencia));
@@ -312,7 +313,8 @@ public class CheckinService {
                             desfecho == null ? null : desfecho.getDoseAplicada(),
                             prescricao == null ? null : prescricao.getFaixaDose().getUnidade(),
                             desfecho == null ? null : desfecho.getRegraAplicadaId(),
-                            prescricao);
+                            prescricao).comRegra(desfecho == null || desfecho.getRegraAplicadaId() == null ? null
+                            : regraPrescricaoRepository.findById(desfecho.getRegraAplicadaId()).orElse(null));
                 })
                 .toList();
 
