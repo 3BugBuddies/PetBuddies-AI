@@ -3,9 +3,10 @@ package br.com.fiap.petbuddies.service.cuidado;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
+import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaPlano;
 import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo;
-import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cuidado.MotivoSugestao;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
@@ -17,9 +18,10 @@ import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
+import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.dto.cuidado.ItemPlanoCuidadoDto;
-import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
+import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.dto.cuidado.SugestaoCuidadoDto;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
@@ -28,10 +30,14 @@ import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
 import br.com.fiap.petbuddies.infrastructure.client.RegraCatalogoDto;
+import br.com.fiap.petbuddies.service.cadastro.ContatoClinicaService;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -40,6 +46,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -58,19 +65,29 @@ public class MotorPlanoService {
     private final AnimalRepository animalRepository;
     private final ConsultaRepository consultaRepository;
     private final PlanoCuidadoGravador gravador;
+    private final PrescricaoRepository prescricaoRepository;
+    private final ContatoClinicaService contatoClinicaService;
+    private final TransactionTemplate leitura;
 
     public MotorPlanoService(PlanoCuidadoRepository planoRepository,
                              ItemPlanoCuidadoRepository itemRepository,
                              ProtocoloClient protocoloClient,
                              AnimalRepository animalRepository,
                              ConsultaRepository consultaRepository,
-                             PlanoCuidadoGravador gravador) {
+                             PlanoCuidadoGravador gravador,
+                             PrescricaoRepository prescricaoRepository,
+                             ContatoClinicaService contatoClinicaService,
+                             PlatformTransactionManager transactionManager) {
         this.planoRepository = planoRepository;
         this.itemRepository = itemRepository;
         this.protocoloClient = protocoloClient;
         this.animalRepository = animalRepository;
         this.consultaRepository = consultaRepository;
         this.gravador = gravador;
+        this.prescricaoRepository = prescricaoRepository;
+        this.contatoClinicaService = contatoClinicaService;
+        this.leitura = new TransactionTemplate(transactionManager);
+        this.leitura.setReadOnly(true);
     }
 
     // Sem @Transactional de proposito: ha chamada HTTP ao catalogo entre a checagem e a criacao — nao pode segurar conexao do pool durante a rede.
@@ -160,24 +177,74 @@ public class MotorPlanoService {
                         })));
     }
 
-    @Transactional(readOnly = true)
+    // O catálogo do .NET é lido antes da transação: chamada HTTP não segura conexão do pool.
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        PlanoResponse principal = buscarPlanosAtivos(List.of(animalId)).get(animalId);
-        if (principal != null && !CategoriaPlano.TRATAMENTO.name().equals(principal.getCategoria())) {
-            principal.setTratamentoSuspenso(tratamentoSuspenso(animalId));
-        }
-        return Optional.ofNullable(principal);
+        Map<Long, String> intervalos = intervalosDoCatalogo();
+        return Optional.ofNullable(leitura.execute(status -> montarPlanoAtivo(animalId, intervalos)));
     }
 
-    private PlanoResponse.TratamentoSuspenso tratamentoSuspenso(Long animalId) {
-        return planoRepository.findByAnimalId(animalId).stream()
+    private PlanoResponse montarPlanoAtivo(Long animalId, Map<Long, String> intervalos) {
+        PlanoResponse principal = buscarPlanosAtivos(List.of(animalId)).get(animalId);
+        if (principal == null) {
+            return null;
+        }
+        List<PlanoCuidadoEntity> planos = planoRepository.findByAnimalId(animalId);
+        Map<Long, Long> regraPorItem = planos.stream()
+                .flatMap(p -> p.getItens().stream())
+                .filter(i -> i.getRegraProtocoloId() != null)
+                .collect(Collectors.toMap(ItemPlanoCuidadoEntity::getId, ItemPlanoCuidadoEntity::getRegraProtocoloId));
+        principal.getEventos().forEach(e -> e.setIntervalo(intervalos.get(regraPorItem.get(e.getId()))));
+
+        boolean emTratamento = CategoriaPlano.TRATAMENTO.name().equals(principal.getCategoria());
+        PlanoCuidadoEntity tratamento = emTratamento
+                ? planos.stream().filter(p -> p.getId().equals(principal.getId())).findFirst().orElse(null)
+                : tratamentoSuspenso(planos);
+        if (!emTratamento && tratamento != null) {
+            principal.setTratamentoSuspenso(new PlanoResponse.TratamentoSuspenso(
+                    tratamento.getItens().stream().map(ItemPlanoCuidadoEntity::getNome).findFirst().orElse(null),
+                    tratamento.getAuditoria().getUpdatedAt(),
+                    tratamento.getItens().stream()
+                            .filter(i -> i.getStatus() != StatusItem.CANCELADO)
+                            .sorted(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo))
+                            .map(ItemPlanoCuidadoDto::from)
+                            .toList()));
+        }
+
+        List<PrescricaoEntity> prescricoes = tratamento == null ? List.of()
+                : prescricaoRepository.findComPrescritorPorIds(tratamento.getItens().stream()
+                        .map(ItemPlanoCuidadoEntity::getPrescricaoId).filter(Objects::nonNull).distinct().toList());
+        prescricoes.stream().findFirst().ifPresent(p -> principal.setTratamento(new PlanoResponse.Tratamento(
+                p.getMedicamento(), p.getFaixaDose().getUnidade(), p.getFrequenciaDia(), p.getDataInicio(),
+                p.getDataInicio().plusDays(Math.max(0, p.getDuracaoDias() - 1L)))));
+        principal.setClinica(contatoClinicaService.doAnimal(animalId, prescricoes));
+        return principal;
+    }
+
+    private PlanoCuidadoEntity tratamentoSuspenso(List<PlanoCuidadoEntity> planos) {
+        return planos.stream()
                 .filter(p -> p.getCategoria() == CategoriaPlano.TRATAMENTO && p.getStatus() == StatusPlano.SUSPENSO)
                 .max(Comparator.comparing((PlanoCuidadoEntity p) -> p.getAuditoria().getUpdatedAt(),
                         Comparator.nullsFirst(Comparator.naturalOrder())))
-                .map(p -> new PlanoResponse.TratamentoSuspenso(
-                        p.getItens().stream().map(ItemPlanoCuidadoEntity::getNome).findFirst().orElse(null),
-                        p.getAuditoria().getUpdatedAt()))
                 .orElse(null);
+    }
+
+    private Map<Long, String> intervalosDoCatalogo() {
+        return protocoloClient.listarAtivos().orElse(List.of()).stream()
+                .flatMap(p -> p.regras().stream())
+                .collect(Collectors.toMap(RegraCatalogoDto::id, MotorPlanoService::intervaloLegivel, (a, b) -> a));
+    }
+
+    private static String intervaloLegivel(RegraCatalogoDto regra) {
+        if (regra.intervalo() == null || regra.unidadeIntervalo() == null
+                || (regra.repeticoes() != null && regra.repeticoes() <= 1)) {
+            return "dose única";
+        }
+        int n = regra.intervalo();
+        return switch (regra.unidadeIntervalo()) {
+            case MESES -> n == 12 ? "reforço anual" : n == 1 ? "todo mês" : "a cada " + n + " meses";
+            case SEMANAS -> n == 1 ? "toda semana" : "a cada " + n + " semanas";
+            case DIAS -> n == 1 ? "todo dia" : "a cada " + n + " dias";
+        };
     }
 
     @Transactional(readOnly = true)

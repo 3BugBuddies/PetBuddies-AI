@@ -1,11 +1,9 @@
 package br.com.fiap.petbuddies.service.checkin;
 
-import org.springframework.data.domain.PageRequest;
 import br.com.fiap.petbuddies.domain.embeddable.Desfecho;
 import br.com.fiap.petbuddies.domain.embeddable.ValorObservado;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
-import br.com.fiap.petbuddies.domain.entity.ClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoObservadaEntity;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
@@ -20,10 +18,8 @@ import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CheckinRepository;
-import br.com.fiap.petbuddies.domain.repository.ClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoObservadaRepository;
-import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
@@ -39,8 +35,10 @@ import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
+import br.com.fiap.petbuddies.service.cadastro.ContatoClinicaService;
 import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
 import br.com.fiap.petbuddies.web.Formatador;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,8 +66,7 @@ public class CheckinService {
     private final PrescricaoAtivaResolver prescricaoAtivaResolver;
     private final AvaliadorRegraService avaliadorRegraService;
     private final Formatador formatador;
-    private final ConsultaRepository consultaRepository;
-    private final ClinicaRepository clinicaRepository;
+    private final ContatoClinicaService contatoClinicaService;
 
     public CheckinService(
             CheckinRepository checkinRepository,
@@ -82,8 +79,7 @@ public class CheckinService {
             PrescricaoAtivaResolver prescricaoAtivaResolver,
             AvaliadorRegraService avaliadorRegraService,
             Formatador formatador,
-            ConsultaRepository consultaRepository,
-            ClinicaRepository clinicaRepository) {
+            ContatoClinicaService contatoClinicaService) {
         this.checkinRepository = checkinRepository;
         this.condicaoObservadaRepository = condicaoObservadaRepository;
         this.animalRepository = animalRepository;
@@ -94,8 +90,7 @@ public class CheckinService {
         this.prescricaoAtivaResolver = prescricaoAtivaResolver;
         this.avaliadorRegraService = avaliadorRegraService;
         this.formatador = formatador;
-        this.consultaRepository = consultaRepository;
-        this.clinicaRepository = clinicaRepository;
+        this.contatoClinicaService = contatoClinicaService;
     }
 
     @Transactional(readOnly = true)
@@ -179,7 +174,7 @@ public class CheckinService {
 
         List<CondicaoObservadaResponse> condicoesResponse = observadas.stream().map(CondicaoObservadaResponse::from).toList();
         return CheckinResponse.of(checkin, condicoesResponse, desfechos, escalarPorCritica,
-                clinicaDe(prescricoesParaAvaliar, animal.getId()));
+                contatoClinicaService.doAnimal(animal.getId(), prescricoesParaAvaliar));
     }
 
     // Sinal de alarme suspende o tratamento até a veterinária reavaliar; o preventivo segue.
@@ -199,21 +194,6 @@ public class CheckinService {
                 .forEach(i -> i.setStatus(StatusItem.SUSPENSO));
     }
 
-    private CheckinResponse.Clinica clinicaDe(List<PrescricaoEntity> prescricoes, Long animalId) {
-        ClinicaEntity clinica = prescricoes.stream()
-                .map(p -> p.getVeterinario().getClinica())
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElseGet(() -> consultaRepository.findClinicaIdsPorAnimal(animalId, PageRequest.of(0, 1)).stream()
-                        .findFirst()
-                        .flatMap(clinicaRepository::findById)
-                        .orElse(null));
-        if (clinica == null) {
-            return null;
-        }
-        String telefone = clinica.getContato() == null ? null : clinica.getContato().getTelefone();
-        return new CheckinResponse.Clinica(clinica.getNome(), telefone == null ? null : formatador.telefone(telefone));
-    }
 
     private StatusItem statusPorDesfecho(TipoDesfecho desfecho) {
         return switch (desfecho) {
@@ -329,6 +309,6 @@ public class CheckinService {
         // escalação vale mesmo quando não existe item pra gravar.
         boolean escalado = observadas.stream().anyMatch(this::observacaoCritica);
         return CheckinResponse.of(checkin, condicoes, desfechos, escalado,
-                clinicaDe(List.copyOf(prescricoes.values()), checkin.getAnimal().getId()));
+                contatoClinicaService.doAnimal(checkin.getAnimal().getId(), prescricoes.values()));
     }
 }

@@ -3,13 +3,18 @@ package br.com.fiap.petbuddies.service.cadastro;
 import br.com.fiap.petbuddies.domain.embeddable.Contato;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
+import br.com.fiap.petbuddies.domain.entity.UsuarioEntity;
+import br.com.fiap.petbuddies.domain.enums.identidade.PerfilUsuario;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ResponsavelRepository;
 import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelRequest;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResumoDto;
 import br.com.fiap.petbuddies.exception.cadastro.ResponsavelComVinculosException;
+import br.com.fiap.petbuddies.exception.cadastro.ResponsavelDeOutroUsuarioException;
 import br.com.fiap.petbuddies.exception.cadastro.ResponsavelNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +83,17 @@ public class ResponsavelService {
         ResponsavelEntity entity = new ResponsavelEntity();
         aplicar(request, entity);
         return repository.save(entity);
+    }
+
+    @Transactional
+    public ResponsavelEntity atualizarComo(Long id, ResponsavelRequest request, Long usuarioId) {
+        UsuarioEntity usuario = usuarioRepository.findById(usuarioId)
+                .filter(UsuarioEntity::isAtivo)
+                .orElseThrow(CredenciaisInvalidasException::new);
+        if (usuario.getPerfil() == PerfilUsuario.TUTOR && !id.equals(usuario.getResponsavelId())) {
+            throw new ResponsavelDeOutroUsuarioException(id);
+        }
+        return atualizar(id, request);
     }
 
     @Transactional
