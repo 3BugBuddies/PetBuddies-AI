@@ -10,6 +10,7 @@ import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
+import br.com.fiap.petbuddies.dto.prescricao.MedicamentoExtraidoIA;
 import br.com.fiap.petbuddies.dto.prescricao.PrescricaoExtracaoIA;
 import br.com.fiap.petbuddies.dto.prescricao.NarrativaPrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.PrescricaoRequest;
@@ -94,29 +95,39 @@ public class PrescricaoExtracaoService {
         PrescricaoExtracaoIA extraido = chamarModelo(request.getNarrativa(), catalogo);
 
         if (extraido == null) {
-            PrescricaoRequest vazia = prescricaoBase(animalId, veterinarioId, request.getRegistroAtendimentoId());
             return RascunhoPrescricaoResponse.degradado(
                     request.getNarrativa(),
                     "Modelo de IA indisponível ou devolveu uma resposta inválida. "
-                            + "Preencha a prescrição manualmente — nenhum campo foi extraído.",
-                    vazia);
+                            + "Preencha a prescrição manualmente — nenhum campo foi extraído.");
         }
 
-        PrescricaoRequest prescricao = prescricaoBase(animalId, veterinarioId, request.getRegistroAtendimentoId());
-        Map<String, Double> confiancas = new LinkedHashMap<>();
-
-        aplicarMedicamento(extraido, prescricao, confiancas);
-        aplicarDoses(extraido, prescricao, confiancas);
-        aplicarUnidade(extraido, prescricao, confiancas);
-        aplicarFrequencia(extraido, prescricao, confiancas);
-        aplicarDuracao(extraido, prescricao, confiancas);
-        aplicarDataInicio(extraido, prescricao, confiancas);
-        aplicarOrientacao(extraido, prescricao, confiancas);
-
         List<String> descartadas = new ArrayList<>();
-        List<RegraPropostaResponse> regras = construirRegras(extraido.regras(), catalogo, descartadas);
+        List<RascunhoPrescricaoResponse.RascunhoItem> itens = new ArrayList<>();
+        for (MedicamentoExtraidoIA medicamento : Objects.requireNonNullElse(extraido.medicamentos(), List.<MedicamentoExtraidoIA>of())) {
+            if (medicamento == null) {
+                continue;
+            }
+            PrescricaoRequest prescricao = prescricaoBase(animalId, veterinarioId, request.getRegistroAtendimentoId());
+            Map<String, Double> confiancas = new LinkedHashMap<>();
 
-        return RascunhoPrescricaoResponse.de(request.getNarrativa(), prescricao, confiancas, regras, descartadas);
+            aplicarMedicamento(medicamento, prescricao, confiancas);
+            aplicarDoses(medicamento, prescricao, confiancas);
+            aplicarUnidade(medicamento, prescricao, confiancas);
+            aplicarFrequencia(medicamento, prescricao, confiancas);
+            aplicarDuracao(medicamento, prescricao, confiancas);
+            aplicarDataInicio(medicamento, prescricao, confiancas);
+            aplicarOrientacao(medicamento, prescricao, confiancas);
+
+            List<RegraPropostaResponse> regras = construirRegras(medicamento.regras(), catalogo, descartadas);
+            itens.add(new RascunhoPrescricaoResponse.RascunhoItem(prescricao, confiancas, regras));
+        }
+        if (itens.isEmpty()) {
+            return RascunhoPrescricaoResponse.degradado(
+                    request.getNarrativa(),
+                    "O modelo não identificou nenhum medicamento na narrativa. Preencha a prescrição manualmente.");
+        }
+
+        return RascunhoPrescricaoResponse.de(request.getNarrativa(), itens, descartadas);
     }
 
     private void validarRegistro(Long registroId, Long animalId) {
@@ -199,6 +210,14 @@ public class PrescricaoExtracaoService {
                    relativas ("a partir de amanhã", "começando segunda") contra essa data, com
                    literalDataInicio=false. Se a narrativa não mencionar quando começar, devolva null.
 
+                9. "medicamentos" tem uma entrada por medicamento citado, na ordem em que aparece na
+                   narrativa. Nunca misture doses, frequência ou duração de medicamentos diferentes. Uma
+                   condição ("se comer pouco", "se vomitar") vale só para o medicamento a que a frase se
+                   refere e entra nas "regras" dele; se a frase não deixa claro a qual medicamento se
+                   refere, repita-a nas regras do medicamento imediatamente anterior apenas. Se a narrativa
+                   cita um só medicamento, "medicamentos" tem um único item. Os campos "regras" de cada
+                   item seguem as regras 4 a 7.
+
                 Condições clínicas cadastradas nesta clínica — o vocabulário fechado que você pode usar:
                 %s
                 """.formatted(LocalDate.now(), condicoesTexto);
@@ -206,7 +225,7 @@ public class PrescricaoExtracaoService {
 
     // Confianca nunca vem de auto-avaliacao do modelo — e derivada de "trecho" presente + "literal", os dois fatos verificaveis que o modelo reporta.
 
-    private void aplicarMedicamento(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarMedicamento(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.medicamento();
         if (valor == null || valor.isBlank() || valor.length() > 150 || semTrecho(ia.trechoMedicamento())) {
             return;
@@ -215,7 +234,7 @@ public class PrescricaoExtracaoService {
         confiancas.put("medicamento", confiancaDe(ia.literalMedicamento()));
     }
 
-    private void aplicarDoses(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDoses(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         BigDecimal min = semTrecho(ia.trechoDoseMin()) ? null : doseValida(ia.doseMin());
         BigDecimal max = semTrecho(ia.trechoDoseMax()) ? null : doseValida(ia.doseMax());
         // CK_PRESCRICAO_FAIXA: se as duas vieram e a faixa é impossível, o par
@@ -249,7 +268,7 @@ public class PrescricaoExtracaoService {
         return valor != null && valor.signum() < 0 ? null : decimalQueCabe(valor, 5);
     }
 
-    private void aplicarUnidade(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarUnidade(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.unidade();
         if (valor == null || valor.isBlank() || valor.length() > 20 || semTrecho(ia.trechoUnidade())) {
             return;
@@ -258,7 +277,7 @@ public class PrescricaoExtracaoService {
         confiancas.put("unidade", confiancaDe(ia.literalUnidade()));
     }
 
-    private void aplicarFrequencia(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarFrequencia(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         Integer valor = ia.frequenciaDia();
         if (valor == null || valor <= 0 || valor > 99 || semTrecho(ia.trechoFrequenciaDia())) {
             return;
@@ -267,7 +286,7 @@ public class PrescricaoExtracaoService {
         confiancas.put("frequenciaDia", confiancaDe(ia.literalFrequenciaDia()));
     }
 
-    private void aplicarDuracao(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDuracao(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         Integer valor = ia.duracaoDias();
         if (valor == null || valor <= 0 || valor > 9999 || semTrecho(ia.trechoDuracaoDias())) {
             return;
@@ -276,7 +295,7 @@ public class PrescricaoExtracaoService {
         confiancas.put("duracaoDias", confiancaDe(ia.literalDuracaoDias()));
     }
 
-    private void aplicarDataInicio(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDataInicio(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.dataInicio();
         if (valor == null || valor.isBlank() || semTrecho(ia.trechoDataInicio())) {
             return;
@@ -289,7 +308,7 @@ public class PrescricaoExtracaoService {
         }
     }
 
-    private void aplicarOrientacao(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarOrientacao(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.orientacao();
         if (valor == null || valor.isBlank() || semTrecho(ia.trechoOrientacao())) {
             return;

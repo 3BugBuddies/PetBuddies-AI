@@ -8,6 +8,7 @@ import br.com.fiap.petbuddies.dto.cadastro.ContatoClinicaResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -55,8 +56,11 @@ public class PlanoResponse {
     @Schema(description = "Tratamento mais recente suspenso por alarme, quando nao ha outro tratamento ativo. So no GET do plano ativo")
     private TratamentoSuspenso tratamentoSuspenso;
 
-    @Schema(description = "Receita do tratamento principal (ou do suspenso). So no GET do plano ativo")
+    @Schema(description = "Primeira receita de 'tratamentos' (legado). So no GET do plano ativo")
     private Tratamento tratamento;
+
+    @Schema(description = "Todas as receitas do tratamento (principal ou suspenso), ordenadas por inicio e id. So no GET do plano ativo")
+    private List<Tratamento> tratamentos;
 
     @Schema(description = "Nome do modelo de plano preventivo ativo, ex.: 'Preventivo anual — cão'. So no GET do plano ativo")
     private String modeloPlano;
@@ -64,9 +68,9 @@ public class PlanoResponse {
     @Schema(description = "Contato da clinica do animal. So no GET do plano ativo")
     private ContatoClinicaResponse clinica;
 
-    public record TratamentoSuspenso(String medicamento, LocalDateTime em, List<ItemPlanoCuidadoDto> itens) {}
+    public record TratamentoSuspenso(String medicamento, List<String> medicamentos, LocalDateTime em, List<ItemPlanoCuidadoDto> itens) {}
 
-    public record Tratamento(String medicamento, String unidade, Integer frequenciaDia, LocalDate inicio, LocalDate fim) {}
+    public record Tratamento(Long prescricaoId, String medicamento, String unidade, BigDecimal doseMin, BigDecimal doseMax, Integer frequenciaDia, LocalDate inicio, LocalDate fim) {}
 
     public static PlanoResponse from(PlanoCuidadoEntity plano, Boolean criado, String motivo) {
         PlanoResponse r = new PlanoResponse();

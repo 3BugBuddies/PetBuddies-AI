@@ -14,6 +14,7 @@ import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoProvisionadaException;
 import br.com.fiap.petbuddies.exception.cadastro.RegistroIncompletoException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaNoPassadoException;
+import br.com.fiap.petbuddies.exception.prescricao.MedicamentoRepetidoException;
 import br.com.fiap.petbuddies.exception.prescricao.ReceitaModeloIncoerenteException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
@@ -134,6 +135,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PeriodoInvalidoException.class)
     public ResponseEntity<ErrorDto> handlePeriodoInvalido(PeriodoInvalidoException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("PERIODO_INVALIDO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MedicamentoRepetidoException.class)
+    public ResponseEntity<ErrorDto> handleMedicamentoRepetido(MedicamentoRepetidoException ex) {
+        return ResponseEntity.unprocessableEntity().body(new ErrorDto("MEDICAMENTO_REPETIDO", ex.getMessage()));
     }
 
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)

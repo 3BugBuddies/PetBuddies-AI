@@ -16,12 +16,10 @@ public record FechamentoEstado(
         String nome,
         List<ItemAberto> itensAbertos,
         List<CondicaoOpcao> condicoes,
-        List<RegraEstado> regras,
+        List<MedicamentoEstado> medicamentos,
         Map<String, String> tipos,
         Map<String, String> operadores,
         Map<String, String> acoes,
-        String receitaModeloId,
-        String receitaModeloVersao,
         List<ReceitaOpcao> receitasModelo) {
 
     public record ItemAberto(String id, String nome, String tipo, String data, boolean vencido) {
@@ -35,6 +33,13 @@ public record FechamentoEstado(
     public record ReceitaOpcao(String id, String versao, String titulo, String medicamento, String doseMin,
                                String doseMax, String unidade, String frequenciaDia, String duracaoDias,
                                String orientacao, List<RegraEstado> regras) {
+    }
+
+    /** Um bloco de medicamento da receita, com os números em texto para voltar aos campos como foram digitados. */
+    public record MedicamentoEstado(String medicamento, String doseMin, String doseMax, String unidade,
+                                    String frequenciaDia, String duracaoDias, String dataInicio, String orientacao,
+                                    String receitaModeloId, String receitaModeloVersao, List<RegraEstado> regras,
+                                    List<String> erros) {
     }
 
     public record RegraEstado(String condicaoClinicaId, String operador, String limite, String acaoDose) {
