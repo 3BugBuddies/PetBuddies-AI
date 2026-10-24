@@ -28,7 +28,8 @@ public record FichaPacienteResponse(
             List<TratamentoFicha> tratamentos,
             List<CuidadoFicha> cuidados,
             int cuidadosOcultos,
-            int cuidadosFeitos) {
+            int cuidadosFeitos,
+            LocalDateTime suspensoEm) {
     }
 
     public record TratamentoFicha(
