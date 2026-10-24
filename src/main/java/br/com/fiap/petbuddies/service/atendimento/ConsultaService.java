@@ -22,6 +22,7 @@ import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaExcepti
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaNoPassadoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaFuturaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
@@ -174,6 +175,9 @@ public class ConsultaService {
         ConsultaEntity entity = encontrarOuFalhar(id);
         if (!STATUS_FECHAVEL.contains(entity.getStatus())) {
             throw new ConsultaNaoPodeSerFechadaException(id, entity.getStatus());
+        }
+        if (entity.getDataHora().toLocalDate().isAfter(LocalDate.now())) {
+            throw new ConsultaFuturaNaoPodeSerFechadaException(id, entity.getDataHora().toLocalDate());
         }
         entity.setStatus(StatusConsulta.REALIZADA);
         return repository.save(entity);

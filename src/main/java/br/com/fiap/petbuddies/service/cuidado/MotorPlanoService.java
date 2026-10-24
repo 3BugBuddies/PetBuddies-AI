@@ -162,7 +162,22 @@ public class MotorPlanoService {
 
     @Transactional(readOnly = true)
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        return Optional.ofNullable(buscarPlanosAtivos(List.of(animalId)).get(animalId));
+        PlanoResponse principal = buscarPlanosAtivos(List.of(animalId)).get(animalId);
+        if (principal != null && !CategoriaPlano.TRATAMENTO.name().equals(principal.getCategoria())) {
+            principal.setTratamentoSuspenso(tratamentoSuspenso(animalId));
+        }
+        return Optional.ofNullable(principal);
+    }
+
+    private PlanoResponse.TratamentoSuspenso tratamentoSuspenso(Long animalId) {
+        return planoRepository.findByAnimalId(animalId).stream()
+                .filter(p -> p.getCategoria() == CategoriaPlano.TRATAMENTO && p.getStatus() == StatusPlano.SUSPENSO)
+                .max(Comparator.comparing((PlanoCuidadoEntity p) -> p.getAuditoria().getUpdatedAt(),
+                        Comparator.nullsFirst(Comparator.naturalOrder())))
+                .map(p -> new PlanoResponse.TratamentoSuspenso(
+                        p.getItens().stream().map(ItemPlanoCuidadoEntity::getNome).findFirst().orElse(null),
+                        p.getAuditoria().getUpdatedAt()))
+                .orElse(null);
     }
 
     @Transactional(readOnly = true)

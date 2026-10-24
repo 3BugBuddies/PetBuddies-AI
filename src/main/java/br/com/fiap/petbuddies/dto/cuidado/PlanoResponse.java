@@ -1,12 +1,16 @@
 package br.com.fiap.petbuddies.dto.cuidado;
 
+import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Schema(description = "Plano de cuidado do animal")
@@ -43,6 +47,14 @@ public class PlanoResponse {
     @Schema(description = "Motivo quando criado=false (ex: SEM_PROTOCOLO_COMPATIVEL). null nos GETs")
     private String motivo;
 
+    @Schema(description = "Maior data-alvo entre os itens deste plano")
+    private LocalDate dataFim;
+
+    @Schema(description = "Tratamento mais recente suspenso por alarme, quando nao ha outro tratamento ativo. So no GET do plano ativo")
+    private TratamentoSuspenso tratamentoSuspenso;
+
+    public record TratamentoSuspenso(String medicamento, LocalDateTime em) {}
+
     public static PlanoResponse from(PlanoCuidadoEntity plano, Boolean criado, String motivo) {
         PlanoResponse r = new PlanoResponse();
         r.id = plano.getId();
@@ -56,6 +68,12 @@ public class PlanoResponse {
                 .filter(e -> e.getStatus() != StatusItem.CANCELADO)
                 .map(ItemPlanoCuidadoDto::from)
                 .collect(Collectors.toList());
+        r.dataFim = plano.getItens().stream()
+                .filter(e -> e.getStatus() != StatusItem.CANCELADO)
+                .map(ItemPlanoCuidadoEntity::getDataAlvo)
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
         r.criado = criado;
         r.motivo = motivo;
         return r;
