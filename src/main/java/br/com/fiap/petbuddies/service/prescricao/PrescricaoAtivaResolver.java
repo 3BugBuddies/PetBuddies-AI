@@ -5,6 +5,7 @@ import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +31,8 @@ public class PrescricaoAtivaResolver {
         this.itemRepository = itemRepository;
     }
 
+    // O check-in de extração roda sem transação (chama a IA); sem esta, o plano do item é proxy desanexado.
+    @Transactional(readOnly = true)
     public List<PrescricaoEntity> listar(Long animalId, LocalDate referencia) {
         return repository.findByAnimalIdOrderByDataInicioDesc(animalId).stream()
                 .filter(p -> vigente(p, referencia))
