@@ -221,7 +221,8 @@ public class PacientePainelService {
                         r.getCondicaoClinica().getUnidade(), r.getAcaoDose()))
                 .toList();
         int total = itens.size();
-        int registrados = (int) itens.stream().filter(i -> ENCERRADOS.contains(i.getStatus())).count();
+        // Dia suspenso pelo alarme não tem desfecho: não conta como registrado.
+        int registrados = (int) itens.stream().filter(i -> i.getDesfecho() != null && i.getDesfecho().getCheckinId() != null).count();
         return new TratamentoFicha(prescricao.getMedicamento(), prescricao.getFaixaDose().getDoseMin(),
                 prescricao.getFaixaDose().getDoseMax(), prescricao.getFaixaDose().getUnidade(),
                 prescricao.getFrequenciaDia(), prescricao.getDuracaoDias(), prescricao.getDataInicio(),
@@ -359,6 +360,7 @@ public class PacientePainelService {
     private Long consultaAberta(Collection<ConsultaEntity> consultas, LocalDate hoje) {
         List<ConsultaEntity> abertas = consultas.stream()
                 .filter(c -> ConsultaService.STATUS_FECHAVEL.contains(c.getStatus()))
+                .filter(c -> !c.getDataHora().toLocalDate().isAfter(hoje))
                 .sorted(Comparator.comparing(ConsultaEntity::getDataHora))
                 .toList();
         return abertas.stream().filter(c -> c.getDataHora().toLocalDate().equals(hoje)).findFirst()
