@@ -3,6 +3,8 @@ package br.com.fiap.petbuddies.dto.cuidado;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.dto.cadastro.ContatoClinicaResponse;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -53,7 +55,18 @@ public class PlanoResponse {
     @Schema(description = "Tratamento mais recente suspenso por alarme, quando nao ha outro tratamento ativo. So no GET do plano ativo")
     private TratamentoSuspenso tratamentoSuspenso;
 
-    public record TratamentoSuspenso(String medicamento, LocalDateTime em) {}
+    @Schema(description = "Receita do tratamento principal (ou do suspenso). So no GET do plano ativo")
+    private Tratamento tratamento;
+
+    @Schema(description = "Nome do modelo de plano preventivo ativo, ex.: 'Preventivo anual — cão'. So no GET do plano ativo")
+    private String modeloPlano;
+
+    @Schema(description = "Contato da clinica do animal. So no GET do plano ativo")
+    private ContatoClinicaResponse clinica;
+
+    public record TratamentoSuspenso(String medicamento, LocalDateTime em, List<ItemPlanoCuidadoDto> itens) {}
+
+    public record Tratamento(String medicamento, String unidade, Integer frequenciaDia, LocalDate inicio, LocalDate fim) {}
 
     public static PlanoResponse from(PlanoCuidadoEntity plano, Boolean criado, String motivo) {
         PlanoResponse r = new PlanoResponse();
