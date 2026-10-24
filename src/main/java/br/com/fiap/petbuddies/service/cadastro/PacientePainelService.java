@@ -126,7 +126,14 @@ public class PacientePainelService {
                 .findPorAnimaisEStatus(List.of(animalId), StatusPlano.ATIVO).stream()
                 .sorted(Comparator.comparingInt(p -> PRIORIDADE.indexOf(p.getCategoria())))
                 .toList();
-        List<PlanoFicha> planos = planosAtivos.stream().map(p -> montarPlano(p, hoje)).toList();
+        List<PlanoFicha> planos = new ArrayList<>(planosAtivos.stream().map(p -> montarPlano(p, hoje)).toList());
+        if (planosAtivos.stream().noneMatch(p -> p.getCategoria() == CategoriaPlano.TRATAMENTO)) {
+            planoRepository.findPorAnimaisEStatus(List.of(animalId), StatusPlano.SUSPENSO).stream()
+                    .filter(p -> p.getCategoria() == CategoriaPlano.TRATAMENTO)
+                    .max(Comparator.comparing((PlanoCuidadoEntity p) -> p.getAuditoria().getUpdatedAt(),
+                            Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .ifPresent(p -> planos.add(0, montarPlano(p, hoje)));
+        }
 
         List<ConsultaEntity> consultas = consultaRepository.findByAnimalIdOrderByDataHoraDesc(animalId);
         List<EntradaLinhaTempo> linha = new ArrayList<>();
@@ -191,7 +198,8 @@ public class PacientePainelService {
                         i.getStatus() == StatusItem.ATRASADO || i.getDataAlvo().isBefore(hoje)))
                 .toList();
         return new PlanoFicha(plano.getCategoria(), tratamentos, cuidados,
-                Math.max(0, abertos.size() - CUIDADOS_VISIVEIS), molde.size() - abertos.size());
+                Math.max(0, abertos.size() - CUIDADOS_VISIVEIS), molde.size() - abertos.size(),
+                plano.getStatus() == StatusPlano.SUSPENSO ? plano.getAuditoria().getUpdatedAt() : null);
     }
 
     private List<TratamentoFicha> tratamentos(List<ItemPlanoCuidadoEntity> itens) {
@@ -213,7 +221,8 @@ public class PacientePainelService {
                         r.getCondicaoClinica().getUnidade(), r.getAcaoDose()))
                 .toList();
         int total = itens.size();
-        int registrados = (int) itens.stream().filter(i -> ENCERRADOS.contains(i.getStatus())).count();
+        // Dia suspenso pelo alarme não tem desfecho: não conta como registrado.
+        int registrados = (int) itens.stream().filter(i -> i.getDesfecho() != null && i.getDesfecho().getCheckinId() != null).count();
         return new TratamentoFicha(prescricao.getMedicamento(), prescricao.getFaixaDose().getDoseMin(),
                 prescricao.getFaixaDose().getDoseMax(), prescricao.getFaixaDose().getUnidade(),
                 prescricao.getFrequenciaDia(), prescricao.getDuracaoDias(), prescricao.getDataInicio(),
@@ -351,6 +360,7 @@ public class PacientePainelService {
     private Long consultaAberta(Collection<ConsultaEntity> consultas, LocalDate hoje) {
         List<ConsultaEntity> abertas = consultas.stream()
                 .filter(c -> ConsultaService.STATUS_FECHAVEL.contains(c.getStatus()))
+                .filter(c -> !c.getDataHora().toLocalDate().isAfter(hoje))
                 .sorted(Comparator.comparing(ConsultaEntity::getDataHora))
                 .toList();
         return abertas.stream().filter(c -> c.getDataHora().toLocalDate().equals(hoje)).findFirst()

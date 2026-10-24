@@ -46,7 +46,7 @@
     <div class="pc-planos">
         <th:block th:each="plano : ${ficha.planos}">
             <section class="pc-cartao marca" th:each="t : ${plano.tratamentos}">
-                <span class="pc-eyebrow" th:text="'Plano ativo · ' + ${plano.categoria.rotulo}">Plano ativo · Tratamento</span>
+                <span class="pc-eyebrow" th:text="${plano.suspensoEm != null ? 'Tratamento suspenso pelo alarme de ' + #temporals.format(plano.suspensoEm, 'dd/MM') : 'Plano ativo · ' + plano.categoria.rotulo}">Plano ativo · Tratamento</span>
                 <h2 th:text="${t.medicamento + ' · ' + #temporals.format(t.inicio, 'dd/MM') + ' a ' + #temporals.format(t.fim, 'dd/MM')}">Amoxicilina · 22 a 28/10</h2>
                 <span class="pc-sub" th:text="${@formatador.faixa(t.doseMin, t.doseMax, t.unidade) + ', ' + t.frequenciaDia + '×/dia, ' + t.duracaoDias + ' dias'}">10–20 mg, 2×/dia, 7 dias</span>
                 <div class="pc-regra" th:each="r : ${t.regras}"
