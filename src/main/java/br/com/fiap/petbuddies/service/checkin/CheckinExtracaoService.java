@@ -76,7 +76,9 @@ public class CheckinExtracaoService {
             return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), List.of(), List.of(), false);
         }
 
-        String prompt = montarPrompt(vocabulario);
+        List<String> medicamentos = prescricaoAtivaResolver.listar(animal.getId(), referencia).stream()
+                .map(PrescricaoEntity::getMedicamento).distinct().toList();
+        String prompt = montarPrompt(vocabulario, medicamentos);
         log.debug("[CHECKIN-IA] animalId={} vocabulario={} prompt=\n{}", animal.getId(), vocabulario.size(), prompt);
 
         Optional<ExtracaoModelo> retorno = extratorIA.extrair(
@@ -125,12 +127,19 @@ public class CheckinExtracaoService {
         return new LinkedHashSet<>(consultaRepository.findClinicaIdsPorAnimal(animalId, PageRequest.of(0, 1)));
     }
 
-    private String montarPrompt(List<CondicaoClinicaEntity> vocabulario) {
+    private String montarPrompt(List<CondicaoClinicaEntity> vocabulario, List<String> medicamentos) {
         String itens = vocabulario.stream()
                 .map(c -> "- codigo=\"%s\" | rotulo=\"%s\" | tipo=%s%s".formatted(
                         c.getCodigo(), c.getRotulo(), c.getTipoDado(),
                         c.getUnidade() == null ? "" : " | unidade=" + c.getUnidade()))
                 .collect(Collectors.joining("\n"));
+
+        String contextoMedicamentos = medicamentos.size() < 2 ? "" : """
+
+                Contexto (não é para extrair): medicamentos em uso hoje: %s. O relato cobre todos eles de
+                uma vez. As condições NÃO são atribuídas a nenhum medicamento: não devolva nome de
+                medicamento em nenhum campo e extraia as condições exatamente como antes.
+                """.formatted(String.join(", ", medicamentos));
 
         return """
                 Você lê o relato de um tutor sobre o tratamento do animal dele e extrai SOMENTE as
@@ -169,7 +178,7 @@ public class CheckinExtracaoService {
 
                 Responda APENAS com JSON válido, sem explicação:
                 {"condicoes":[{"codigo":"...","valorBooleano":null,"valorNumerico":null,"trecho":"...","literal":true,"confianca":0.0}],"redFlags":[]}
-                """.formatted(itens);
+                %s""".formatted(itens, contextoMedicamentos);
     }
 
     // Descarta codigo fora do vocabulario, confianca fora de [0,1], e valor incoerente com TP_DADO — nunca deixa o modelo inventar campo.

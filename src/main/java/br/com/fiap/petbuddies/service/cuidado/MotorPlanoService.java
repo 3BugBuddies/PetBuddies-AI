@@ -41,6 +41,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -177,21 +179,52 @@ public class MotorPlanoService {
                         })));
     }
 
-    // O catálogo do .NET é lido antes da transação: chamada HTTP não segura conexão do pool.
+    private static final Duration VALIDADE_CATALOGO = Duration.ofMinutes(5);
+
+    private record CatalogoEmCache(Instant lidoEm, List<ProtocoloCatalogoDto> protocolos) {}
+
+    private volatile CatalogoEmCache catalogoEmCache;
+
+    // O catálogo do .NET só interessa a quem tem plano preventivo; é lido antes da transação: chamada HTTP não segura conexão do pool.
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        List<ProtocoloCatalogoDto> catalogo = protocoloClient.listarAtivos().orElse(List.of());
+        boolean temPreventivo = planoRepository.findByAnimalId(animalId).stream()
+                .anyMatch(p -> p.getCategoria() == CategoriaPlano.PREVENTIVO && p.getStatus() == StatusPlano.ATIVO);
+        List<ProtocoloCatalogoDto> catalogo = temPreventivo ? catalogoAtivo() : List.of();
         Map<Long, String> intervalos = intervalosDoCatalogo(catalogo);
         Map<Long, String> nomesModelo = catalogo.stream()
                 .collect(Collectors.toMap(ProtocoloCatalogoDto::id, ProtocoloCatalogoDto::nome, (a, b) -> a));
         return Optional.ofNullable(leitura.execute(status -> montarPlanoAtivo(animalId, intervalos, nomesModelo)));
     }
 
+    // Só guarda resposta do .NET no ar: catálogo fora do ar não pode ficar 5 minutos em cache como "vazio".
+    private List<ProtocoloCatalogoDto> catalogoAtivo() {
+        CatalogoEmCache atual = catalogoEmCache;
+        if (atual != null && Instant.now().isBefore(atual.lidoEm().plus(VALIDADE_CATALOGO))) {
+            return atual.protocolos();
+        }
+        Optional<List<ProtocoloCatalogoDto>> lido = protocoloClient.listarAtivos();
+        lido.ifPresent(protocolos -> catalogoEmCache = new CatalogoEmCache(Instant.now(), protocolos));
+        return lido.orElse(atual != null ? atual.protocolos() : List.of());
+    }
+
     private PlanoResponse montarPlanoAtivo(Long animalId, Map<Long, String> intervalos, Map<Long, String> nomesModelo) {
         PlanoResponse principal = buscarPlanosAtivos(List.of(animalId)).get(animalId);
-        if (principal == null) {
-            return null;
-        }
         List<PlanoCuidadoEntity> planos = planoRepository.findByAnimalId(animalId);
+        if (principal == null) {
+            PlanoCuidadoEntity suspenso = tratamentoSuspenso(planos);
+            if (suspenso == null) {
+                return null;
+            }
+            PlanoResponse apenasSuspenso = new PlanoResponse();
+            apenasSuspenso.setAnimalId(animalId);
+            apenasSuspenso.setEventos(List.of());
+            preencherSuspenso(apenasSuspenso, suspenso);
+            List<PrescricaoEntity> prescricoes = prescricoesDoPlano(suspenso);
+            apenasSuspenso.setTratamentos(tratamentosDe(prescricoes));
+            apenasSuspenso.setTratamento(apenasSuspenso.getTratamentos().stream().findFirst().orElse(null));
+            apenasSuspenso.setClinica(contatoClinicaService.doAnimal(animalId, prescricoes));
+            return apenasSuspenso;
+        }
         Map<Long, Long> regraPorItem = planos.stream()
                 .flatMap(p -> p.getItens().stream())
                 .filter(i -> i.getRegraProtocoloId() != null)
@@ -209,24 +242,48 @@ public class MotorPlanoService {
                 ? planos.stream().filter(p -> p.getId().equals(principal.getId())).findFirst().orElse(null)
                 : tratamentoSuspenso(planos);
         if (!emTratamento && tratamento != null) {
-            principal.setTratamentoSuspenso(new PlanoResponse.TratamentoSuspenso(
-                    tratamento.getItens().stream().map(ItemPlanoCuidadoEntity::getNome).findFirst().orElse(null),
-                    tratamento.getAuditoria().getUpdatedAt(),
-                    tratamento.getItens().stream()
-                            .filter(i -> i.getStatus() != StatusItem.CANCELADO)
-                            .sorted(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo))
-                            .map(ItemPlanoCuidadoDto::from)
-                            .toList()));
+            preencherSuspenso(principal, tratamento);
         }
 
-        List<PrescricaoEntity> prescricoes = tratamento == null ? List.of()
-                : prescricaoRepository.findComPrescritorPorIds(tratamento.getItens().stream()
-                        .map(ItemPlanoCuidadoEntity::getPrescricaoId).filter(Objects::nonNull).distinct().toList());
-        prescricoes.stream().findFirst().ifPresent(p -> principal.setTratamento(new PlanoResponse.Tratamento(
-                p.getMedicamento(), p.getFaixaDose().getUnidade(), p.getFrequenciaDia(), p.getDataInicio(),
-                p.getDataInicio().plusDays(Math.max(0, p.getDuracaoDias() - 1L)))));
+        List<PrescricaoEntity> prescricoes = tratamento == null ? List.of() : prescricoesDoPlano(tratamento);
+        principal.setTratamentos(tratamentosDe(prescricoes));
+        principal.setTratamento(principal.getTratamentos().stream().findFirst().orElse(null));
         principal.setClinica(contatoClinicaService.doAnimal(animalId, prescricoes));
         return principal;
+    }
+
+    private void preencherSuspenso(PlanoResponse resposta, PlanoCuidadoEntity suspenso) {
+        List<String> medicamentos = suspenso.getItens().stream()
+                .map(ItemPlanoCuidadoEntity::getNome).filter(Objects::nonNull).distinct().toList();
+        resposta.setTratamentoSuspenso(new PlanoResponse.TratamentoSuspenso(
+                medicamentos.stream().findFirst().orElse(null),
+                medicamentos,
+                suspenso.getAuditoria().getUpdatedAt(),
+                suspenso.getItens().stream()
+                        .filter(i -> i.getStatus() != StatusItem.CANCELADO)
+                        .sorted(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo))
+                        .map(ItemPlanoCuidadoDto::from)
+                        .toList()));
+    }
+
+    private List<PrescricaoEntity> prescricoesDoPlano(PlanoCuidadoEntity plano) {
+        List<Long> ids = plano.getItens().stream()
+                .map(ItemPlanoCuidadoEntity::getPrescricaoId).filter(Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return prescricaoRepository.findComPrescritorPorIds(ids).stream()
+                .sorted(Comparator.comparing(PrescricaoEntity::getDataInicio).thenComparing(PrescricaoEntity::getId))
+                .toList();
+    }
+
+    private List<PlanoResponse.Tratamento> tratamentosDe(List<PrescricaoEntity> prescricoes) {
+        return prescricoes.stream()
+                .map(p -> new PlanoResponse.Tratamento(
+                        p.getId(), p.getMedicamento(), p.getFaixaDose().getUnidade(),
+                        p.getFaixaDose().getDoseMin(), p.getFaixaDose().getDoseMax(), p.getFrequenciaDia(),
+                        p.getDataInicio(), p.getDataInicio().plusDays(Math.max(0, p.getDuracaoDias() - 1L))))
+                .toList();
     }
 
     private PlanoCuidadoEntity tratamentoSuspenso(List<PlanoCuidadoEntity> planos) {

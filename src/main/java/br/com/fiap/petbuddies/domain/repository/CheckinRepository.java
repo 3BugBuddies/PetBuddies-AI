@@ -30,4 +30,8 @@ public interface CheckinRepository extends JpaRepository<CheckinEntity, Long> {
     List<CheckinEntity> findDesdeComAnimal(@Param("desde") LocalDateTime desde);
 
     boolean existsByAnimalId(Long animalId);
+
+    boolean existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(Long animalId, LocalDate dataReferencia);
+
+    boolean existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNotNull(Long animalId, LocalDate dataReferencia);
 }
