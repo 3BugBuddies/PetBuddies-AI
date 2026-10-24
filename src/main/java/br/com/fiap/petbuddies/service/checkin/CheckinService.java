@@ -120,20 +120,32 @@ public class CheckinService {
             }
         }
 
-        if (checkinRepository.findExistente(animal.getId(), referencia, request.getItemPlanoCuidadoId()).isPresent()) {
-            throw new CheckinDuplicadoException(animal.getId(), referencia, request.getItemPlanoCuidadoId());
-        }
-        // Relato geral e relato por item no mesmo dia avaliariam a mesma prescrição duas vezes.
-        if (itemRelatado != null && checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(animal.getId(), referencia)) {
-            throw new CheckinDuplicadoException(animal.getId(), referencia, "Já existe relato geral neste dia; o relato por item não é aceito.");
-        }
-        if (itemRelatado == null && checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNotNull(animal.getId(), referencia)) {
-            throw new CheckinDuplicadoException(animal.getId(), referencia, "Já existe relato por item neste dia; o relato geral não é aceito.");
+        // Relato geral com o dia já relatado responde só os cuidados de hoje ainda sem desfecho (receita feita depois do primeiro relato).
+        List<PrescricaoEntity> pendentesDoDia = null;
+        ItemPlanoCuidadoEntity itemDoVinculo = itemRelatado;
+        if (itemRelatado == null && (checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(animal.getId(), referencia)
+                || checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNotNull(animal.getId(), referencia))) {
+            pendentesDoDia = prescricaoAtivaResolver.listar(animal.getId(), referencia).stream()
+                    .filter(p -> itemSemDesfecho(p, referencia) != null)
+                    .toList();
+            if (pendentesDoDia.isEmpty()) {
+                throw new CheckinDuplicadoException(animal.getId(), referencia, (Long) null);
+            }
+            // UK_CHECKIN_ANIMAL_DIA não aceita dois relatos do dia com item nulo.
+            itemDoVinculo = itemSemDesfecho(pendentesDoDia.get(0), referencia);
+        } else {
+            if (checkinRepository.findExistente(animal.getId(), referencia, request.getItemPlanoCuidadoId()).isPresent()) {
+                throw new CheckinDuplicadoException(animal.getId(), referencia, request.getItemPlanoCuidadoId());
+            }
+            // Relato geral e relato por item no mesmo dia avaliariam a mesma prescrição duas vezes.
+            if (itemRelatado != null && checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(animal.getId(), referencia)) {
+                throw new CheckinDuplicadoException(animal.getId(), referencia, "Já existe relato geral neste dia; o relato por item não é aceito.");
+            }
         }
 
         CheckinEntity checkin = new CheckinEntity();
         checkin.setAnimal(animal);
-        checkin.setItemPlanoCuidado(itemRelatado);
+        checkin.setItemPlanoCuidado(itemDoVinculo);
         checkin.setDataReferencia(referencia);
         checkin.setRegistradoEm(LocalDateTime.now());
         checkin.setNarrativa(request.getNarrativa());
@@ -145,8 +157,8 @@ public class CheckinService {
         List<CondicaoObservadaEntity> observadas = gravarCondicoes(checkin, condicoes);
         boolean escalarPorCritica = observadas.stream().anyMatch(this::observacaoCritica);
 
-        List<PrescricaoEntity> prescricoesParaAvaliar = itemRelatado != null
-                ? prescricaoDoItem(itemRelatado)
+        List<PrescricaoEntity> prescricoesParaAvaliar = pendentesDoDia != null ? pendentesDoDia
+                : itemRelatado != null ? prescricaoDoItem(itemRelatado)
                 : prescricaoAtivaResolver.listar(animal.getId(), referencia);
 
         List<CheckinDesfechoResponse> desfechos = new ArrayList<>();
@@ -227,6 +239,12 @@ public class CheckinService {
             return itemRelatado;
         }
         return itemPlanoCuidadoRepository.findByPrescricaoIdAndDataAlvo(prescricao.getId(), referencia).orElse(null);
+    }
+
+    private ItemPlanoCuidadoEntity itemSemDesfecho(PrescricaoEntity prescricao, LocalDate referencia) {
+        return itemPlanoCuidadoRepository.findByPrescricaoIdAndDataAlvo(prescricao.getId(), referencia)
+                .filter(i -> i.getDesfecho() == null || i.getDesfecho().getCheckinId() == null)
+                .orElse(null);
     }
 
     private List<PrescricaoEntity> prescricaoDoItem(ItemPlanoCuidadoEntity item) {
