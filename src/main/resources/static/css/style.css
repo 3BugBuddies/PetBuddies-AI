@@ -890,3 +890,7 @@ a.sem-cel.livre:hover { border-color: var(--cor-marca); color: var(--cor-marca-e
 .pc-regra-limite input { width: 110px !important; }
 .pc-erros { margin: 0.3rem 0 0; padding-left: 1.2rem; font-weight: 600; }
 .pc-ao-fechar { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.3rem; }
+
+.pc-medicamento { padding: 0.75rem 0; }
+.pc-medicamento + .pc-medicamento { border-top: 1px solid var(--borda, #e5e5e5); }
+.pc-medicamento.em-edicao { border-left: 3px solid var(--marca, #0f766e); padding-left: 0.75rem; }
