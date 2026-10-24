@@ -5,6 +5,12 @@ document.addEventListener('alpine:init', function () {
         var inicial = window.FECHAMENTO;
         var NOMES_ETAPA = { 2: 'procedimento', 3: 'prescrição', 4: 'revisar' };
 
+        var proximaChave = 0;
+        // A chave mantém cada bloco no seu lugar quando um do meio é removido e os índices dos names mudam.
+        function novoMedicamento(base) {
+            return Object.assign({ chave: proximaChave++, regrasIgnoradas: 0, erros: [] }, base);
+        }
+
         return {
             etapa: inicial.etapa,
             houveProcedimento: inicial.houveProcedimento,
@@ -14,12 +20,10 @@ document.addEventListener('alpine:init', function () {
             nome: inicial.nome,
             itensAbertos: inicial.itensAbertos,
             condicoes: inicial.condicoes,
-            regras: inicial.regras,
+            medicamentos: inicial.medicamentos.map(function (m) { return novoMedicamento(m); }),
+            atual: 0,
             receitasModelo: inicial.receitasModelo,
             modeloEscolhido: '',
-            origemId: inicial.receitaModeloId,
-            origemVersao: inicial.receitaModeloVersao,
-            regrasIgnoradas: 0,
             resumo: { regras: [] },
 
             get comItemNoPlano() {
@@ -54,37 +58,45 @@ document.addEventListener('alpine:init', function () {
                 }
             },
 
-            novaRegra: function () {
-                this.regras.push({ condicaoClinicaId: '', operador: '', limite: '', acaoDose: '' });
+            novaRegra: function (med) {
+                med.regras.push({ condicaoClinicaId: '', operador: '', limite: '', acaoDose: '' });
             },
-            // Copia o molde para os campos e guarda de onde veio; depois disso a receita é da consulta.
+            adicionarMedicamento: function () {
+                var primeiro = this.medicamentos[0];
+                this.medicamentos.push(novoMedicamento({
+                    medicamento: '', doseMin: '', doseMax: '', unidade: '', frequenciaDia: '', duracaoDias: '',
+                    dataInicio: primeiro ? primeiro.dataInicio : '', orientacao: '',
+                    receitaModeloId: '', receitaModeloVersao: '', regras: []
+                }));
+                this.atual = this.medicamentos.length - 1;
+            },
+            removerMedicamento: function (m) {
+                this.medicamentos.splice(m, 1);
+                this.atual = Math.min(this.atual, this.medicamentos.length - 1);
+            },
+            // Copia o molde para o medicamento em edição e guarda de onde veio; depois disso a receita é da consulta.
             aplicarReceitaModelo: function () {
                 var id = this.modeloEscolhido;
                 var modelo = this.receitasModelo.find(function (m) { return m.id === id; });
-                if (!modelo) {
+                var med = this.medicamentos[this.atual];
+                if (!modelo || !med) {
                     return;
                 }
-                var self = this;
-                var campos = {
-                    'prescricao.medicamento': modelo.medicamento,
-                    'prescricao.doseMin': modelo.doseMin,
-                    'prescricao.doseMax': modelo.doseMax,
-                    'prescricao.unidade': modelo.unidade,
-                    'prescricao.frequenciaDia': modelo.frequenciaDia,
-                    'prescricao.duracaoDias': modelo.duracaoDias,
-                    'prescricao.orientacao': modelo.orientacao
-                };
-                Object.keys(campos).forEach(function (nome) {
-                    self.$refs.form.elements[nome].value = campos[nome];
-                });
+                med.medicamento = modelo.medicamento;
+                med.doseMin = modelo.doseMin;
+                med.doseMax = modelo.doseMax;
+                med.unidade = modelo.unidade;
+                med.frequenciaDia = modelo.frequenciaDia;
+                med.duracaoDias = modelo.duracaoDias;
+                med.orientacao = modelo.orientacao;
                 var ativas = this.condicoes.map(function (c) { return c.id; });
                 var cabem = modelo.regras.filter(function (r) { return ativas.indexOf(r.condicaoClinicaId) >= 0; });
-                this.regrasIgnoradas = modelo.regras.length - cabem.length;
-                this.regras = cabem.map(function (r) {
+                med.regrasIgnoradas = modelo.regras.length - cabem.length;
+                med.regras = cabem.map(function (r) {
                     return { condicaoClinicaId: r.condicaoClinicaId, operador: r.operador, limite: r.limite, acaoDose: r.acaoDose };
                 });
-                this.origemId = modelo.id;
-                this.origemVersao = modelo.versao;
+                med.receitaModeloId = modelo.id;
+                med.receitaModeloVersao = modelo.versao;
             },
             condicao: function (regra) {
                 return this.condicoes.find(function (c) { return c.id === String(regra.condicaoClinicaId); });
@@ -125,10 +137,7 @@ document.addEventListener('alpine:init', function () {
                 var item = this.itensAbertos.find(function (i) { return i.id === self.itemPlanoId; });
                 var lote = this.valor('procedimento.lote');
                 var data = this.valor('procedimento.data');
-                var min = this.valor('prescricao.doseMin');
-                var max = this.valor('prescricao.doseMax');
-                var un = this.valor('prescricao.unidade');
-                var inicio = this.valor('prescricao.dataInicio');
+                var dias = this.medicamentos.map(function (m) { return parseInt(m.duracaoDias, 10) || 0; });
 
                 this.resumo = {
                     anamnese: this.valor('registro.anamnese'),
@@ -141,15 +150,15 @@ document.addEventListener('alpine:init', function () {
                         ? (lote ? 'Lote ' + lote + ' · ' : '') + (data ? this.dia(data) : '')
                             + (item ? ' · baixa "' + item.nome + '" do plano' : '')
                         : '',
-                    prescricao: this.prescrever
-                        ? this.valor('prescricao.medicamento') + ' ' + (min === max ? min : min + '–' + max) + ' ' + un
-                        : 'Sem prescrição',
-                    prescricaoLinha: this.prescrever
-                        ? this.valor('prescricao.frequenciaDia') + '×/dia · ' + this.valor('prescricao.duracaoDias')
-                            + ' dias · a partir de ' + (inicio ? this.dia(inicio) : '?')
-                        : '',
-                    duracao: this.valor('prescricao.duracaoDias'),
-                    regras: this.prescrever ? this.regras.map(function (r) { return self.previa(r); }) : []
+                    medicamentos: this.prescrever ? this.medicamentos.map(function (m) {
+                        return {
+                            titulo: m.medicamento + ' ' + (m.doseMin === m.doseMax ? m.doseMin : m.doseMin + '–' + m.doseMax) + ' ' + m.unidade,
+                            linha: m.frequenciaDia + '×/dia · ' + m.duracaoDias + ' dias · a partir de '
+                                + (m.dataInicio ? self.dia(m.dataInicio) : '?'),
+                            regras: m.regras.map(function (r) { return self.previa(r); })
+                        };
+                    }) : [],
+                    duracao: Math.max.apply(null, dias)
                 };
             }
         };
