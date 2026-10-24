@@ -14,28 +14,8 @@ variables:
   azureSubscription: 'sc-petbuddies-azure'
 
 stages:
-  - stage: Infraestrutura
-    displayName: 'Criar infraestrutura'
-    jobs:
-      - job: CriarInfra
-        displayName: 'Provisionar recursos Azure'
-        steps:
-          - checkout: self
-
-          - task: AzureCLI@2
-            displayName: 'Executar script de infraestrutura'
-            inputs:
-              azureSubscription: '$(azureSubscription)'
-              scriptType: 'bash'
-              scriptLocation: 'scriptPath'
-              scriptPath: 'infra/infra-app.sh'
-            env:
-              LOCATION: $(LOCATION)
-              NOME_WEBAPP: $(NOME_WEBAPP)
-
   - stage: CI
     displayName: 'CI - Build e Testes'
-    dependsOn: Infraestrutura
     jobs:
       - job: Build
         displayName: 'Instalar e Configurar Java'
