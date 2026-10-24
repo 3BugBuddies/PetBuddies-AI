@@ -1,49 +1,83 @@
-#!/usr/bin/env bash
+#
+# VERIFIQUE SE ESTA COM A ASSINATURA CORRETA
+#
+# az account show
+# az account list -o table
+# az account set --subscription "nome-da-assinatura-correta"
+
 set -euo pipefail
 
-# Parâmetros vindos das variáveis da pipeline (LOCATION e NOME_WEBAPP)
-location="${LOCATION:?LOCATION ausente}"
-app="${NOME_WEBAPP:?NOME_WEBAPP ausente}"
+# Variáveis
+RESOURCE_GROUP_NAME="rg-petbuddies"
+WEBAPP_NAME="petbuddies-java-rm563925"
+APP_SERVICE_PLAN="plan-petbuddies"
+LOCATION="brazilsouth"
+RUNTIME="JAVA:21-java21"
+APP_INSIGHTS_NAME="ai-petbuddies-java"
 
-# O banco é o Oracle da FIAP; as tabelas nascem pelas migrations do Flyway na subida do app
+# Registrar os Serviços utilizados
+az provider register --namespace Microsoft.Web
+az provider register --namespace Microsoft.Insights
+az provider register --namespace Microsoft.OperationalInsights
 
-# ===================
-# Atividades da Azure
-# ===================
-rg="rg-petbuddies"
-plan="plan-petbuddies"
-runtime="JAVA:21-java21"
-sku="B1"
+# Registrar a extensão utilizada
+az extension add --name application-insights --upgrade --only-show-errors
 
-# Registrar o provedor utilizado
-az provider register --namespace Microsoft.Web 1>/dev/null
+# Criação do Grupo de Recursos
+az group create \
+  --name $RESOURCE_GROUP_NAME \
+  --location "$LOCATION"
 
-# Criar os Recursos necessários em Nuvem (o plano é compartilhado com o Web App do .NET)
-echo "Criando Grupo de Recursos..."
-az group create --name "$rg" --location "$location" 1>/dev/null
-echo "Criando Plano de Serviço..."
-az appservice plan create --name "$plan" --resource-group "$rg" --location "$location" --sku "$sku" --is-linux 1>/dev/null
-echo "Criando Serviço de Aplicativo..."
-if ! az webapp show --resource-group "$rg" --name "$app" 1>/dev/null 2>&1; then
-  az webapp create --resource-group "$rg" --plan "$plan" --runtime "$runtime" --name "$app" 1>/dev/null
-fi
-az webapp config set --resource-group "$rg" --name "$app" --always-on true 1>/dev/null
+# Criar Application Insights
+az monitor app-insights component create \
+  --app $APP_INSIGHTS_NAME \
+  --location "$LOCATION" \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --application-type web
 
-# Captura estado atual dos logs
-app_logging="$(az webapp log show -g "$rg" -n "$app" --query 'applicationLogs.fileSystem.level' -o tsv 2>/dev/null || true)"
-ws_logging="$(az webapp log show -g "$rg" -n "$app" --query 'httpLogs.fileSystem.enabled' -o tsv 2>/dev/null || true)"
+# Criar o Plano de Serviço (compartilhado com o Web App do .NET)
+az appservice plan create \
+  --name $APP_SERVICE_PLAN \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --location "$LOCATION" \
+  --sku B1 \
+  --is-linux
 
-# Condição: aplicar somente se algo não estiver habilitado como desejado
-if [ "$app_logging" != "Information" ] || [ "$ws_logging" != "true" ]; then
-  echo "Habilitando Logs do Serviço de Aplicativo..."
-  az webapp log config \
-    --resource-group "$rg" \
-    --name "$app" \
-    --application-logging filesystem \
-    --web-server-logging filesystem \
-    --level information 1>/dev/null
-else
-  echo "Logs já configurados"
-fi
+# Criar o Serviço de Aplicativo
+az webapp create \
+  --name $WEBAPP_NAME \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --plan $APP_SERVICE_PLAN \
+  --runtime "$RUNTIME"
 
-echo "[OK] Objetos da Azure prontos"
+az webapp config set \
+  --name $WEBAPP_NAME \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --always-on true
+
+# Recuperar a String de Conexão do Application Insights
+CONNECTION_STRING=$(az monitor app-insights component show \
+  --app $APP_INSIGHTS_NAME \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --query connectionString \
+  --output tsv)
+
+# Configurar as Variáveis de Ambiente do Application Insights
+# (banco, Gemini, JWT e URL do .NET são gravados pela pipeline, a partir das variáveis secretas)
+az webapp config appsettings set \
+  --name "$WEBAPP_NAME" \
+  --resource-group "$RESOURCE_GROUP_NAME" \
+  --settings \
+    APPLICATIONINSIGHTS_CONNECTION_STRING="$CONNECTION_STRING" \
+    ApplicationInsightsAgent_EXTENSION_VERSION="~3" \
+    XDT_MicrosoftApplicationInsights_Mode="Recommended" \
+    XDT_MicrosoftApplicationInsights_PreemptSdk="1"
+
+# Reiniciar o Web App
+az webapp restart --name $WEBAPP_NAME --resource-group $RESOURCE_GROUP_NAME
+
+# Criar a conexão do nosso Web App com o Application Insights
+az monitor app-insights component connect-webapp \
+    --app $APP_INSIGHTS_NAME \
+    --web-app $WEBAPP_NAME \
+    --resource-group $RESOURCE_GROUP_NAME
