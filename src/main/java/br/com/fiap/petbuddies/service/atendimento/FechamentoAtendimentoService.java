@@ -32,6 +32,7 @@ import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoFechamentoReque
 import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoFechamentoRequest;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.ItemPlanoInvalidoParaProcedimentoException;
+import br.com.fiap.petbuddies.exception.prescricao.MedicamentoRepetidoException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.service.cuidado.PlanoTratamentoService;
 import org.springframework.stereotype.Service;
@@ -96,6 +97,7 @@ public class FechamentoAtendimentoService {
         // Primeiro passo, dentro da mesma transação: valida o estado e já marca
         // REALIZADA. Se algo adiante falhar, o rollback desfaz esta mudança
         // também — não há como a consulta ficar REALIZADA sem o resto gravado.
+        rejeitarMedicamentoRepetido(request.getPrescricoes());
         ConsultaEntity consulta = consultaService.fechar(consultaId);
         AnimalEntity animal = consulta.getAnimal();
         VeterinarioEntity veterinario = consulta.getVeterinario();
@@ -105,6 +107,19 @@ public class FechamentoAtendimentoService {
         List<PrescricaoComRegrasResponse> prescricoes = criarPrescricoes(request.getPrescricoes(), registro, animal, veterinario);
 
         return FechamentoAtendimentoResponse.from(consulta, registro, procedimentos, prescricoes);
+    }
+
+    private void rejeitarMedicamentoRepetido(List<PrescricaoFechamentoRequest> prescricoes) {
+        if (prescricoes == null) {
+            return;
+        }
+        java.util.Set<String> vistos = new java.util.HashSet<>();
+        for (int i = 0; i < prescricoes.size(); i++) {
+            String nome = prescricoes.get(i).getMedicamento();
+            if (nome != null && !vistos.add(nome.trim().toLowerCase(java.util.Locale.ROOT))) {
+                throw new MedicamentoRepetidoException(i, nome.trim());
+            }
+        }
     }
 
     private RegistroAtendimentoEntity criarRegistro(
