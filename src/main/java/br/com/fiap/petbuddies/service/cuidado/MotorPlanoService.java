@@ -179,11 +179,14 @@ public class MotorPlanoService {
 
     // O catálogo do .NET é lido antes da transação: chamada HTTP não segura conexão do pool.
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        Map<Long, String> intervalos = intervalosDoCatalogo();
-        return Optional.ofNullable(leitura.execute(status -> montarPlanoAtivo(animalId, intervalos)));
+        List<ProtocoloCatalogoDto> catalogo = protocoloClient.listarAtivos().orElse(List.of());
+        Map<Long, String> intervalos = intervalosDoCatalogo(catalogo);
+        Map<Long, String> nomesModelo = catalogo.stream()
+                .collect(Collectors.toMap(ProtocoloCatalogoDto::id, ProtocoloCatalogoDto::nome, (a, b) -> a));
+        return Optional.ofNullable(leitura.execute(status -> montarPlanoAtivo(animalId, intervalos, nomesModelo)));
     }
 
-    private PlanoResponse montarPlanoAtivo(Long animalId, Map<Long, String> intervalos) {
+    private PlanoResponse montarPlanoAtivo(Long animalId, Map<Long, String> intervalos, Map<Long, String> nomesModelo) {
         PlanoResponse principal = buscarPlanosAtivos(List.of(animalId)).get(animalId);
         if (principal == null) {
             return null;
@@ -194,6 +197,12 @@ public class MotorPlanoService {
                 .filter(i -> i.getRegraProtocoloId() != null)
                 .collect(Collectors.toMap(ItemPlanoCuidadoEntity::getId, ItemPlanoCuidadoEntity::getRegraProtocoloId));
         principal.getEventos().forEach(e -> e.setIntervalo(intervalos.get(regraPorItem.get(e.getId()))));
+        planos.stream()
+                .filter(p -> p.getStatus() == StatusPlano.ATIVO && p.getProtocoloId() != null)
+                .map(p -> nomesModelo.get(p.getProtocoloId()))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .ifPresent(principal::setModeloPlano);
 
         boolean emTratamento = CategoriaPlano.TRATAMENTO.name().equals(principal.getCategoria());
         PlanoCuidadoEntity tratamento = emTratamento
@@ -228,8 +237,8 @@ public class MotorPlanoService {
                 .orElse(null);
     }
 
-    private Map<Long, String> intervalosDoCatalogo() {
-        return protocoloClient.listarAtivos().orElse(List.of()).stream()
+    private Map<Long, String> intervalosDoCatalogo(List<ProtocoloCatalogoDto> catalogo) {
+        return catalogo.stream()
                 .flatMap(p -> p.regras().stream())
                 .collect(Collectors.toMap(RegraCatalogoDto::id, MotorPlanoService::intervaloLegivel, (a, b) -> a));
     }

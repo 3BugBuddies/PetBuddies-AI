@@ -58,6 +58,9 @@ public class PlanoResponse {
     @Schema(description = "Receita do tratamento principal (ou do suspenso). So no GET do plano ativo")
     private Tratamento tratamento;
 
+    @Schema(description = "Nome do modelo de plano preventivo ativo, ex.: 'Preventivo anual — cão'. So no GET do plano ativo")
+    private String modeloPlano;
+
     @Schema(description = "Contato da clinica do animal. So no GET do plano ativo")
     private ContatoClinicaResponse clinica;
 
