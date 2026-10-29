@@ -5,15 +5,20 @@ import br.com.fiap.petbuddies.domain.embeddable.FaixaDose;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
+import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.ProcedimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
+import br.com.fiap.petbuddies.domain.enums.atendimento.TipoProcedimento;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
 import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.atendimento.StatusProcedimento;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
+import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.ProcedimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
@@ -26,14 +31,19 @@ import br.com.fiap.petbuddies.dto.atendimento.ProcedimentoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.RegistroAtendimentoFechamentoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoFechamentoRequest;
 import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.atendimento.ItemPlanoInvalidoParaProcedimentoException;
+import br.com.fiap.petbuddies.exception.prescricao.MedicamentoRepetidoException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.service.cuidado.PlanoTratamentoService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Fecha um atendimento num único ato transacional: grava o registro, os
@@ -50,6 +60,10 @@ import java.util.List;
 @Service
 public class FechamentoAtendimentoService {
 
+    // Só vacina e vermífugo têm o mesmo nome em TipoProcedimento e TipoCuidado; exame e cirurgia ficam avulsos.
+    private static final Set<TipoProcedimento> TIPOS_COM_ITEM_NO_PLANO =
+            EnumSet.of(TipoProcedimento.VACINACAO, TipoProcedimento.VERMIFUGACAO);
+
     private final ConsultaService consultaService;
     private final RegistroAtendimentoRepository registroAtendimentoRepository;
     private final ProcedimentoRepository procedimentoRepository;
@@ -57,6 +71,7 @@ public class FechamentoAtendimentoService {
     private final RegraPrescricaoRepository regraPrescricaoRepository;
     private final CondicaoClinicaRepository condicaoClinicaRepository;
     private final PlanoTratamentoService planoTratamentoService;
+    private final ItemPlanoCuidadoRepository itemPlanoRepository;
 
     public FechamentoAtendimentoService(
             ConsultaService consultaService,
@@ -65,7 +80,8 @@ public class FechamentoAtendimentoService {
             PrescricaoRepository prescricaoRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository,
-            PlanoTratamentoService planoTratamentoService) {
+            PlanoTratamentoService planoTratamentoService,
+            ItemPlanoCuidadoRepository itemPlanoRepository) {
         this.consultaService = consultaService;
         this.registroAtendimentoRepository = registroAtendimentoRepository;
         this.procedimentoRepository = procedimentoRepository;
@@ -73,6 +89,7 @@ public class FechamentoAtendimentoService {
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
         this.planoTratamentoService = planoTratamentoService;
+        this.itemPlanoRepository = itemPlanoRepository;
     }
 
     @Transactional
@@ -80,6 +97,7 @@ public class FechamentoAtendimentoService {
         // Primeiro passo, dentro da mesma transação: valida o estado e já marca
         // REALIZADA. Se algo adiante falhar, o rollback desfaz esta mudança
         // também — não há como a consulta ficar REALIZADA sem o resto gravado.
+        rejeitarMedicamentoRepetido(request.getPrescricoes());
         ConsultaEntity consulta = consultaService.fechar(consultaId);
         AnimalEntity animal = consulta.getAnimal();
         VeterinarioEntity veterinario = consulta.getVeterinario();
@@ -89,6 +107,19 @@ public class FechamentoAtendimentoService {
         List<PrescricaoComRegrasResponse> prescricoes = criarPrescricoes(request.getPrescricoes(), registro, animal, veterinario);
 
         return FechamentoAtendimentoResponse.from(consulta, registro, procedimentos, prescricoes);
+    }
+
+    private void rejeitarMedicamentoRepetido(List<PrescricaoFechamentoRequest> prescricoes) {
+        if (prescricoes == null) {
+            return;
+        }
+        java.util.Set<String> vistos = new java.util.HashSet<>();
+        for (int i = 0; i < prescricoes.size(); i++) {
+            String nome = prescricoes.get(i).getMedicamento();
+            if (nome != null && !vistos.add(nome.trim().toLowerCase(java.util.Locale.ROOT))) {
+                throw new MedicamentoRepetidoException(i, nome.trim());
+            }
+        }
     }
 
     private RegistroAtendimentoEntity criarRegistro(
@@ -103,6 +134,9 @@ public class FechamentoAtendimentoService {
         registro.setProximaVacina(r.getProximaVacina());
         registro.setAnimal(animal);
         registro.setConsulta(consulta);
+        if (r.getPeso() != null) {
+            animal.setPeso(r.getPeso());
+        }
         return registroAtendimentoRepository.save(registro);
     }
 
@@ -124,9 +158,41 @@ public class FechamentoAtendimentoService {
             entity.setRegistroAtendimento(registro);
             entity.setAnimal(animal);
             entity.setVeterinario(veterinario);
-            procedimentos.add(procedimentoRepository.save(entity));
+            // Valida antes de gravar: item inválido derruba o fechamento inteiro (mesma transação).
+            ItemPlanoCuidadoEntity item = p.getItemPlanoId() == null ? null : validarItemPlano(p, animal);
+            ProcedimentoEntity salvo = procedimentoRepository.save(entity);
+            if (item != null) {
+                item.setStatus(StatusItem.REALIZADO);
+                item.setExecutadoEm(LocalDateTime.now());
+                item.setProcedimentoId(salvo.getId());
+            }
+            procedimentos.add(salvo);
         }
         return procedimentos;
+    }
+
+    private ItemPlanoCuidadoEntity validarItemPlano(ProcedimentoFechamentoRequest p, AnimalEntity animal) {
+        Long itemId = p.getItemPlanoId();
+        ItemPlanoCuidadoEntity item = itemPlanoRepository.findById(itemId)
+                .orElseThrow(() -> new ItemPlanoInvalidoParaProcedimentoException(
+                        "Item " + itemId + " do plano não existe."));
+        if (!animal.getId().equals(item.getPlano().getAnimalId())) {
+            throw new ItemPlanoInvalidoParaProcedimentoException(
+                    "Item " + itemId + " do plano não é do animal " + animal.getId() + ".");
+        }
+        if (!TIPOS_COM_ITEM_NO_PLANO.contains(p.getTipo()) || !item.getTipo().name().equals(p.getTipo().name())) {
+            throw new ItemPlanoInvalidoParaProcedimentoException(
+                    "Item " + itemId + " é do tipo " + item.getTipo() + ", incompatível com o procedimento " + p.getTipo() + ".");
+        }
+        if (item.getPlano().getStatus() != StatusPlano.ATIVO) {
+            throw new ItemPlanoInvalidoParaProcedimentoException(
+                    "Item " + itemId + " pertence a um plano que não está ATIVO.");
+        }
+        if (item.getStatus() != StatusItem.PENDENTE && item.getStatus() != StatusItem.ATRASADO) {
+            throw new ItemPlanoInvalidoParaProcedimentoException(
+                    "Item " + itemId + " já está " + item.getStatus() + " e não pode ser baixado.");
+        }
+        return item;
     }
 
     private List<PrescricaoComRegrasResponse> criarPrescricoes(
@@ -141,8 +207,9 @@ public class FechamentoAtendimentoService {
             prescricao.setDuracaoDias(pr.getDuracaoDias());
             prescricao.setDataInicio(pr.getDataInicio());
             prescricao.setOrientacao(pr.getOrientacao());
-            prescricao.setMaterialOrigemId(pr.getMaterialOrigemId());
-            prescricao.setVersaoOrigem(pr.getVersaoOrigem());
+            boolean daReceitaModelo = pr.getReceitaModeloId() != null;
+            prescricao.setMaterialOrigemId(daReceitaModelo ? pr.getReceitaModeloId() : pr.getMaterialOrigemId());
+            prescricao.setVersaoOrigem(daReceitaModelo ? pr.getReceitaModeloVersao() : pr.getVersaoOrigem());
             prescricao.setAnimal(animal);
             prescricao.setVeterinario(veterinario);
             prescricao.setRegistroAtendimento(registro);

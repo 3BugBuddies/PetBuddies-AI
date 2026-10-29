@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,10 +27,23 @@ public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuida
     // So enxerga os itens que existiam para receber a baixa — a resposta do POST inclui tambem prescricoes avaliadas sem item.
     List<ItemPlanoCuidadoEntity> findByDesfechoCheckinId(Long checkinId);
 
+    Optional<ItemPlanoCuidadoEntity> findFirstByPrescricaoIdOrderByDataAlvoAsc(Long prescricaoId);
+
+    List<ItemPlanoCuidadoEntity> findByDesfechoCheckinIdIn(Collection<Long> checkinIds);
+
     List<ItemPlanoCuidadoEntity> findByDataAlvoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusItem status);
 
-    @Query("SELECT e FROM ItemPlanoCuidadoEntity e WHERE e.plano.animalId = :animalId")
-    Page<ItemPlanoCuidadoEntity> findEventosPorAnimal(@Param("animalId") Long animalId, Pageable pageable);
+    @Query(value = "SELECT e FROM ItemPlanoCuidadoEntity e JOIN e.plano p WHERE p.animalId = :animalId "
+            + "AND (:semFiltroTipo = true OR e.tipo IN :tipos) "
+            + "AND (:abertos = false OR (p.status = :statusPlanoAberto AND e.status IN :statusAbertos))",
+            countQuery = "SELECT COUNT(e) FROM ItemPlanoCuidadoEntity e JOIN e.plano p WHERE p.animalId = :animalId "
+            + "AND (:semFiltroTipo = true OR e.tipo IN :tipos) "
+            + "AND (:abertos = false OR (p.status = :statusPlanoAberto AND e.status IN :statusAbertos))")
+    Page<ItemPlanoCuidadoEntity> findEventosPorAnimal(
+            @Param("animalId") Long animalId,
+            @Param("semFiltroTipo") boolean semFiltroTipo, @Param("tipos") List<TipoCuidado> tipos,
+            @Param("abertos") boolean abertos, @Param("statusPlanoAberto") StatusPlano statusPlanoAberto,
+            @Param("statusAbertos") List<StatusItem> statusAbertos, Pageable pageable);
 
     @Query("SELECT e FROM ItemPlanoCuidadoEntity e WHERE e.plano.animalId = :animalId AND e.tipo = :tipo AND e.status = :status AND e.dataAlvo < :data")
     List<ItemPlanoCuidadoEntity> findEventosVencidosPorAnimal(
@@ -62,9 +76,9 @@ public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuida
             @Param("hoje") LocalDate hoje);
 
     @Query("SELECT COUNT(i) FROM ItemPlanoCuidadoEntity i JOIN i.plano p "
-            + "WHERE p.status = :statusPlano AND i.status = :status AND i.dataAlvo >= :desde")
+            + "WHERE p.status = :statusPlano AND i.status IN :statuses AND i.dataAlvo >= :desde")
     long contarPorStatusDesde(
             @Param("statusPlano") StatusPlano statusPlano,
-            @Param("status") StatusItem status,
+            @Param("statuses") Collection<StatusItem> statuses,
             @Param("desde") LocalDate desde);
 }

@@ -3,6 +3,7 @@ package br.com.fiap.petbuddies.dto.atendimento;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,14 @@ public class CondicaoClinicaResponse {
     private Long veterinarioAutorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    /** Só a tela de condições preenche; nas respostas da API fica nulo e some do JSON. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long usadaEmRegras;
+
+    public CondicaoClinicaResponse comUso(long regras) {
+        this.usadaEmRegras = regras;
+        return this;
+    }
 
     public static CondicaoClinicaResponse from(CondicaoClinicaEntity entity) {
         CondicaoClinicaResponse dto = new CondicaoClinicaResponse();

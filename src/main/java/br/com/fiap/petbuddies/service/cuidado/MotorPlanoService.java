@@ -3,9 +3,10 @@ package br.com.fiap.petbuddies.service.cuidado;
 import br.com.fiap.petbuddies.domain.entity.AnimalEntity;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
+import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
+import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaPlano;
 import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaProtocolo;
-import br.com.fiap.petbuddies.domain.enums.cadastro.Especie;
 import br.com.fiap.petbuddies.domain.enums.cuidado.MotivoSugestao;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
@@ -17,9 +18,10 @@ import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.ItemPlanoCuidadoRepository;
 import br.com.fiap.petbuddies.domain.repository.PlanoCuidadoRepository;
+import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.dto.cuidado.ItemPlanoCuidadoDto;
-import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
+import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.dto.cuidado.SugestaoCuidadoDto;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
@@ -28,17 +30,25 @@ import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloCatalogoDto;
 import br.com.fiap.petbuddies.infrastructure.client.ProtocoloClient;
 import br.com.fiap.petbuddies.infrastructure.client.RegraCatalogoDto;
+import br.com.fiap.petbuddies.service.cadastro.ContatoClinicaService;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -49,24 +59,37 @@ public class MotorPlanoService {
     private static final int HORIZONTE_MESES = 12;
 
     private static final List<CategoriaPlano> PRIORIDADE_PLANO_ATIVO =
-            List.of(CategoriaPlano.PREVENTIVO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.TRATAMENTO);
+            List.of(CategoriaPlano.TRATAMENTO, CategoriaPlano.POS_CIRURGICO, CategoriaPlano.PREVENTIVO);
 
     private final PlanoCuidadoRepository planoRepository;
     private final ItemPlanoCuidadoRepository itemRepository;
     private final ProtocoloClient protocoloClient;
     private final AnimalRepository animalRepository;
     private final ConsultaRepository consultaRepository;
+    private final PlanoCuidadoGravador gravador;
+    private final PrescricaoRepository prescricaoRepository;
+    private final ContatoClinicaService contatoClinicaService;
+    private final TransactionTemplate leitura;
 
     public MotorPlanoService(PlanoCuidadoRepository planoRepository,
                              ItemPlanoCuidadoRepository itemRepository,
                              ProtocoloClient protocoloClient,
                              AnimalRepository animalRepository,
-                             ConsultaRepository consultaRepository) {
+                             ConsultaRepository consultaRepository,
+                             PlanoCuidadoGravador gravador,
+                             PrescricaoRepository prescricaoRepository,
+                             ContatoClinicaService contatoClinicaService,
+                             PlatformTransactionManager transactionManager) {
         this.planoRepository = planoRepository;
         this.itemRepository = itemRepository;
         this.protocoloClient = protocoloClient;
         this.animalRepository = animalRepository;
         this.consultaRepository = consultaRepository;
+        this.gravador = gravador;
+        this.prescricaoRepository = prescricaoRepository;
+        this.contatoClinicaService = contatoClinicaService;
+        this.leitura = new TransactionTemplate(transactionManager);
+        this.leitura.setReadOnly(true);
     }
 
     // Sem @Transactional de proposito: ha chamada HTTP ao catalogo entre a checagem e a criacao — nao pode segurar conexao do pool durante a rede.
@@ -92,9 +115,9 @@ public class MotorPlanoService {
         PlanoCuidadoEntity plano = criarPlano(req.getAnimalId(), null, protocolo.get());
         instanciarEventos(plano, protocolo.get(),
                 new Ancoragem(LocalDate.now(), req.getDataNascimento(), null));
-        planoRepository.save(plano);
+        PlanoCuidadoEntity salvo = gravador.gravar(plano);
 
-        return PlanoResponse.from(plano, true, null);
+        return PlanoResponse.from(salvo, true, null);
     }
 
     // Sem @Transactional de proposito, pelo mesmo motivo do instanciarPreventivo.
@@ -142,22 +165,170 @@ public class MotorPlanoService {
                 .comparingInt((PlanoCuidadoEntity p) -> PRIORIDADE_PLANO_ATIVO.indexOf(p.getCategoria()))
                 .thenComparing(PlanoCuidadoEntity::getId);
 
+        // Todo pet nasce com o preventivo: o principal é o mais específico, e os eventos juntam todos os planos ativos.
         return planoRepository.findPorAnimaisEStatus(animalIds, StatusPlano.ATIVO).stream()
                 .collect(Collectors.groupingBy(PlanoCuidadoEntity::getAnimalId,
-                        Collectors.collectingAndThen(Collectors.minBy(prioridade),
-                                plano -> PlanoResponse.from(plano.orElseThrow()))));
+                        Collectors.collectingAndThen(Collectors.toList(), ativos -> {
+                            PlanoResponse principal = PlanoResponse.from(ativos.stream().min(prioridade).orElseThrow());
+                            principal.setEventos(ativos.stream()
+                                    .flatMap(p -> PlanoResponse.from(p).getEventos().stream())
+                                    .sorted(Comparator.comparing(ItemPlanoCuidadoDto::getDataAlvo,
+                                            Comparator.nullsLast(Comparator.naturalOrder())))
+                                    .toList());
+                            return principal;
+                        })));
     }
 
-    @Transactional(readOnly = true)
+    private static final Duration VALIDADE_CATALOGO = Duration.ofMinutes(5);
+
+    private record CatalogoEmCache(Instant lidoEm, List<ProtocoloCatalogoDto> protocolos) {}
+
+    private volatile CatalogoEmCache catalogoEmCache;
+
+    // O catálogo do .NET só interessa a quem tem plano preventivo; é lido antes da transação: chamada HTTP não segura conexão do pool.
     public Optional<PlanoResponse> buscarPlanoAtivo(Long animalId) {
-        return Optional.ofNullable(buscarPlanosAtivos(List.of(animalId)).get(animalId));
+        boolean temPreventivo = planoRepository.findByAnimalId(animalId).stream()
+                .anyMatch(p -> p.getCategoria() == CategoriaPlano.PREVENTIVO && p.getStatus() == StatusPlano.ATIVO);
+        List<ProtocoloCatalogoDto> catalogo = temPreventivo ? catalogoAtivo() : List.of();
+        Map<Long, String> intervalos = intervalosDoCatalogo(catalogo);
+        Map<Long, String> nomesModelo = catalogo.stream()
+                .collect(Collectors.toMap(ProtocoloCatalogoDto::id, ProtocoloCatalogoDto::nome, (a, b) -> a));
+        return Optional.ofNullable(leitura.execute(status -> montarPlanoAtivo(animalId, intervalos, nomesModelo)));
+    }
+
+    // Só guarda resposta do .NET no ar: catálogo fora do ar não pode ficar 5 minutos em cache como "vazio".
+    private List<ProtocoloCatalogoDto> catalogoAtivo() {
+        CatalogoEmCache atual = catalogoEmCache;
+        if (atual != null && Instant.now().isBefore(atual.lidoEm().plus(VALIDADE_CATALOGO))) {
+            return atual.protocolos();
+        }
+        Optional<List<ProtocoloCatalogoDto>> lido = protocoloClient.listarAtivos();
+        lido.ifPresent(protocolos -> catalogoEmCache = new CatalogoEmCache(Instant.now(), protocolos));
+        return lido.orElse(atual != null ? atual.protocolos() : List.of());
+    }
+
+    private PlanoResponse montarPlanoAtivo(Long animalId, Map<Long, String> intervalos, Map<Long, String> nomesModelo) {
+        PlanoResponse principal = buscarPlanosAtivos(List.of(animalId)).get(animalId);
+        List<PlanoCuidadoEntity> planos = planoRepository.findByAnimalId(animalId);
+        if (principal == null) {
+            PlanoCuidadoEntity suspenso = tratamentoSuspenso(planos);
+            if (suspenso == null) {
+                return null;
+            }
+            PlanoResponse apenasSuspenso = new PlanoResponse();
+            apenasSuspenso.setAnimalId(animalId);
+            apenasSuspenso.setEventos(List.of());
+            preencherSuspenso(apenasSuspenso, suspenso);
+            List<PrescricaoEntity> prescricoes = prescricoesDoPlano(suspenso);
+            apenasSuspenso.setTratamentos(tratamentosDe(prescricoes));
+            apenasSuspenso.setTratamento(apenasSuspenso.getTratamentos().stream().findFirst().orElse(null));
+            apenasSuspenso.setClinica(contatoClinicaService.doAnimal(animalId, prescricoes));
+            return apenasSuspenso;
+        }
+        Map<Long, Long> regraPorItem = planos.stream()
+                .flatMap(p -> p.getItens().stream())
+                .filter(i -> i.getRegraProtocoloId() != null)
+                .collect(Collectors.toMap(ItemPlanoCuidadoEntity::getId, ItemPlanoCuidadoEntity::getRegraProtocoloId));
+        principal.getEventos().forEach(e -> e.setIntervalo(intervalos.get(regraPorItem.get(e.getId()))));
+        planos.stream()
+                .filter(p -> p.getStatus() == StatusPlano.ATIVO && p.getProtocoloId() != null)
+                .map(p -> nomesModelo.get(p.getProtocoloId()))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .ifPresent(principal::setModeloPlano);
+
+        boolean emTratamento = CategoriaPlano.TRATAMENTO.name().equals(principal.getCategoria());
+        PlanoCuidadoEntity tratamento = emTratamento
+                ? planos.stream().filter(p -> p.getId().equals(principal.getId())).findFirst().orElse(null)
+                : tratamentoSuspenso(planos);
+        if (!emTratamento && tratamento != null) {
+            preencherSuspenso(principal, tratamento);
+        }
+
+        List<PrescricaoEntity> prescricoes = tratamento == null ? List.of() : prescricoesDoPlano(tratamento);
+        principal.setTratamentos(tratamentosDe(prescricoes));
+        principal.setTratamento(principal.getTratamentos().stream().findFirst().orElse(null));
+        principal.setClinica(contatoClinicaService.doAnimal(animalId, prescricoes));
+        return principal;
+    }
+
+    private void preencherSuspenso(PlanoResponse resposta, PlanoCuidadoEntity suspenso) {
+        List<String> medicamentos = suspenso.getItens().stream()
+                .map(ItemPlanoCuidadoEntity::getNome).filter(Objects::nonNull).distinct().toList();
+        resposta.setTratamentoSuspenso(new PlanoResponse.TratamentoSuspenso(
+                medicamentos.stream().findFirst().orElse(null),
+                medicamentos,
+                suspenso.getAuditoria().getUpdatedAt(),
+                suspenso.getItens().stream()
+                        .filter(i -> i.getStatus() != StatusItem.CANCELADO)
+                        .sorted(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo))
+                        .map(ItemPlanoCuidadoDto::from)
+                        .toList()));
+    }
+
+    private List<PrescricaoEntity> prescricoesDoPlano(PlanoCuidadoEntity plano) {
+        List<Long> ids = plano.getItens().stream()
+                .map(ItemPlanoCuidadoEntity::getPrescricaoId).filter(Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return prescricaoRepository.findComPrescritorPorIds(ids).stream()
+                .sorted(Comparator.comparing(PrescricaoEntity::getDataInicio).thenComparing(PrescricaoEntity::getId))
+                .toList();
+    }
+
+    private List<PlanoResponse.Tratamento> tratamentosDe(List<PrescricaoEntity> prescricoes) {
+        return prescricoes.stream()
+                .map(p -> new PlanoResponse.Tratamento(
+                        p.getId(), p.getMedicamento(), p.getFaixaDose().getUnidade(),
+                        p.getFaixaDose().getDoseMin(), p.getFaixaDose().getDoseMax(), p.getFrequenciaDia(),
+                        p.getDataInicio(), p.getDataInicio().plusDays(Math.max(0, p.getDuracaoDias() - 1L))))
+                .toList();
+    }
+
+    private PlanoCuidadoEntity tratamentoSuspenso(List<PlanoCuidadoEntity> planos) {
+        return planos.stream()
+                .filter(p -> p.getCategoria() == CategoriaPlano.TRATAMENTO && p.getStatus() == StatusPlano.SUSPENSO)
+                .max(Comparator.comparing((PlanoCuidadoEntity p) -> p.getAuditoria().getUpdatedAt(),
+                        Comparator.nullsFirst(Comparator.naturalOrder())))
+                .orElse(null);
+    }
+
+    private Map<Long, String> intervalosDoCatalogo(List<ProtocoloCatalogoDto> catalogo) {
+        return catalogo.stream()
+                .flatMap(p -> p.regras().stream())
+                .collect(Collectors.toMap(RegraCatalogoDto::id, MotorPlanoService::intervaloLegivel, (a, b) -> a));
+    }
+
+    private static String intervaloLegivel(RegraCatalogoDto regra) {
+        if (regra.intervalo() == null || regra.unidadeIntervalo() == null
+                || (regra.repeticoes() != null && regra.repeticoes() <= 1)) {
+            return "dose única";
+        }
+        int n = regra.intervalo();
+        return switch (regra.unidadeIntervalo()) {
+            case MESES -> n == 12 ? "reforço anual" : n == 1 ? "todo mês" : "a cada " + n + " meses";
+            case SEMANAS -> n == 1 ? "toda semana" : "a cada " + n + " semanas";
+            case DIAS -> n == 1 ? "todo dia" : "a cada " + n + " dias";
+        };
     }
 
     @Transactional(readOnly = true)
-    public Page<ItemPlanoCuidadoDto> listarEventos(Long animalId, Pageable pageable) {
+    public Page<ItemPlanoCuidadoDto> listarEventos(Long animalId, List<TipoCuidado> tipos, boolean abertos, Pageable pageable) {
+        boolean semFiltroTipo = tipos == null || tipos.isEmpty();
+        // Lista vazia em IN nao e portavel: com semFiltroTipo o valor e ignorado, mas precisa ter um elemento.
+        List<TipoCuidado> filtroTipos = semFiltroTipo ? List.of(TipoCuidado.VACINACAO) : tipos;
         return itemRepository
-                .findEventosPorAnimal(animalId, pageable)
+                .findEventosPorAnimal(animalId, semFiltroTipo, filtroTipos, abertos,
+                        StatusPlano.ATIVO, List.of(StatusItem.PENDENTE, StatusItem.ATRASADO), pageable)
                 .map(ItemPlanoCuidadoDto::from);
+    }
+
+    // Os cuidados que um animal nascido em `nascimento` receberia hoje do modelo; o plano auxiliar nunca e gravado.
+    public List<ItemPlanoCuidadoDto> prever(ProtocoloCatalogoDto protocolo, LocalDate nascimento) {
+        PlanoCuidadoEntity rascunho = new PlanoCuidadoEntity();
+        instanciarEventos(rascunho, protocolo, new Ancoragem(LocalDate.now(), nascimento, null));
+        return rascunho.getItens().stream().map(ItemPlanoCuidadoDto::from).toList();
     }
 
     // Leitura 100% local — sem chamada ao catalogo do .NET.
@@ -280,7 +451,8 @@ public class MotorPlanoService {
     // Ordenado aqui, pela data ja resolvida — offset em unidades diferentes nao e comparavel antes disso.
     private void instanciarEventos(PlanoCuidadoEntity plano, ProtocoloCatalogoDto protocolo,
                                     Ancoragem ancoragem) {
-        LocalDate limite = ancoragem.instanciacao().plusMonths(HORIZONTE_MESES);
+        LocalDate hoje = ancoragem.instanciacao();
+        LocalDate limite = hoje.plusMonths(HORIZONTE_MESES);
         List<ItemPlanoCuidadoEntity> itens = new ArrayList<>();
 
         for (RegraCatalogoDto ep : protocolo.regras()) {
@@ -291,16 +463,18 @@ public class MotorPlanoService {
             }
 
             LocalDate primeira = somar(base, ep.offset(), ep.unidadeOffset());
-            int repeticoes = ep.repeticoes() != null ? Math.max(ep.repeticoes(), 1) : 1;
+            boolean serie = ep.intervalo() != null && ep.intervalo() > 0 && ep.unidadeIntervalo() != null
+                    && ep.repeticoes() != null && ep.repeticoes() > 1;
 
-            for (int i = 0; i < repeticoes; i++) {
-                LocalDate alvo = primeira;
-                if (i > 0) {
-                    if (ep.intervalo() == null || ep.unidadeIntervalo() == null) {
-                        break; // sem recorrencia declarada: ocorrencia unica
-                    }
-                    alvo = somar(primeira, ep.intervalo() * i, ep.unidadeIntervalo());
+            if (!serie) {
+                if (!primeira.isBefore(hoje) && !primeira.isAfter(limite)) {
+                    itens.add(novoItem(plano, ep, primeira));
                 }
+                continue;
+            }
+
+            for (int i = primeiraOcorrenciaDeHoje(primeira, ep.intervalo(), ep.unidadeIntervalo(), hoje); ; i++) {
+                LocalDate alvo = somar(primeira, ep.intervalo() * i, ep.unidadeIntervalo());
                 if (alvo.isAfter(limite)) {
                     break;
                 }
@@ -310,6 +484,23 @@ public class MotorPlanoService {
 
         itens.sort(Comparator.comparing(ItemPlanoCuidadoEntity::getDataAlvo));
         plano.getItens().addAll(itens);
+    }
+
+    // Indice da primeira ocorrencia >= hoje, calculado sem iterar desde a ancora.
+    private static int primeiraOcorrenciaDeHoje(LocalDate primeira, int intervalo, UnidadeTempo unidade, LocalDate hoje) {
+        if (!primeira.isBefore(hoje)) {
+            return 0;
+        }
+        long decorridos = switch (unidade) {
+            case DIAS -> ChronoUnit.DAYS.between(primeira, hoje);
+            case SEMANAS -> ChronoUnit.WEEKS.between(primeira, hoje);
+            case MESES -> ChronoUnit.MONTHS.between(primeira, hoje);
+        };
+        int i = (int) (decorridos / intervalo);
+        while (somar(primeira, intervalo * i, unidade).isBefore(hoje)) {
+            i++;
+        }
+        return i;
     }
 
     private ItemPlanoCuidadoEntity novoItem(PlanoCuidadoEntity plano, RegraCatalogoDto ep,

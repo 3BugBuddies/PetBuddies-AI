@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,5 +24,14 @@ public interface CheckinRepository extends JpaRepository<CheckinEntity, Long> {
             @Param("dataReferencia") LocalDate dataReferencia,
             @Param("itemId") Long itemId);
 
+    // O painel mostra animal e responsável de cada relato: sem o fetch, a lista vira N+1 (open-in-view está desligado).
+    @Query("SELECT c FROM CheckinEntity c JOIN FETCH c.animal a JOIN FETCH a.responsavel "
+            + "WHERE c.registradoEm >= :desde ORDER BY c.registradoEm DESC")
+    List<CheckinEntity> findDesdeComAnimal(@Param("desde") LocalDateTime desde);
+
     boolean existsByAnimalId(Long animalId);
+
+    boolean existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(Long animalId, LocalDate dataReferencia);
+
+    boolean existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNotNull(Long animalId, LocalDate dataReferencia);
 }

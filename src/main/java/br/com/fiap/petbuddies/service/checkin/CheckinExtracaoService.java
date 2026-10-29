@@ -7,6 +7,8 @@ import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoFonteValor;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
+import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
+import br.com.fiap.petbuddies.domain.repository.PrescricaoRepository;
 import br.com.fiap.petbuddies.domain.repository.RegraPrescricaoRepository;
 import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoRequest;
 import br.com.fiap.petbuddies.dto.checkin.CheckinExtracaoResponse;
@@ -16,6 +18,7 @@ import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import br.com.fiap.petbuddies.infrastructure.ia.ExtratorIA;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -41,18 +44,24 @@ public class CheckinExtracaoService {
     private final RegraPrescricaoRepository regraPrescricaoRepository;
     private final CondicaoClinicaRepository condicaoClinicaRepository;
     private final PrescricaoAtivaResolver prescricaoAtivaResolver;
+    private final PrescricaoRepository prescricaoRepository;
+    private final ConsultaRepository consultaRepository;
 
     public CheckinExtracaoService(
             ExtratorIA extratorIA,
             AnimalRepository animalRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository,
-            PrescricaoAtivaResolver prescricaoAtivaResolver) {
+            PrescricaoAtivaResolver prescricaoAtivaResolver,
+            PrescricaoRepository prescricaoRepository,
+            ConsultaRepository consultaRepository) {
         this.extratorIA = extratorIA;
         this.animalRepository = animalRepository;
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
         this.prescricaoAtivaResolver = prescricaoAtivaResolver;
+        this.prescricaoRepository = prescricaoRepository;
+        this.consultaRepository = consultaRepository;
     }
 
     public CheckinExtracaoResponse extrair(CheckinExtracaoRequest request) {
@@ -67,7 +76,9 @@ public class CheckinExtracaoService {
             return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), List.of(), List.of(), false);
         }
 
-        String prompt = montarPrompt(vocabulario);
+        List<String> medicamentos = prescricaoAtivaResolver.listar(animal.getId(), referencia).stream()
+                .map(PrescricaoEntity::getMedicamento).distinct().toList();
+        String prompt = montarPrompt(vocabulario, medicamentos);
         log.debug("[CHECKIN-IA] animalId={} vocabulario={} prompt=\n{}", animal.getId(), vocabulario.size(), prompt);
 
         Optional<ExtracaoModelo> retorno = extratorIA.extrair(
@@ -80,7 +91,7 @@ public class CheckinExtracaoService {
         return CheckinExtracaoResponse.of(animal.getId(), referencia, request.getNarrativa(), condicoes, redFlags, degradado);
     }
 
-    // Uniao de condicoes por regra ativa com toda condicao critica ativa; restrita a RELATO — ANIMAL/HISTORICO nao e algo que o tutor narra.
+    // Uniao de condicoes por regra ativa com as condicoes criticas ativas da clinica; restrita a RELATO — ANIMAL/HISTORICO nao e algo que o tutor narra.
     private List<CondicaoClinicaEntity> montarVocabulario(Long animalId, LocalDate referencia) {
         List<PrescricaoEntity> ativas = prescricaoAtivaResolver.listar(animalId, referencia);
 
@@ -94,7 +105,12 @@ public class CheckinExtracaoService {
         if (!idsPorRegra.isEmpty()) {
             condicaoClinicaRepository.findAllById(idsPorRegra).forEach(c -> vocabulario.put(c.getId(), c));
         }
-        condicaoClinicaRepository.findByCriticaTrueAndAtivoTrue().forEach(c -> vocabulario.putIfAbsent(c.getId(), c));
+        Set<Long> clinicaIds = clinicasDoAnimal(animalId, ativas);
+        // Pet sem consulta nem prescrição não tem clínica: sem este fallback, nenhum sinal de alarme escalaria.
+        List<CondicaoClinicaEntity> criticas = clinicaIds.isEmpty()
+                ? condicaoClinicaRepository.findByCriticaTrueAndAtivoTrue()
+                : condicaoClinicaRepository.findByClinicaIdInAndCriticaTrueAndAtivoTrue(clinicaIds);
+        criticas.forEach(c -> vocabulario.putIfAbsent(c.getId(), c));
 
         return vocabulario.values().stream()
                 .filter(CondicaoClinicaEntity::isAtivo)
@@ -102,12 +118,28 @@ public class CheckinExtracaoService {
                 .toList();
     }
 
-    private String montarPrompt(List<CondicaoClinicaEntity> vocabulario) {
+    // Clinica da prescricao ativa; sem prescricao, a da consulta mais recente (o animal nao guarda clinica).
+    private Set<Long> clinicasDoAnimal(Long animalId, List<PrescricaoEntity> ativas) {
+        if (!ativas.isEmpty()) {
+            return new LinkedHashSet<>(prescricaoRepository.findClinicaIdsPorPrescricoes(
+                    ativas.stream().map(PrescricaoEntity::getId).toList()));
+        }
+        return new LinkedHashSet<>(consultaRepository.findClinicaIdsPorAnimal(animalId, PageRequest.of(0, 1)));
+    }
+
+    private String montarPrompt(List<CondicaoClinicaEntity> vocabulario, List<String> medicamentos) {
         String itens = vocabulario.stream()
                 .map(c -> "- codigo=\"%s\" | rotulo=\"%s\" | tipo=%s%s".formatted(
                         c.getCodigo(), c.getRotulo(), c.getTipoDado(),
                         c.getUnidade() == null ? "" : " | unidade=" + c.getUnidade()))
                 .collect(Collectors.joining("\n"));
+
+        String contextoMedicamentos = medicamentos.size() < 2 ? "" : """
+
+                Contexto (não é para extrair): medicamentos em uso hoje: %s. O relato cobre todos eles de
+                uma vez. As condições NÃO são atribuídas a nenhum medicamento: não devolva nome de
+                medicamento em nenhum campo e extraia as condições exatamente como antes.
+                """.formatted(String.join(", ", medicamentos));
 
         return """
                 Você lê o relato de um tutor sobre o tratamento do animal dele e extrai SOMENTE as
@@ -138,13 +170,15 @@ public class CheckinExtracaoService {
                 Mencionar e negar é diferente de não mencionar: "as fezes estavam normais" gera um
                 item com valorBooleano=false, nunca a ausência do item.
 
-                Se a narrativa citar algo clinicamente relevante que NÃO está no vocabulário acima
+                Se a narrativa citar um sintoma ANORMAL ou preocupante que NÃO está no vocabulário acima
                 (ex.: mancando, gemendo, sangramento em outro lugar), copie a frase para "redFlags"
                 como texto livre — nunca invente um código do vocabulário para isso.
+                Sinal de bem-estar ou de melhora NUNCA é redFlag: "comeu bem", "está animado",
+                "brincou", "dormiu bem", "tomou o remédio". Relato sem sintoma anormal = "redFlags":[].
 
                 Responda APENAS com JSON válido, sem explicação:
                 {"condicoes":[{"codigo":"...","valorBooleano":null,"valorNumerico":null,"trecho":"...","literal":true,"confianca":0.0}],"redFlags":[]}
-                """.formatted(itens);
+                %s""".formatted(itens, contextoMedicamentos);
     }
 
     // Descarta codigo fora do vocabulario, confianca fora de [0,1], e valor incoerente com TP_DADO — nunca deixa o modelo inventar campo.

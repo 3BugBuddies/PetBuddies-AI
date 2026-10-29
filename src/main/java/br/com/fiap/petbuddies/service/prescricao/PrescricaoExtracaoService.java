@@ -1,19 +1,28 @@
 package br.com.fiap.petbuddies.service.prescricao;
 
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
-import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
+import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.domain.enums.prescricao.OperadorRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoAcaoRegra;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
+import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CondicaoClinicaRepository;
 import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
+import br.com.fiap.petbuddies.domain.repository.UsuarioRepository;
+import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
+import br.com.fiap.petbuddies.dto.prescricao.MedicamentoExtraidoIA;
 import br.com.fiap.petbuddies.dto.prescricao.PrescricaoExtracaoIA;
 import br.com.fiap.petbuddies.dto.prescricao.NarrativaPrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.PrescricaoRequest;
 import br.com.fiap.petbuddies.dto.prescricao.RascunhoPrescricaoResponse;
 import br.com.fiap.petbuddies.dto.prescricao.RegraCondicionalExtraidaIA;
-import br.com.fiap.petbuddies.dto.prescricao.RegraPrescricaoRequest;
+import br.com.fiap.petbuddies.dto.prescricao.RegraPropostaResponse;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroAtendimentoNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.atendimento.RegistroDeOutroAnimalException;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
+import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
+import br.com.fiap.petbuddies.exception.identidade.UsuarioNaoVeterinarioException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import br.com.fiap.petbuddies.infrastructure.ia.ExtratorIA;
@@ -21,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -46,24 +56,37 @@ public class PrescricaoExtracaoService {
     private final ExtratorIA extratorIA;
     private final RegistroAtendimentoRepository registroAtendimentoRepository;
     private final CondicaoClinicaRepository condicaoClinicaRepository;
+    private final AnimalRepository animalRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final VeterinarioRepository veterinarioRepository;
 
     public PrescricaoExtracaoService(
             ExtratorIA extratorIA,
             RegistroAtendimentoRepository registroAtendimentoRepository,
-            CondicaoClinicaRepository condicaoClinicaRepository) {
+            CondicaoClinicaRepository condicaoClinicaRepository,
+            AnimalRepository animalRepository,
+            UsuarioRepository usuarioRepository,
+            VeterinarioRepository veterinarioRepository) {
         this.extratorIA = extratorIA;
         this.registroAtendimentoRepository = registroAtendimentoRepository;
         this.condicaoClinicaRepository = condicaoClinicaRepository;
+        this.animalRepository = animalRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.veterinarioRepository = veterinarioRepository;
     }
 
-    public RascunhoPrescricaoResponse extrair(NarrativaPrescricaoRequest request) {
-        RegistroAtendimentoEntity registro = registroAtendimentoRepository
-                .buscarComAnimalEVeterinario(request.getRegistroAtendimentoId())
-                .orElseThrow(() -> new RegistroAtendimentoNaoEncontradoException(request.getRegistroAtendimentoId()));
-
-        Long animalId = registro.getAnimal().getId();
-        Long veterinarioId = registro.getConsulta().getVeterinario().getId();
-        Long clinicaId = registro.getConsulta().getVeterinario().getClinica().getId();
+    public RascunhoPrescricaoResponse extrair(NarrativaPrescricaoRequest request, Long usuarioId) {
+        Long animalId = request.getAnimalId();
+        if (!animalRepository.existsById(animalId)) {
+            throw new AnimalNaoEncontradoException(animalId);
+        }
+        if (request.getRegistroAtendimentoId() != null) {
+            validarRegistro(request.getRegistroAtendimentoId(), animalId);
+        }
+        // Clínica e vet vêm do usuário logado, não do registro: o rascunho pode nascer antes de existir atendimento gravado.
+        VeterinarioEntity veterinario = veterinarioDoUsuario(usuarioId);
+        Long veterinarioId = veterinario.getId();
+        Long clinicaId = veterinario.getClinica().getId();
 
         List<CondicaoClinicaEntity> catalogo = condicaoClinicaRepository.findByClinicaId(clinicaId).stream()
                 .filter(CondicaoClinicaEntity::isAtivo)
@@ -72,29 +95,59 @@ public class PrescricaoExtracaoService {
         PrescricaoExtracaoIA extraido = chamarModelo(request.getNarrativa(), catalogo);
 
         if (extraido == null) {
-            PrescricaoRequest vazia = prescricaoBase(animalId, veterinarioId, request.getRegistroAtendimentoId());
             return RascunhoPrescricaoResponse.degradado(
                     request.getNarrativa(),
                     "Modelo de IA indisponível ou devolveu uma resposta inválida. "
-                            + "Preencha a prescrição manualmente — nenhum campo foi extraído.",
-                    vazia);
+                            + "Preencha a prescrição manualmente — nenhum campo foi extraído.");
         }
 
-        PrescricaoRequest prescricao = prescricaoBase(animalId, veterinarioId, request.getRegistroAtendimentoId());
-        Map<String, Double> confiancas = new LinkedHashMap<>();
-
-        aplicarMedicamento(extraido, prescricao, confiancas);
-        aplicarDoses(extraido, prescricao, confiancas);
-        aplicarUnidade(extraido, prescricao, confiancas);
-        aplicarFrequencia(extraido, prescricao, confiancas);
-        aplicarDuracao(extraido, prescricao, confiancas);
-        aplicarDataInicio(extraido, prescricao, confiancas);
-        aplicarOrientacao(extraido, prescricao, confiancas);
-
         List<String> descartadas = new ArrayList<>();
-        List<RegraPrescricaoRequest> regras = construirRegras(extraido.regras(), catalogo, descartadas);
+        List<RascunhoPrescricaoResponse.RascunhoItem> itens = new ArrayList<>();
+        for (MedicamentoExtraidoIA medicamento : Objects.requireNonNullElse(extraido.medicamentos(), List.<MedicamentoExtraidoIA>of())) {
+            if (medicamento == null) {
+                continue;
+            }
+            PrescricaoRequest prescricao = prescricaoBase(animalId, veterinarioId, request.getRegistroAtendimentoId());
+            Map<String, Double> confiancas = new LinkedHashMap<>();
 
-        return RascunhoPrescricaoResponse.de(request.getNarrativa(), prescricao, confiancas, regras, descartadas);
+            aplicarMedicamento(medicamento, prescricao, confiancas);
+            aplicarDoses(medicamento, prescricao, confiancas);
+            aplicarUnidade(medicamento, prescricao, confiancas);
+            aplicarFrequencia(medicamento, prescricao, confiancas);
+            aplicarDuracao(medicamento, prescricao, confiancas);
+            aplicarDataInicio(medicamento, prescricao, confiancas);
+            aplicarOrientacao(medicamento, prescricao, confiancas);
+
+            List<RegraPropostaResponse> regras = construirRegras(medicamento.regras(), catalogo, descartadas);
+            itens.add(new RascunhoPrescricaoResponse.RascunhoItem(prescricao, confiancas, regras));
+        }
+        if (itens.isEmpty()) {
+            return RascunhoPrescricaoResponse.degradado(
+                    request.getNarrativa(),
+                    "O modelo não identificou nenhum medicamento na narrativa. Preencha a prescrição manualmente.");
+        }
+
+        return RascunhoPrescricaoResponse.de(request.getNarrativa(), itens, descartadas);
+    }
+
+    private void validarRegistro(Long registroId, Long animalId) {
+        if (!registroAtendimentoRepository.existsById(registroId)) {
+            throw new RegistroAtendimentoNaoEncontradoException(registroId);
+        }
+        if (!registroAtendimentoRepository.existsByIdAndAnimalId(registroId, animalId)) {
+            throw new RegistroDeOutroAnimalException(registroId, animalId);
+        }
+    }
+
+    private VeterinarioEntity veterinarioDoUsuario(Long usuarioId) {
+        Long veterinarioId = usuarioRepository.findById(usuarioId)
+                .orElseThrow(CredenciaisInvalidasException::new)
+                .getVeterinarioId();
+        if (veterinarioId == null) {
+            throw new UsuarioNaoVeterinarioException();
+        }
+        return veterinarioRepository.findComClinicaById(veterinarioId)
+                .orElseThrow(() -> new VeterinarioNaoEncontradoException(veterinarioId));
     }
 
     private PrescricaoRequest prescricaoBase(Long animalId, Long veterinarioId, Long registroAtendimentoId) {
@@ -113,7 +166,7 @@ public class PrescricaoExtracaoService {
 
     private String montarPrompt(List<CondicaoClinicaEntity> catalogo) {
         String condicoesTexto = catalogo.isEmpty()
-                ? "Nenhuma condição está cadastrada nesta clínica. NÃO proponha nenhuma regra condicional — devolva a lista \"regras\" vazia."
+                ? "Nenhuma condição está cadastrada nesta clínica. Toda regra condicional deve usar \"condicao\" null e descrever a condição em \"condicaoNovaRotulo\"."
                 : catalogo.stream()
                         .map(c -> "- código \"%s\" (%s): %s%s".formatted(
                                 c.getCodigo(),
@@ -141,19 +194,41 @@ public class PrescricaoExtracaoService {
                 3. Se o veterinário citou uma dose única (ex.: "0,5 ml"), preencha doseMin e doseMax com
                    o mesmo valor. Se citou uma faixa (ex.: "1 a 2 ml"), doseMin é o menor e doseMax o
                    maior.
-                4. Cada regra condicional em "regras" deve referenciar, no campo "condicao", EXATAMENTE
-                   um dos códigos listados abaixo — copie o código literalmente. O vocabulário é fechado,
-                   definido pela clínica: se a narrativa mencionar uma condição que não está na lista
-                   (ex.: um sintoma sem código correspondente), NÃO gere regra nenhuma para ela.
-                5. Se a condição referenciada é do tipo BOOLEANO, os campos "operador" e "limite" da
+                4. Cada regra condicional em "regras" referencia, no campo "condicao", EXATAMENTE um dos
+                   códigos listados abaixo — copie o código literalmente. Se a narrativa mencionar uma
+                   condição que não está na lista (ex.: um sintoma sem código correspondente), gere a regra
+                   com "condicao" null e descreva a condição nova em "condicaoNovaRotulo" (o estado relatado do
+                   jeito que o veterinário falou, curto e com inicial maiúscula, como num prontuário:
+                   "Comeu pouco", "Vômito", "Fezes moles", "Tosse" — nunca a categoria genérica como
+                   "Apetite" ou "Fezes", nem o verbo no infinitivo ou condicional "se vomitar") e "condicaoNovaTipoDado" (BOOLEANO ou NUMERICO). Uma condição da lista só vale
+                   quando o rótulo dela descreve o estado que o veterinário relatou; se o rótulo é uma
+                   categoria genérica ("Apetite") e a narrativa diz um estado específico ("comer pouco"),
+                   use "condicao" null e "condicaoNovaRotulo" "Comeu pouco". Nunca preencha
+                   "condicao" e "condicaoNovaRotulo" na mesma regra.
+                5. Se a condição da regra é do tipo BOOLEANO, os campos "operador" e "limite" da
                    regra devem vir null — não há o que comparar. Se é NUMERICO, os dois são obrigatórios.
                 6. "operador" só pode ser um destes literais, exatamente: MAIOR_QUE, MAIOR_OU_IGUAL,
                    MENOR_QUE, MENOR_OU_IGUAL, IGUAL.
                 7. "acaoDose" só pode ser um destes literais, exatamente: DOSE_MIN, DOSE_MAX,
-                   DOSE_PADRAO, ACIONAR_CLINICA, SUSPENDER.
+                   DOSE_PADRAO, ACIONAR_CLINICA, SUSPENDER. Se a frase manda acionar, procurar ou ligar
+                   para a clínica, a ação é ACIONAR_CLINICA, mesmo que também diga "suspender".
+                   SUSPENDER é só "não dar a dose de hoje", sem acionar ninguém.
                 8. "dataInicio" é uma data no formato ISO (yyyy-MM-dd). Hoje é %s — resolva expressões
                    relativas ("a partir de amanhã", "começando segunda") contra essa data, com
                    literalDataInicio=false. Se a narrativa não mencionar quando começar, devolva null.
+
+                9. "medicamentos" tem uma entrada por medicamento citado, na ordem em que aparece na
+                   narrativa. Nunca misture doses, frequência ou duração de medicamentos diferentes. Uma
+                   condição ("se comer pouco", "se vomitar") vale só para o medicamento a que a frase se
+                   refere e entra nas "regras" dele; se a frase não deixa claro a qual medicamento se
+                   refere, repita-a nas regras do medicamento imediatamente anterior apenas. Se a narrativa
+                   cita um só medicamento, "medicamentos" tem um único item. Os campos "regras" de cada
+                   item seguem as regras 4 a 7.
+
+                10. "unidade" é exatamente a que o veterinário falou: mL, gotas, comprimidos, mg, UI.
+                   Nunca troque por mg. Preencha "trechoUnidade" com a
+                   citação da narrativa e "literalUnidade" true. Se nenhuma unidade foi dita, unidade,
+                   trecho e literal voltam null.
 
                 Condições clínicas cadastradas nesta clínica — o vocabulário fechado que você pode usar:
                 %s
@@ -162,16 +237,17 @@ public class PrescricaoExtracaoService {
 
     // Confianca nunca vem de auto-avaliacao do modelo — e derivada de "trecho" presente + "literal", os dois fatos verificaveis que o modelo reporta.
 
-    private void aplicarMedicamento(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarMedicamento(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.medicamento();
         if (valor == null || valor.isBlank() || valor.length() > 150 || semTrecho(ia.trechoMedicamento())) {
             return;
         }
-        prescricao.setMedicamento(valor.trim());
+        String nome = valor.trim();
+        prescricao.setMedicamento(nome.substring(0, 1).toUpperCase() + nome.substring(1));
         confiancas.put("medicamento", confiancaDe(ia.literalMedicamento()));
     }
 
-    private void aplicarDoses(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDoses(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         BigDecimal min = semTrecho(ia.trechoDoseMin()) ? null : doseValida(ia.doseMin());
         BigDecimal max = semTrecho(ia.trechoDoseMax()) ? null : doseValida(ia.doseMax());
         // CK_PRESCRICAO_FAIXA: se as duas vieram e a faixa é impossível, o par
@@ -205,7 +281,7 @@ public class PrescricaoExtracaoService {
         return valor != null && valor.signum() < 0 ? null : decimalQueCabe(valor, 5);
     }
 
-    private void aplicarUnidade(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarUnidade(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.unidade();
         if (valor == null || valor.isBlank() || valor.length() > 20 || semTrecho(ia.trechoUnidade())) {
             return;
@@ -214,7 +290,7 @@ public class PrescricaoExtracaoService {
         confiancas.put("unidade", confiancaDe(ia.literalUnidade()));
     }
 
-    private void aplicarFrequencia(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarFrequencia(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         Integer valor = ia.frequenciaDia();
         if (valor == null || valor <= 0 || valor > 99 || semTrecho(ia.trechoFrequenciaDia())) {
             return;
@@ -223,7 +299,7 @@ public class PrescricaoExtracaoService {
         confiancas.put("frequenciaDia", confiancaDe(ia.literalFrequenciaDia()));
     }
 
-    private void aplicarDuracao(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDuracao(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         Integer valor = ia.duracaoDias();
         if (valor == null || valor <= 0 || valor > 9999 || semTrecho(ia.trechoDuracaoDias())) {
             return;
@@ -232,7 +308,7 @@ public class PrescricaoExtracaoService {
         confiancas.put("duracaoDias", confiancaDe(ia.literalDuracaoDias()));
     }
 
-    private void aplicarDataInicio(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarDataInicio(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.dataInicio();
         if (valor == null || valor.isBlank() || semTrecho(ia.trechoDataInicio())) {
             return;
@@ -245,7 +321,7 @@ public class PrescricaoExtracaoService {
         }
     }
 
-    private void aplicarOrientacao(PrescricaoExtracaoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
+    private void aplicarOrientacao(MedicamentoExtraidoIA ia, PrescricaoRequest prescricao, Map<String, Double> confiancas) {
         String valor = ia.orientacao();
         if (valor == null || valor.isBlank() || semTrecho(ia.trechoOrientacao())) {
             return;
@@ -264,12 +340,12 @@ public class PrescricaoExtracaoService {
 
     // --- regras condicionais propostas: cada uma amarrada a uma condição que existe no catálogo ---
 
-    private List<RegraPrescricaoRequest> construirRegras(
+    private List<RegraPropostaResponse> construirRegras(
             List<RegraCondicionalExtraidaIA> extraidas, List<CondicaoClinicaEntity> catalogo, List<String> descartadas) {
-        List<RegraPrescricaoRequest> resultado = new ArrayList<>();
+        List<RegraPropostaResponse> resultado = new ArrayList<>();
         int ordem = 1;
         for (RegraCondicionalExtraidaIA r : Objects.requireNonNullElse(extraidas, List.<RegraCondicionalExtraidaIA>of())) {
-            RegraPrescricaoRequest regra = validarRegra(r, catalogo, ordem, descartadas);
+            RegraPropostaResponse regra = validarRegra(r, catalogo, ordem, descartadas);
             if (regra != null) {
                 resultado.add(regra);
                 ordem++;
@@ -278,39 +354,56 @@ public class PrescricaoExtracaoService {
         return resultado;
     }
 
-    private RegraPrescricaoRequest validarRegra(
+    private RegraPropostaResponse validarRegra(
             RegraCondicionalExtraidaIA r, List<CondicaoClinicaEntity> catalogo, int ordem, List<String> descartadas) {
-        if (r.condicao() == null || r.condicao().isBlank()) {
+        boolean temCodigo = r.condicao() != null && !r.condicao().isBlank();
+        boolean temNova = r.condicaoNovaRotulo() != null && !r.condicaoNovaRotulo().isBlank();
+        if (!temCodigo && !temNova) {
             descartadas.add("O modelo propôs uma regra sem condição associada" + trechoEntreParenteses(r) + "; descartada.");
             return null;
         }
-        CondicaoClinicaEntity condicao = catalogo.stream()
-                .filter(c -> c.getCodigo().equalsIgnoreCase(r.condicao().trim()))
-                .findFirst()
-                .orElse(null);
-        if (condicao == null) {
-            // Condicao que o modelo apontou nao existe no catalogo desta clinica — regra descartada, nunca gravada.
+
+        CondicaoClinicaEntity condicao = temCodigo ? buscarNoCatalogo(catalogo, r.condicao()) : null;
+        if (condicao == null && temNova) {
+            // O modelo pode chamar de "nova" uma condição que já existe com outro código; o rótulo normalizado desempata.
+            condicao = buscarPorRotulo(catalogo, r.condicaoNovaRotulo());
+        }
+
+        if (condicao == null && !temNova) {
             descartadas.add("O modelo reconheceu \"" + r.condicao()
                     + "\" na narrativa" + trechoEntreParenteses(r)
-                    + ", mas essa condição não está cadastrada no catálogo desta clínica; regra descartada.");
+                    + ", mas esse código não está no catálogo desta clínica e nenhuma condição nova foi descrita; regra descartada.");
             return null;
         }
+
+        TipoDado tipoDado;
+        if (condicao != null) {
+            tipoDado = condicao.getTipoDado();
+        } else {
+            String rotulo = r.condicaoNovaRotulo().trim();
+            tipoDado = parseEnum(TipoDado.class, r.condicaoNovaTipoDado());
+            if (tipoDado == null || rotulo.length() > 255) {
+                descartadas.add("O modelo reconheceu \"" + rotulo + "\" na narrativa" + trechoEntreParenteses(r)
+                        + ", mas não informou um tipo de dado válido (BOOLEANO ou NUMERICO) para criá-la; regra descartada.");
+                return null;
+            }
+        }
+        String rotuloCondicao = condicao != null ? condicao.getRotulo() : r.condicaoNovaRotulo().trim();
 
         TipoAcaoRegra acao = parseEnum(TipoAcaoRegra.class, r.acaoDose());
         if (acao == null) {
             descartadas.add("Ação de dose ausente ou inválida (\"" + r.acaoDose()
-                    + "\") para a condição \"" + condicao.getCodigo() + "\"; regra descartada.");
+                    + "\") para a condição \"" + rotuloCondicao + "\"; regra descartada.");
             return null;
         }
 
-        boolean numerico = condicao.getTipoDado() == TipoDado.NUMERICO;
         OperadorRegra operador = null;
         BigDecimal limite = null;
-        if (numerico) {
+        if (tipoDado == TipoDado.NUMERICO) {
             operador = parseEnum(OperadorRegra.class, r.operador());
             limite = limiteValido(r.limite());
             if (operador == null || limite == null) {
-                descartadas.add("Condição \"" + condicao.getCodigo()
+                descartadas.add("Condição \"" + rotuloCondicao
                         + "\" é numérica e exige operador e limite válidos; a narrativa não trouxe os dois, regra descartada.");
                 return null;
             }
@@ -318,13 +411,32 @@ public class PrescricaoExtracaoService {
         // CK_REGRA_COERENCIA: condição BOOLEANO não aceita operador nem limite —
         // operador e limite ficam null, e a ação continua válida sozinha.
 
-        RegraPrescricaoRequest regra = new RegraPrescricaoRequest();
-        regra.setCondicaoClinicaId(condicao.getId());
-        regra.setOperador(operador);
-        regra.setLimite(limite);
-        regra.setAcaoDose(acao);
-        regra.setOrdem(ordem);
-        return regra;
+        RegraPropostaResponse.CondicaoNova nova = condicao == null
+                ? new RegraPropostaResponse.CondicaoNova(rotuloCondicao, tipoDado)
+                : null;
+        return new RegraPropostaResponse(
+                condicao == null ? null : condicao.getId(), rotuloCondicao, nova, operador, limite, acao, ordem);
+    }
+
+    private CondicaoClinicaEntity buscarNoCatalogo(List<CondicaoClinicaEntity> catalogo, String codigo) {
+        return catalogo.stream()
+                .filter(c -> c.getCodigo().equalsIgnoreCase(codigo.trim()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private CondicaoClinicaEntity buscarPorRotulo(List<CondicaoClinicaEntity> catalogo, String rotulo) {
+        String alvo = semAcentoNemCaixa(rotulo);
+        return catalogo.stream()
+                .filter(c -> semAcentoNemCaixa(c.getRotulo()).equals(alvo))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String semAcentoNemCaixa(String texto) {
+        return Normalizer.normalize(texto.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase();
     }
 
     private String trechoEntreParenteses(RegraCondicionalExtraidaIA r) {

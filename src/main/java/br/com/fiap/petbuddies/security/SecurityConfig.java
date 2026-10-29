@@ -57,6 +57,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/animal/**", "/api/responsavel/**").hasAnyRole("VET", "TUTOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/animal/**", "/api/consulta/*").hasAnyRole("VET", "TUTOR")
 
+                        // A leitura também é só do vet: a lista depende da clínica do usuário.
+                        .requestMatchers("/api/receita-modelo/**").hasRole("VET")
+
                         .requestMatchers(HttpMethod.POST, ESCRITAS_DO_VET).hasRole("VET")
                         .requestMatchers(HttpMethod.PUT, ESCRITAS_DO_VET).hasRole("VET")
                         .requestMatchers(HttpMethod.DELETE, ESCRITAS_DO_VET).hasRole("VET")
@@ -85,10 +88,10 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**",
                                 "/api-docs", "/api-docs/**").permitAll()
-                        .requestMatchers("/painel/**", "/clinica/**", "/equipe/**",
-                                "/tutores/**", "/pacientes/**", "/agenda/**").hasRole("VET")
-                        .requestMatchers("/meus-animais", "/meus-animais/**").hasRole("TUTOR")
-                        .anyRequest().authenticated())
+                        // O responsavel nao usa o painel: so a raiz e o aviso do app valem para qualquer
+                        // login. Rota nova nasce restrita a veterinaria, sem precisar lembrar daqui.
+                        .requestMatchers("/", "/acesso-app").authenticated()
+                        .anyRequest().hasRole("VET"))
                 .formLogin(formulario -> formulario.loginPage("/login").permitAll())
                 .logout(saida -> saida.permitAll())
                 .build();

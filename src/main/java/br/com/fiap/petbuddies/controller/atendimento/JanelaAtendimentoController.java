@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/janela-atendimento")
@@ -42,7 +43,7 @@ public class JanelaAtendimentoController {
         return assembler.toCollectionModel(service.listar(veterinarioId));
     }
 
-    @GetMapping("/livres")
+    @GetMapping(value = "/livres", params = "data")
     @Operation(
         summary = "Lista janelas livres de um veterinário num dia",
         description = "Slots sem consulta vinculada do veterinário informado, no dia informado e a partir de agora, "
@@ -55,6 +56,26 @@ public class JanelaAtendimentoController {
             @Parameter(description = "Dia, no formato AAAA-MM-DD", required = true)
             @RequestParam LocalDate data) {
         return assembler.toCollectionModel(service.listarLivres(veterinarioId, data));
+    }
+
+    @GetMapping(value = "/livres", params = {"de", "ate"})
+    @Operation(
+        summary = "Lista os dias com janela livre de um veterinário num período",
+        description = "Datas (AAAA-MM-DD, crescentes e sem repetição) com ao menos uma janela livre entre de e ate, "
+            + "inclusive, a partir de agora. Período de no máximo 62 dias."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Datas com janela livre, mesmo vazia"),
+        @ApiResponse(responseCode = "400", description = "Período inválido")
+    })
+    public List<LocalDate> listarDatasLivres(
+            @Parameter(description = "Id do veterinário", required = true)
+            @RequestParam Long veterinarioId,
+            @Parameter(description = "Primeiro dia, AAAA-MM-DD", required = true)
+            @RequestParam LocalDate de,
+            @Parameter(description = "Último dia, AAAA-MM-DD", required = true)
+            @RequestParam LocalDate ate) {
+        return service.listarDatasLivres(veterinarioId, de, ate);
     }
 
     @GetMapping("/{id}")
