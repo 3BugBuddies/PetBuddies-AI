@@ -35,6 +35,7 @@ import br.com.fiap.petbuddies.exception.atendimento.ItemPlanoInvalidoParaProcedi
 import br.com.fiap.petbuddies.exception.prescricao.MedicamentoRepetidoException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.service.cuidado.PlanoTratamentoService;
+import br.com.fiap.petbuddies.service.pontuacao.PontuacaoService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +73,7 @@ public class FechamentoAtendimentoService {
     private final CondicaoClinicaRepository condicaoClinicaRepository;
     private final PlanoTratamentoService planoTratamentoService;
     private final ItemPlanoCuidadoRepository itemPlanoRepository;
+    private final PontuacaoService pontuacaoService;
 
     public FechamentoAtendimentoService(
             ConsultaService consultaService,
@@ -81,7 +83,8 @@ public class FechamentoAtendimentoService {
             RegraPrescricaoRepository regraPrescricaoRepository,
             CondicaoClinicaRepository condicaoClinicaRepository,
             PlanoTratamentoService planoTratamentoService,
-            ItemPlanoCuidadoRepository itemPlanoRepository) {
+            ItemPlanoCuidadoRepository itemPlanoRepository,
+            PontuacaoService pontuacaoService) {
         this.consultaService = consultaService;
         this.registroAtendimentoRepository = registroAtendimentoRepository;
         this.procedimentoRepository = procedimentoRepository;
@@ -90,6 +93,7 @@ public class FechamentoAtendimentoService {
         this.condicaoClinicaRepository = condicaoClinicaRepository;
         this.planoTratamentoService = planoTratamentoService;
         this.itemPlanoRepository = itemPlanoRepository;
+        this.pontuacaoService = pontuacaoService;
     }
 
     @Transactional
@@ -105,6 +109,9 @@ public class FechamentoAtendimentoService {
         RegistroAtendimentoEntity registro = criarRegistro(request.getRegistroAtendimento(), animal, consulta);
         List<ProcedimentoEntity> procedimentos = criarProcedimentos(request.getProcedimentos(), registro, animal, veterinario);
         List<PrescricaoComRegrasResponse> prescricoes = criarPrescricoes(request.getPrescricoes(), registro, animal, veterinario);
+
+        // Último passo da transação: a pontuação só é avisada depois que tudo acima commitar.
+        pontuacaoService.registrar(consulta.getId());
 
         return FechamentoAtendimentoResponse.from(consulta, registro, procedimentos, prescricoes);
     }

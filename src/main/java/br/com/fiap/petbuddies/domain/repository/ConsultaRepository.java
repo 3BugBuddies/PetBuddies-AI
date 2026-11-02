@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.repository;
 
 import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
+import br.com.fiap.petbuddies.domain.enums.atendimento.StatusConsulta;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,6 +35,19 @@ public interface ConsultaRepository extends JpaRepository<ConsultaEntity, Long> 
     // A mais recente primeiro; o chamador limita com Pageable.
     @Query("SELECT c.veterinario.clinica.id FROM ConsultaEntity c WHERE c.animal.id = :animalId ORDER BY c.dataHora DESC")
     List<Long> findClinicaIdsPorAnimal(@Param("animalId") Long animalId, Pageable pageable);
+
+    // A pontuação lê responsável e clínica fora do fechamento: tudo num JOIN, sem lazy.
+    @Query("SELECT c FROM ConsultaEntity c JOIN FETCH c.animal a JOIN FETCH a.responsavel "
+            + "JOIN FETCH c.veterinario v JOIN FETCH v.clinica WHERE c.id = :id")
+    Optional<ConsultaEntity> findParaPontuacao(@Param("id") Long id);
+
+    // Início do período que a pontuação avalia. Nulo na primeira consulta realizada do animal.
+    @Query("SELECT MAX(c.dataHora) FROM ConsultaEntity c WHERE c.animal.id = :animalId "
+            + "AND c.status = :status AND c.dataHora < :antes")
+    LocalDateTime findDataUltimaComStatusAntes(
+            @Param("animalId") Long animalId,
+            @Param("status") StatusConsulta status,
+            @Param("antes") LocalDateTime antes);
 
     boolean existsByAnimalId(Long animalId);
 

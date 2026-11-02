@@ -58,6 +58,13 @@ public interface ItemPlanoCuidadoRepository extends JpaRepository<ItemPlanoCuida
             @Param("animalId") Long animalId, @Param("origem") TipoOrigemItem origem,
             @Param("statusVencidos") List<StatusItem> statusVencidos, @Param("hoje") LocalDate hoje);
 
+    // Doses que o tutor tinha de dar no período avaliado pela pontuação: [inicio, fim).
+    @Query("SELECT e FROM ItemPlanoCuidadoEntity e WHERE e.plano.animalId = :animalId "
+            + "AND e.origem = :origem AND e.dataAlvo >= :inicio AND e.dataAlvo < :fim")
+    List<ItemPlanoCuidadoEntity> findPorOrigemNoPeriodo(
+            @Param("animalId") Long animalId, @Param("origem") TipoOrigemItem origem,
+            @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
     // Chave de "ultima realizacao" e o tipo, nao a regra — uma query para todos os tipos de uma vez, sem repetir por regra.
     @Query("SELECT e FROM ItemPlanoCuidadoEntity e WHERE e.plano.animalId = :animalId AND e.tipo IN :tipos")
     List<ItemPlanoCuidadoEntity> findHistoricoPorTipos(
