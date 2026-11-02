@@ -8,6 +8,7 @@ A veterinária atende, prescreve e monta o plano de cuidado. Em casa, o tutor co
 - **Atendimento e prescrição:** a consulta fecha com registro, procedimentos e prescrições numa operação só, e a IA monta o rascunho da prescrição a partir da fala da veterinária.
 - **Plano de cuidado:** vacinas, vermífugos e retornos gerados a partir dos protocolos que a clínica configura no `PetBuddies-API` (.NET).
 - **Check-in do tutor:** a IA reconhece no relato as condições clínicas que a veterinária definiu, e um motor determinístico aplica as regras dela para decidir a dose do dia ou acionar a clínica.
+- **Pontuação do responsável:** a cada consulta realizada, o serviço resume o cuidado do tutor desde a consulta anterior (check-ins nas doses e evolução clínica) e envia ao `PetBuddies-API` (.NET), que calcula e guarda os pontos.
 - **Dois perfis:** `VET` e `TUTOR`, com token JWT para o app mobile e sessão para as telas web.
 
 <img src="assets/figuras/arquitetura.png" alt="Arquitetura: app mobile e telas da clínica chamam o petbuddies-ai (Java), que tem Oracle próprio, usa o Gemini e lê o catálogo de protocolos do PetBuddies-API (.NET) por HTTP">
@@ -107,7 +108,7 @@ br/com/fiap/petbuddies/
 │   ├── enums/               # um subpacote por domínio, @Enumerated(STRING)
 │   └── repository/          # um JpaRepository por entidade
 ├── assembler/               # RepresentationModelAssembler (HATEOAS), um por recurso
-├── infrastructure/client/   # ProtocoloClient — a chamada ao .NET
+├── infrastructure/client/   # ProtocoloClient e PontuacaoClient — as chamadas ao .NET
 ├── security/                # SecurityConfig, TokenService, TokenAuthenticationFilter, UsuarioPrincipal
 ├── exception/               # exceções de domínio — mesmos subpacotes do controller
 ├── handler/                 # GlobalExceptionHandler (API) e WebExceptionHandler (telas)
@@ -165,7 +166,7 @@ Todas em `.env.example`; `.env` está no `.gitignore`.
 | `ORACLE_PORT` | porta do Oracle no host, para rodar instâncias em paralelo |
 | `PETBUDDIES_JWT_SECRET` | segredo `HS256` do token — mínimo 32 bytes, o mesmo valor do .NET. Abaixo disso a aplicação recusa subir |
 | `GEMINI_API_KEY` | chave do Gemini. Ausente do ambiente, a aplicação não sobe; presente mas vazia, sobe e só as chamadas de IA falham |
-| `PETNETAPI_URL` | endereço do .NET, lido para o catálogo de protocolos. Default `http://localhost:5297` |
+| `PETNETAPI_URL` | endereço do .NET, usado para ler o catálogo de protocolos e enviar a pontuação das consultas. Default `http://localhost:5297` |
 
 ### Usuários de demonstração
 
@@ -233,7 +234,7 @@ O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `re
 
 ### Plano de cuidado a partir de protocolo
 
-O único fluxo que atravessa os dois serviços.
+Um dos dois fluxos que atravessam os dois serviços; o outro é a [pontuação do responsável](#pontuação-do-responsável).
 
 <img src="assets/figuras/fluxo-plano-de-cuidado.png" alt="Fluxo do plano de cuidado em cinco passos: pedido da veterinária, checagem de plano ativo, leitura do catálogo no .NET, gravação do plano e resposta 201">
 
@@ -244,6 +245,51 @@ A IA interpreta; **o motor determinístico decide a dose**.
 <img src="assets/figuras/fluxo-checkin.png" alt="Fluxo do check-in em seis passos: relato do tutor, extração pelo Gemini, confirmação, gravação do check-in, motor de regras e desfecho">
 
 Uma regra de comportamento que a integração precisa conhecer: **cada condição vem com `confianca` entre 0 e 1.** Abaixo de `0.7` a leitura é uma inferência do modelo, não algo que o tutor disse — o app deve confirmar antes de seguir.
+
+### Pontuação do responsável
+
+Este serviço conhece os **fatos** (consultas, doses e check-ins); o `PetBuddies-API` (.NET) conhece as
+**regras de pontuação** e guarda o saldo. Ao fechar uma consulta, o Java resume o período e manda
+para lá; o cálculo, o lançamento no Oracle do .NET e a memória do cálculo no MongoDB ficam do lado do .NET.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Vet as Veterinária
+    participant Fech as FechamentoAtendimentoService
+    participant Ora as Oracle (Java)
+    participant Pont as PontuacaoService
+    participant Net as PetBuddies-API (.NET)
+
+    Vet->>Fech: POST /api/consulta/{id}/fechamento (evolucao opcional)
+    Fech->>Ora: consulta REALIZADA + T_PB_ENVIO_PONTUACAO PENDENTE (mesma transação)
+    Fech-->>Vet: 201 — sem esperar o .NET
+    Note over Pont: depois do commit, em segundo plano (@Async)
+    Pont->>Ora: resumo do período desde a consulta anterior
+    Pont->>Net: POST /api/pontuacao/consulta
+    Net-->>Pont: 201 lançou / 200 já pontuada
+    Pont->>Ora: envio ENVIADO
+```
+
+**O resumo do período** vai da última consulta `REALIZADA` do animal (ou do cadastro dele, na primeira
+consulta) até o dia desta consulta, sem incluí-lo:
+
+| Campo enviado | De onde vem |
+|---|---|
+| `dosesPrevistas` | itens de plano de origem `PRESCRICAO` com data-alvo no período |
+| `dosesComCheckin` | desses, os `REALIZADO`, `SUSPENSO` ou `ENCAMINHADO` — os status que só o check-in grava |
+| `acionamentosClinica` | desses, os `ENCAMINHADO` |
+| `diasNoPeriodo` / `diasComCheckin` | dias do período / dias distintos com check-in do tutor |
+| `evolucao` | o que a veterinária marcou no fechamento: `MELHOROU`, `ESTAVEL` ou `PIOROU` (opcional) |
+
+**Se o .NET estiver fora do ar**, a linha de `T_PB_ENVIO_PONTUACAO` continua `PENDENTE` e o
+`ReenvioPontuacaoAgendado` tenta de novo a cada 5 minutos (`petbuddies.pontuacao.reenvio-ms`). O .NET
+não pontua a mesma consulta duas vezes, então reenviar é seguro. Um `400` do .NET marca o envio como
+`RECUSADO`, porque reenviar o mesmo corpo daria o mesmo erro. A chamada HTTP fica fora das transações,
+para não segurar conexão do pool — mesmo cuidado do motor de planos.
+
+Consulta cancelada nunca chega ao fechamento, então não pontua. Saldo e extrato o app lê direto no
+.NET (`GET /api/pontuacao/saldo` e `/extrato`), com o mesmo token do tutor.
 
 ---
 
@@ -361,7 +407,7 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 | 3 | `POST` | `/api/condicao-clinica` | `201` — o vocabulário que o check-in vai avaliar |
 | 4 | `POST` | `/api/janela-atendimento` | `201` — um slot livre para o veterinário do seed |
 | 5 | `POST` | `/api/consulta/agendamento` | `201` — ocupa a janela; a consulta nasce `AGENDADA` |
-| 6 | `POST` | `/api/consulta/{id}/fechamento` | `201` — registro, procedimentos e prescrições numa transação; a consulta vira `REALIZADA` |
+| 6 | `POST` | `/api/consulta/{id}/fechamento` | `201` — registro, procedimentos e prescrições numa transação; a consulta vira `REALIZADA` e segue para a pontuação no .NET |
 | 7 | `POST` | `/api/motor/plano/instanciar-preventivo` | `201` — lê o catálogo do .NET e materializa o plano |
 | 8 | `POST` | `/api/checkin/extracao` | `200` — a IA interpreta a narrativa contra o vocabulário |
 | 9 | `POST` | `/api/checkin` | `201` — o motor decide a dose ou escala à clínica |
@@ -402,6 +448,17 @@ Importe `docs/postman/petbuddies-ai-java.postman_collection.json`, com `baseUrl`
 4. **15 · Saúde** chama `GET /actuator/health`, sem token.
 
 A coleção cobre todas as rotas da API, inclusive agendamento, cancelamento e fechamento de consulta, janelas livres, rascunho de prescrição, protocolo aplicado, sugestões e check-in.
+
+### Via testes automatizados
+
+```bash
+mvn test
+```
+
+Testes unitários com JUnit 5 e Mockito, sem banco nem Spring de pé: o resumo do período da pontuação
+(`ResumoPeriodoTest`) e o envio ao .NET — sucesso, `400`, token recusado e .NET fora do ar
+(`PontuacaoServiceTest`). Compile com o **JDK 21**: a partir do JDK 23 o `javac` não roda mais o
+Lombok sem configuração, e o build quebra com erros de getter ausente.
 
 ---
 
@@ -448,7 +505,8 @@ A resposta traz `condicoes[]` com `confianca` por item, e `degradado: true` se o
     "dataAtendimento": "2026-09-10T14:30:00",
     "anamnese": "Tutor relata apetite normal.",
     "diagnostico": "Gastroenterite leve.",
-    "tratamento": "Dieta leve por 3 dias."
+    "tratamento": "Dieta leve por 3 dias.",
+    "evolucao": "MELHOROU"
   },
   "prescricoes": [
     {
@@ -462,3 +520,6 @@ A resposta traz `condicoes[]` com `confianca` por item, e `degradado: true` se o
   ]
 }
 ```
+
+`evolucao` é opcional: como o animal evoluiu desde a consulta anterior, na avaliação da veterinária.
+Entra na pontuação do responsável; sem ela, só esse critério deixa de pontuar.
