@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.dto.atendimento;
 
 import br.com.fiap.petbuddies.domain.entity.RegistroAtendimentoEntity;
+import br.com.fiap.petbuddies.domain.enums.atendimento.EvolucaoClinica;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -19,6 +20,7 @@ public class RegistroAtendimentoResponse {
     private String observacao;
     private LocalDate proximoRetorno;
     private LocalDate proximaVacina;
+    private EvolucaoClinica evolucao;
     private Long animalId;
     private Long consultaId;
     private LocalDateTime createdAt;
@@ -34,6 +36,7 @@ public class RegistroAtendimentoResponse {
         dto.observacao = entity.getObservacao();
         dto.proximoRetorno = entity.getProximoRetorno();
         dto.proximaVacina = entity.getProximaVacina();
+        dto.evolucao = entity.getEvolucao();
         dto.animalId = entity.getAnimal() == null ? null : entity.getAnimal().getId();
         dto.consultaId = entity.getConsulta() == null ? null : entity.getConsulta().getId();
         dto.createdAt = entity.getAuditoria().getCreatedAt();

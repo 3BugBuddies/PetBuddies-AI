@@ -132,6 +132,7 @@ public class FechamentoAtendimentoService {
         registro.setObservacao(r.getObservacao());
         registro.setProximoRetorno(r.getProximoRetorno());
         registro.setProximaVacina(r.getProximaVacina());
+        registro.setEvolucao(r.getEvolucao());
         registro.setAnimal(animal);
         registro.setConsulta(consulta);
         if (r.getPeso() != null) {
