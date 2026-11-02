@@ -1172,9 +1172,9 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"registroAtendimento\": {\n    \"dataAtendimento\": \"2026-09-10T14:30:00\",\n    \"anamnese\": \"Tutor relata apetite normal.\",\n    \"diagnostico\": \"Gastroenterite leve.\",\n    \"tratamento\": \"Dieta leve por 3 dias.\"\n  },\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Lactulona\",\n      \"doseMin\": 1.0,\n      \"doseMax\": 2.0,\n      \"unidade\": \"ml\",\n      \"frequenciaDia\": 2,\n      \"duracaoDias\": 5,\n      \"dataInicio\": \"2026-09-10\",\n      \"orientacao\": \"Se as fezes estiverem moles, aplicar a dose menor.\",\n      \"regras\": [\n        {\n          \"condicaoClinicaId\": 1,\n          \"acaoDose\": \"DOSE_MIN\",\n          \"ordem\": 1\n        }\n      ]\n    }\n  ]\n}"
+              "raw": "{\n  \"registroAtendimento\": {\n    \"dataAtendimento\": \"2026-09-10T14:30:00\",\n    \"anamnese\": \"Tutor relata apetite normal.\",\n    \"diagnostico\": \"Gastroenterite leve.\",\n    \"tratamento\": \"Dieta leve por 3 dias.\",\n    \"evolucao\": \"MELHOROU\"\n  },\n  \"prescricoes\": [\n    {\n      \"medicamento\": \"Lactulona\",\n      \"doseMin\": 1.0,\n      \"doseMax\": 2.0,\n      \"unidade\": \"ml\",\n      \"frequenciaDia\": 2,\n      \"duracaoDias\": 5,\n      \"dataInicio\": \"2026-09-10\",\n      \"orientacao\": \"Se as fezes estiverem moles, aplicar a dose menor.\",\n      \"regras\": [\n        {\n          \"condicaoClinicaId\": 1,\n          \"acaoDose\": \"DOSE_MIN\",\n          \"ordem\": 1\n        }\n      ]\n    }\n  ]\n}"
             },
-            "description": "Grava registro, procedimentos e prescrições numa transação só, e a consulta passa a REALIZADA."
+            "description": "Grava registro, procedimentos e prescrições numa transação só, e a consulta passa a REALIZADA. `evolucao` (MELHOROU, ESTAVEL ou PIOROU) é opcional: é a avaliação da veterinária desde a consulta anterior. Depois do commit, o Java avisa o PetBuddies-API (.NET), que calcula os pontos do responsável; se o .NET estiver fora do ar, o envio fica pendente e é refeito a cada 5 minutos."
           }
         },
         {
