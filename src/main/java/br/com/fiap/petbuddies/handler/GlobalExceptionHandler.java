@@ -18,6 +18,7 @@ import br.com.fiap.petbuddies.exception.prescricao.MedicamentoRepetidoException;
 import br.com.fiap.petbuddies.exception.prescricao.ReceitaModeloIncoerenteException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
+import br.com.fiap.petbuddies.exception.pontuacao.PontuacaoIndisponivelException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.slf4j.Logger;
@@ -115,6 +116,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AcessoNegadoException.class)
     public ResponseEntity<ErrorDto> handleAcessoNegado(AcessoNegadoException ex) {
         return ResponseEntity.status(403).body(new ErrorDto(ex.getCodigo(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(PontuacaoIndisponivelException.class)
+    public ResponseEntity<ErrorDto> handlePontuacaoIndisponivel(PontuacaoIndisponivelException ex) {
+        return ResponseEntity.status(503).body(new ErrorDto("PONTUACAO_INDISPONIVEL", ex.getMessage()));
     }
 
     @ExceptionHandler(RegistroIncompletoException.class)

@@ -51,6 +51,9 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/checkin", "/api/checkin/extracao").hasRole("TUTOR")
 
+                        // Exceção à regra "todo GET aceita qualquer token": saldo e extrato são do responsável do token.
+                        .requestMatchers(HttpMethod.GET, "/api/pontuacao/saldo", "/api/pontuacao/extrato").hasRole("TUTOR")
+
                         // Antes de ESCRITAS_DO_VET: o primeiro matcher vence, e o prefixo /api/consulta/** prenderia o tutor.
                         .requestMatchers(HttpMethod.POST, "/api/animal", "/api/responsavel",
                                 "/api/consulta/agendamento", "/api/consulta/*/cancelamento").hasAnyRole("VET", "TUTOR")

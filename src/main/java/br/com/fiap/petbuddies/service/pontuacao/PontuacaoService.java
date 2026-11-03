@@ -3,7 +3,13 @@ package br.com.fiap.petbuddies.service.pontuacao;
 import br.com.fiap.petbuddies.domain.entity.EnvioPontuacaoEntity;
 import br.com.fiap.petbuddies.domain.event.ConsultaRealizada;
 import br.com.fiap.petbuddies.domain.repository.EnvioPontuacaoRepository;
+import br.com.fiap.petbuddies.dto.pontuacao.LancamentoPontosResponse;
+import br.com.fiap.petbuddies.dto.pontuacao.MemoriaCalculoResponse;
 import br.com.fiap.petbuddies.dto.pontuacao.PontuacaoConsultaRequest;
+import br.com.fiap.petbuddies.dto.pontuacao.SaldoPontosResponse;
+import br.com.fiap.petbuddies.exception.pontuacao.MemoriaCalculoNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.pontuacao.PontuacaoDeOutroResponsavelException;
+import br.com.fiap.petbuddies.exception.pontuacao.PontuacaoIndisponivelException;
 import br.com.fiap.petbuddies.infrastructure.client.PontuacaoClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
- * Leva a consulta realizada até a pontuação do responsável no .NET. O cálculo
- * e as regras ficam lá; daqui sai só o resumo do período.
+ * Leva a consulta realizada até a pontuação do responsável no .NET, e traz de
+ * lá saldo, extrato e memória de cálculo para o app. O cálculo, as regras e os
+ * pontos ficam no .NET; daqui sai só o resumo do período.
  */
 @Service
 public class PontuacaoService {
@@ -53,6 +62,38 @@ public class PontuacaoService {
             envioRepository.save(envio);
         }
         eventos.publishEvent(new ConsultaRealizada(consultaId));
+    }
+
+    // Leituras do app: o Java não guarda pontos, então busca no .NET com o token de quem pediu.
+
+    public SaldoPontosResponse saldo(String autorizacao) {
+        return lerDoNet(() -> pontuacaoClient.saldo(autorizacao), null);
+    }
+
+    public List<LancamentoPontosResponse> extrato(String autorizacao) {
+        return lerDoNet(() -> pontuacaoClient.extrato(autorizacao), null);
+    }
+
+    public MemoriaCalculoResponse memoria(Long consultaId, String autorizacao) {
+        return lerDoNet(() -> pontuacaoClient.memoria(consultaId, autorizacao), consultaId);
+    }
+
+    // 403 e 404 são do usuário e chegam ao app como os erros do Java; o resto (rede, 5xx,
+    // 401 por segredo do JWT diferente entre os serviços) é falha de lá e vira 503.
+    private <T> T lerDoNet(Supplier<T> leitura, Long consultaId) {
+        try {
+            return leitura.get();
+        } catch (HttpClientErrorException.Forbidden e) {
+            throw new PontuacaoDeOutroResponsavelException();
+        } catch (HttpClientErrorException.NotFound e) {
+            if (consultaId == null) {
+                throw new PontuacaoIndisponivelException(e);
+            }
+            throw new MemoriaCalculoNaoEncontradaException(consultaId);
+        } catch (RestClientException e) {
+            log.warn("[PONTUACAO] leitura no .NET falhou: {}", e.getMessage());
+            throw new PontuacaoIndisponivelException(e);
+        }
     }
 
     // Sem @Transactional de propósito: a chamada HTTP fica entre as transações curtas do gravador.

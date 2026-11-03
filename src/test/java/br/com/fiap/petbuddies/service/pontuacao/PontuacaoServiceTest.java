@@ -4,8 +4,15 @@ import br.com.fiap.petbuddies.domain.entity.EnvioPontuacaoEntity;
 import br.com.fiap.petbuddies.domain.enums.pontuacao.StatusEnvioPontuacao;
 import br.com.fiap.petbuddies.domain.event.ConsultaRealizada;
 import br.com.fiap.petbuddies.domain.repository.EnvioPontuacaoRepository;
+import br.com.fiap.petbuddies.domain.enums.atendimento.EvolucaoClinica;
+import br.com.fiap.petbuddies.dto.pontuacao.MemoriaCalculoResponse;
 import br.com.fiap.petbuddies.dto.pontuacao.PontuacaoConsultaRequest;
+import br.com.fiap.petbuddies.dto.pontuacao.SaldoPontosResponse;
+import br.com.fiap.petbuddies.exception.pontuacao.MemoriaCalculoNaoEncontradaException;
+import br.com.fiap.petbuddies.exception.pontuacao.PontuacaoDeOutroResponsavelException;
+import br.com.fiap.petbuddies.exception.pontuacao.PontuacaoIndisponivelException;
 import br.com.fiap.petbuddies.infrastructure.client.PontuacaoClient;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -15,6 +22,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.nio.charset.StandardCharsets;
@@ -22,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,6 +39,7 @@ import static org.mockito.Mockito.*;
 class PontuacaoServiceTest {
 
     private static final Long CONSULTA_ID = 42L;
+    private static final String TOKEN_TUTOR = "Bearer token-do-tutor";
 
     private EnvioPontuacaoRepository envioRepository;
     private EnvioPontuacaoGravador gravador;
@@ -127,6 +137,79 @@ class PontuacaoServiceTest {
 
         verify(gravador).registrarFalha(CONSULTA_ID, "Connection refused");
         verify(gravador, never()).marcarEnviado(any());
+    }
+
+    @Test
+    void saldo_netResponde_devolveOSaldoComOTokenDeQuemPediu() {
+        when(client.saldo(TOKEN_TUTOR)).thenReturn(new SaldoPontosResponse(1L, 120));
+
+        SaldoPontosResponse saldo = service.saldo(TOKEN_TUTOR);
+
+        assertEquals(120, saldo.saldo());
+    }
+
+    @Test
+    void extrato_netRecusaOToken_viraAcessoNegado() {
+        when(client.extrato(TOKEN_TUTOR)).thenThrow(erroDoNet(HttpStatus.FORBIDDEN));
+
+        assertThrows(PontuacaoDeOutroResponsavelException.class, () -> service.extrato(TOKEN_TUTOR));
+    }
+
+    @Test
+    void memoria_consultaSemMemoria_viraNaoEncontrada() {
+        when(client.memoria(CONSULTA_ID, TOKEN_TUTOR)).thenThrow(erroDoNet(HttpStatus.NOT_FOUND));
+
+        assertThrows(MemoriaCalculoNaoEncontradaException.class, () -> service.memoria(CONSULTA_ID, TOKEN_TUTOR));
+    }
+
+    @Test
+    void memoria_mongoDoNetForaDoAr_viraIndisponivel() {
+        when(client.memoria(CONSULTA_ID, TOKEN_TUTOR)).thenThrow(HttpServerErrorException.create(
+                HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders.EMPTY, new byte[0], StandardCharsets.UTF_8));
+
+        assertThrows(PontuacaoIndisponivelException.class, () -> service.memoria(CONSULTA_ID, TOKEN_TUTOR));
+    }
+
+    @Test
+    void saldo_netForaDoAr_viraIndisponivel() {
+        when(client.saldo(TOKEN_TUTOR)).thenThrow(new ResourceAccessException("Connection refused"));
+
+        assertThrows(PontuacaoIndisponivelException.class, () -> service.saldo(TOKEN_TUTOR));
+    }
+
+    @Test
+    void saldo_segredoDoJwtDiferenteNosServicos_viraIndisponivelENaoAcessoNegado() {
+        when(client.saldo(TOKEN_TUTOR)).thenThrow(erroDoNet(HttpStatus.UNAUTHORIZED));
+
+        assertThrows(PontuacaoIndisponivelException.class, () -> service.saldo(TOKEN_TUTOR));
+    }
+
+    @Test
+    void memoria_jsonDoNet_comDatasDoMongoEmUtc_eLidaPeloJava() throws Exception {
+        // Mesmo ajuste do Jackson do Spring Boot: campo desconhecido não derruba a leitura.
+        ObjectMapper mapper = new ObjectMapper()
+                .findAndRegisterModules()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        String json = """
+                {"consultaId":42,"lancamentoId":7,"responsavelId":1,"animalId":3,"clinicaId":1,
+                 "periodoDe":"2026-09-01T13:00:00Z","periodoAte":"2026-10-01T17:30:00.1234567Z",
+                 "dosesPrevistas":20,"dosesComCheckin":18,"diasNoPeriodo":30,"diasComCheckin":17,
+                 "acionamentosClinica":1,"evolucao":"MELHOROU",
+                 "parcelas":[{"gesto":"CONSULTA_REALIZADA","quantidade":1,"pontosPorUnidade":10,"pontos":10,
+                              "regraId":4,"inicioVigencia":"2026-01-01","observacao":"Consulta realizada."}],
+                 "total":10,"calculadoEm":"2026-10-01T17:31:02Z","campoNovo":true}
+                """;
+
+        MemoriaCalculoResponse memoria = mapper.readValue(json, MemoriaCalculoResponse.class);
+
+        assertEquals(EvolucaoClinica.MELHOROU, memoria.evolucao());
+        assertEquals(LocalDateTime.of(2026, 9, 1, 13, 0), memoria.periodoDe());
+        assertEquals(10, memoria.parcelas().get(0).pontos());
+    }
+
+    private static HttpClientErrorException erroDoNet(HttpStatus status) {
+        return HttpClientErrorException.create(status, status.getReasonPhrase(), HttpHeaders.EMPTY,
+                new byte[0], StandardCharsets.UTF_8);
     }
 
     @Test
