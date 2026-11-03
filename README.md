@@ -224,7 +224,7 @@ Duas cadeias de segurança no mesmo processo:
 
 O token carrega o perfil (`VET` ou `TUTOR`) e o vínculo (`veterinarioId` ou `responsavelId`), e é o mesmo aceito pelo `PetBuddies-API` (.NET) — o segredo é compartilhado.
 
-**Rotas por perfil na API:** a regra segue o que o app faz com cada perfil. Os dois perfis cadastram, editam e removem animal, editam o responsável, agendam e cancelam consulta. O veterinário é o único que abre consulta direta, fecha atendimento, registra atendimento e procedimento, prescreve, cria regra e condição clínica, abre janela, instancia plano e cadastra veterinário e clínica. O check-in é só do tutor. Todo `GET` aceita qualquer token válido. Perfil sem permissão recebe `403`, nunca `401`, e a remoção de animal ainda confere o dono.
+**Rotas por perfil na API:** a regra segue o que o app faz com cada perfil. Os dois perfis cadastram, editam e removem animal, editam o responsável, agendam e cancelam consulta. O veterinário é o único que abre consulta direta, fecha atendimento, registra atendimento e procedimento, prescreve, cria regra e condição clínica, abre janela, instancia plano e cadastra veterinário e clínica. O check-in é só do tutor. Todo `GET` aceita qualquer token válido, menos saldo e extrato de pontos, que são só do tutor. Perfil sem permissão recebe `403`, nunca `401`, e a remoção de animal ainda confere o dono.
 
 **Rotas por perfil na web:** `/painel`, `/clinica`, `/equipe`, `/tutores`, `/pacientes` e `/agenda` exigem `VET`; `/meus-animais` exige `TUTOR`. O tutor recebe `403` nas rotas da clínica, e a lista dele é escopada pelo `responsavelId` da sessão, nunca por parâmetro na URL.
 
@@ -288,8 +288,25 @@ não pontua a mesma consulta duas vezes, então reenviar é seguro. Um `400` do 
 `RECUSADO`, porque reenviar o mesmo corpo daria o mesmo erro. A chamada HTTP fica fora das transações,
 para não segurar conexão do pool — mesmo cuidado do motor de planos.
 
-Consulta cancelada nunca chega ao fechamento, então não pontua. Saldo e extrato o app lê direto no
-.NET (`GET /api/pontuacao/saldo` e `/extrato`), com o mesmo token do tutor.
+Consulta cancelada nunca chega ao fechamento, então não pontua.
+
+**Para ler os pontos, o app também fala só com o Java.** Os pontos moram no .NET, então o Java
+repassa a leitura para lá com o **token de quem pediu**, e o .NET aplica a mesma regra de dono:
+
+```mermaid
+sequenceDiagram
+    actor Tutor as App (tutor)
+    participant Java as petbuddies-ai (Java)
+    participant Net as PetBuddies-API (.NET)
+
+    Tutor->>Java: GET /api/pontuacao/saldo (Bearer do tutor)
+    Java->>Net: GET /api/pontuacao/saldo (mesmo Bearer)
+    Net-->>Java: { responsavelId, saldo }
+    Java-->>Tutor: 200 em envelope HATEOAS, com link para o extrato
+```
+
+As rotas que o app consome estão em [Recursos e Rotas → Pontuação](#pontuação). Se o .NET estiver
+fora do ar, o app recebe `503` com `PONTUACAO_INDISPONIVEL`.
 
 ---
 
@@ -396,6 +413,21 @@ Aberta, sem token. Responde `200 {"status":"UP"}` com o banco no ar e `503 {"sta
 | `GET` | `/api/checkin/{id}` | busca por id |
 | `GET` | `/api/checkin?animalId=` | check-ins do animal, do mais recente ao mais antigo |
 
+### Pontuação
+
+O app lê os pontos do tutor por estas rotas; o Java busca no `PetBuddies-API` (.NET), que guarda os
+pontos. O lançamento não tem rota: acontece sozinho no fechamento da consulta
+(ver [Pontuação do responsável](#pontuação-do-responsável)).
+
+| Método | Rota | Perfil | O que faz |
+|---|---|---|---|
+| `GET` | `/api/pontuacao/saldo` | `TUTOR` | saldo de pontos do tutor do token |
+| `GET` | `/api/pontuacao/extrato` | `TUTOR` | pontos ganhos em cada consulta, da mais recente à mais antiga; cada item linka a memória, a consulta e o animal |
+| `GET` | `/api/pontuacao/consulta/{consultaId}/memoria` | `VET` ou `TUTOR` | como os pontos da consulta foram calculados; o tutor só vê as dele (`403` nas de outro) |
+
+Erros: `403` para perfil sem permissão, `404` para consulta sem memória de cálculo e `503`
+(`PONTUACAO_INDISPONIVEL`) quando o .NET ou o MongoDB dele estiverem fora do ar.
+
 ### Roteiro do Fluxo Principal
 
 Na ordem abaixo, com o usuário `VET` de demonstração:
@@ -446,8 +478,9 @@ Importe `docs/postman/petbuddies-ai-java.postman_collection.json`, com `baseUrl`
 2. As pastas estão numeradas na ordem de uso: clínica e equipe, janelas, tutores e animais, consultas e fechamento, prescrição, plano de cuidado e check-in.
 3. As pastas herdam `tokenVet`, e a pasta **14 · Check-in** usa `tokenTutor`, porque o check-in é só do tutor. Todo `GET` aceita qualquer um dos dois tokens.
 4. **15 · Saúde** chama `GET /actuator/health`, sem token.
+5. **16 · Pontuação** usa `tokenTutor` para saldo, extrato e memória de cálculo. Precisa do `PetBuddies-API` (.NET) no ar, porque é lá que os pontos moram.
 
-A coleção cobre todas as rotas da API, inclusive agendamento, cancelamento e fechamento de consulta, janelas livres, rascunho de prescrição, protocolo aplicado, sugestões e check-in.
+A coleção cobre todas as rotas da API, inclusive agendamento, cancelamento e fechamento de consulta, janelas livres, rascunho de prescrição, protocolo aplicado, sugestões, check-in e pontuação.
 
 ### Via testes automatizados
 
@@ -456,7 +489,8 @@ mvn test
 ```
 
 Testes unitários com JUnit 5 e Mockito, sem banco nem Spring de pé: o resumo do período da pontuação
-(`ResumoPeriodoTest`) e o envio ao .NET — sucesso, `400`, token recusado e .NET fora do ar
+(`ResumoPeriodoTest`), o envio ao .NET — sucesso, `400`, token recusado e .NET fora do ar — e as
+leituras de saldo, extrato e memória, com os erros do .NET virando `403`, `404` ou `503`
 (`PontuacaoServiceTest`). Compile com o **JDK 21**: a partir do JDK 23 o `javac` não roda mais o
 Lombok sem configuração, e o build quebra com erros de getter ausente.
 

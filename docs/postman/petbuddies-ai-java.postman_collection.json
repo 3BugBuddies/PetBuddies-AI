@@ -2192,6 +2192,110 @@
           }
         }
       ]
+    },
+    {
+      "name": "16 · Pontuação",
+      "description": "Saldo e extrato são do tutor: esta pasta usa `tokenTutor`. Rode *Entrar como tutora* antes. Os pontos moram no PetBuddies-API (.NET): o Java busca lá com o mesmo token, então o .NET precisa estar no ar (sem ele, `503 PONTUACAO_INDISPONIVEL`). Os pontos nascem quando a veterinária fecha uma consulta (pasta 07).",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{tokenTutor}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Ver saldo de pontos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pontuacao/saldo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pontuacao",
+                "saldo"
+              ]
+            },
+            "description": "Soma dos pontos de todas as consultas do tutor do token."
+          }
+        },
+        {
+          "name": "Ver extrato de pontos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pontuacao/extrato",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pontuacao",
+                "extrato"
+              ]
+            },
+            "description": "Um lançamento por consulta realizada, da mais recente para a mais antiga. Cada item traz o link `memoria`."
+          }
+        },
+        {
+          "name": "Ver memória de cálculo da consulta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pontuacao/consulta/1/memoria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pontuacao",
+                "consulta",
+                "1",
+                "memoria"
+              ]
+            },
+            "description": "Como os pontos da consulta 1 foram calculados: doses, check-ins, evolução, regras vigentes e pontos por critério. Consulta de outro tutor responde `403`; consulta sem pontuação, `404`."
+          }
+        },
+        {
+          "name": "Ver saldo como veterinária (403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pontuacao/saldo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pontuacao",
+                "saldo"
+              ]
+            },
+            "description": "Saldo e extrato são só do tutor: com `tokenVet` a resposta é `403`.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenVet}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   ],
   "event": [
