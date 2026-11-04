@@ -73,7 +73,10 @@ public class OpenApiConfig {
                         .description("Condição → ação sobre a dose, com a condição congelada no momento da assinatura"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("cuidado — pontuação")
-                        .description("Saldo, extrato e memória de cálculo dos pontos do tutor, lidos do PetBuddies-API (.NET)")
+                        .description("Saldo, extrato e memória de cálculo dos pontos do tutor, lidos do PetBuddies-API (.NET)"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("banco — exportação")
+                        .description("Dataset em JSON gerado por procedimento PL/SQL, para importar no MongoDB")
         ));
     }
 }

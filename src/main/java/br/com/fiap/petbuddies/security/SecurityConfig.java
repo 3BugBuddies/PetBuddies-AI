@@ -63,6 +63,9 @@ public class SecurityConfig {
                         // A leitura também é só do vet: a lista depende da clínica do usuário.
                         .requestMatchers("/api/receita-modelo/**").hasRole("VET")
 
+                        // O dataset tem dados de todos os tutores: só a clínica exporta.
+                        .requestMatchers("/api/exportacao/**").hasRole("VET")
+
                         .requestMatchers(HttpMethod.POST, ESCRITAS_DO_VET).hasRole("VET")
                         .requestMatchers(HttpMethod.PUT, ESCRITAS_DO_VET).hasRole("VET")
                         .requestMatchers(HttpMethod.DELETE, ESCRITAS_DO_VET).hasRole("VET")
