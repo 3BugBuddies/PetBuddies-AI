@@ -37,9 +37,9 @@ A veterinária atende, prescreve e monta o plano de cuidado pelo painel da clín
 
 |                               | |
 |-------------------------------|---|
-| Painel da clínica (produção)  | https://petbuddies-java-cl-rm563925.azurewebsites.net |
-| Swagger UI (produção)         | https://petbuddies-java-cl-rm563925.azurewebsites.net/swagger-ui.html |
-| Saúde (produção)              | https://petbuddies-java-cl-rm563925.azurewebsites.net/actuator/health |
+| Painel da clínica (produção)  | https://petbuddies-java-rm563925.azurewebsites.net |
+| Swagger UI (produção)         | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
+| Saúde (produção)              | https://petbuddies-java-rm563925.azurewebsites.net/actuator/health |
 | Azure DevOps                  | [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps) |
 | Swagger UI (local)            | `http://localhost:8080/swagger-ui.html` |
 | Postman collection            | [`docs/postman/petbuddies-ai-java.postman_collection.json`](docs/postman/petbuddies-ai-java.postman_collection.json) |
@@ -88,7 +88,7 @@ A veterinária atende, prescreve e monta o plano de cuidado pelo painel da clín
 - **Spring HATEOAS** — respostas em `EntityModel`/`CollectionModel`, com assemblers dedicados
 - **Spring Boot Actuator** — só o `health` exposto
 - **Bean Validation** (Jakarta) · **Springdoc OpenAPI 2.8.8** · **Lombok**
-- **Azure** — Web App Linux (Java 21) no plano B2 em Chile Central, Application Insights e Oracle FIAP
+- **Azure** — Web App Linux (Java 21) no plano B2, Application Insights e Oracle FIAP
 - **Azure DevOps** — Azure Repos e Azure Pipelines em YAML (`azure-pipelines.yml`)
 
 ---
@@ -187,7 +187,7 @@ Todas em `.env.example`; `.env` está no `.gitignore`.
 
 ## Deploy e CI/CD
 
-A aplicação roda num **Azure Web App** Linux com Java 21 (`petbuddies-java-cl-rm563925`), no plano `plan-petbuddies-alt` (B2, Chile Central) do grupo `rg-petbuddies`, sobre o banco **Oracle da FIAP**. O deploy é feito pelo **Azure Pipelines**, a partir do repositório no **Azure Repos** do projeto [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps).
+A aplicação roda num **Azure Web App** Linux com Java 21, no grupo `rg-petbuddies` (Chile Central), sobre o banco **Oracle da FIAP**. O deploy é feito pelo **Azure Pipelines**, a partir do repositório no **Azure Repos** do projeto [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps).
 
 A pipeline está em [`azure-pipelines.yml`](azure-pipelines.yml) e **dispara sozinha a cada push na `main`**. A figura do topo mostra a esteira numerada.
 
@@ -198,7 +198,7 @@ A pipeline está em [`azure-pipelines.yml`](azure-pipelines.yml) e **dispara soz
 
 **Segredos:** usuário e senha do Oracle, chave do Gemini e segredo do JWT ficam como **variáveis secretas da pipeline**. Não aparecem no YAML nem no log, e o CD os grava como configuração do Web App.
 
-**Monitoramento:** cada Web App tem um Application Insights (em Brazil South), e `GET /actuator/health` responde `UP` com o banco no ar.
+**Monitoramento:** cada Web App tem um Application Insights, e `GET /actuator/health` responde `UP` com o banco no ar.
 
 ---
 
@@ -517,7 +517,7 @@ Na ordem abaixo, com o usuário `VET` de demonstração:
 
 ### Via Swagger UI
 
-Em produção, `https://petbuddies-java-cl-rm563925.azurewebsites.net/swagger-ui.html`; local, `http://localhost:8080/swagger-ui.html`. Endpoints por tag de domínio, com "Authorize" e Try it out. O JSON do OpenAPI fica em **`/api-docs`**, não em `/v3/api-docs`.
+Em produção, `https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html`; local, `http://localhost:8080/swagger-ui.html`. Endpoints por tag de domínio, com "Authorize" e Try it out. O JSON do OpenAPI fica em **`/api-docs`**, não em `/v3/api-docs`.
 
 ### Via Postman
 

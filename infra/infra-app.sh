@@ -9,11 +9,9 @@ set -euo pipefail
 
 # Variáveis
 RESOURCE_GROUP_NAME="rg-petbuddies"
-WEBAPP_NAME="petbuddies-java-cl-rm563925"
-APP_SERVICE_PLAN="plan-petbuddies-alt"
-LOCATION="chilecentral"        # plano e Web App
-RG_LOCATION="brazilsouth"      # metadados do resource group (criado em Brazil South)
-AI_LOCATION="brazilsouth"      # Application Insights (ficou em Brazil South)
+WEBAPP_NAME="petbuddies-java-rm563925"
+APP_SERVICE_PLAN="plan-petbuddies"
+LOCATION="chilecentral"
 RUNTIME="JAVA:21-java21"
 APP_INSIGHTS_NAME="ai-petbuddies-java"
 
@@ -28,12 +26,12 @@ az extension add --name application-insights --upgrade --only-show-errors
 # Criação do Grupo de Recursos
 az group create \
   --name $RESOURCE_GROUP_NAME \
-  --location "$RG_LOCATION"
+  --location "$LOCATION"
 
 # Criar Application Insights
 az monitor app-insights component create \
   --app $APP_INSIGHTS_NAME \
-  --location "$AI_LOCATION" \
+  --location "$LOCATION" \
   --resource-group $RESOURCE_GROUP_NAME \
   --application-type web
 
