@@ -76,7 +76,7 @@ public class ResponsavelController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Remove responsável")
+    @Operation(summary = "Remove responsável", description = "Remove junto o login do app. Responsável com pets não é removido.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Responsável removido"),
         @ApiResponse(responseCode = "404", description = "Responsável não encontrado")

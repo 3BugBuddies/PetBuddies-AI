@@ -23,5 +23,7 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long> {
 
     boolean existsByResponsavelId(Long responsavelId);
 
+    void deleteByResponsavelId(Long responsavelId);
+
     boolean existsByVeterinarioId(Long veterinarioId);
 }
