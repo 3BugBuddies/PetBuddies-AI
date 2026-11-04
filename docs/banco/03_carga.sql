@@ -2,15 +2,15 @@
 -- 1. T_PB_CLINICA - a raiz de tudo
 -- =============================================================================
 INSERT INTO T_PB_CLINICA (ID_CLINICA, NM_NOME_CLINICA, NR_CNPJ, TL_TELEFONE, EM_EMAIL) VALUES
-    (1, 'PetBuddies ClÃ­nica Centro',     '12345678000101', '1133334444', 'centro@petbuddies.com.br');
+    (1, 'PetBuddies Clínica Centro',     '12345678000101', '1133334444', 'centro@petbuddies.com.br');
 INSERT INTO T_PB_CLINICA (ID_CLINICA, NM_NOME_CLINICA, NR_CNPJ, TL_TELEFONE, EM_EMAIL) VALUES
-    (2, 'PetBuddies ClÃ­nica Zona Sul',   '12345678000202', '1133335555', 'zonasul@petbuddies.com.br');
+    (2, 'PetBuddies Clínica Zona Sul',   '12345678000202', '1133335555', 'zonasul@petbuddies.com.br');
 INSERT INTO T_PB_CLINICA (ID_CLINICA, NM_NOME_CLINICA, NR_CNPJ, TL_TELEFONE, EM_EMAIL) VALUES
-    (3, 'ClÃ­nica VeterinÃ¡ria Amigo Fiel','22345678000103', '1133336666', 'contato@amigofiel.com.br');
+    (3, 'Clínica Veterinária Amigo Fiel','22345678000103', '1133336666', 'contato@amigofiel.com.br');
 INSERT INTO T_PB_CLINICA (ID_CLINICA, NM_NOME_CLINICA, NR_CNPJ, TL_TELEFONE, EM_EMAIL) VALUES
-    (4, 'ClÃ­nica Pata Amiga',            '32345678000104', '1133337777', 'contato@pataamiga.com.br');
+    (4, 'Clínica Pata Amiga',            '32345678000104', '1133337777', 'contato@pataamiga.com.br');
 INSERT INTO T_PB_CLINICA (ID_CLINICA, NM_NOME_CLINICA, NR_CNPJ, TL_TELEFONE, EM_EMAIL) VALUES
-    (5, 'Hospital VeterinÃ¡rio Vida',     '42345678000105', '1133338888', 'contato@hvvida.com.br');
+    (5, 'Hospital Veterinário Vida',     '42345678000105', '1133338888', 'contato@hvvida.com.br');
 
 
 -- =============================================================================
@@ -54,18 +54,18 @@ INSERT INTO T_PB_ANIMAL (ID_ANIMAL, NM_NOME_ANIMAL, ES_ESPECIE, RC_RACA, PT_PORT
 INSERT INTO T_PB_ANIMAL (ID_ANIMAL, NM_NOME_ANIMAL, ES_ESPECIE, RC_RACA, PT_PORTE, SX_SEXO,
                          DT_DATA_NASCIMENTO, NR_PESO, CN_CONDICAO_CRONICA, CT_CASTRADO,
                          OB_ALERGIA, OB_OBSERVACOES, ID_RESPONSAVEL) VALUES
-    (2, 'Mia',  'GATO',     'SiamÃªs',          'PEQUENO', 'FEMEA', DATE '2022-07-02',  4.20, 0, 1,
-        NULL, 'NÃ£o aceita transporte na caixa', 2);
+    (2, 'Mia',  'GATO',     'Siamês',          'PEQUENO', 'FEMEA', DATE '2022-07-02',  4.20, 0, 1,
+        NULL, 'Não aceita transporte na caixa', 2);
 INSERT INTO T_PB_ANIMAL (ID_ANIMAL, NM_NOME_ANIMAL, ES_ESPECIE, RC_RACA, PT_PORTE, SX_SEXO,
                          DT_DATA_NASCIMENTO, NR_PESO, CN_CONDICAO_CRONICA, CT_CASTRADO,
                          OB_ALERGIA, OB_OBSERVACOES, ID_RESPONSAVEL) VALUES
-    (3, 'Bidu', 'CACHORRO', 'Sem raÃ§a definida','MEDIO',  'MACHO', DATE '2019-11-30', 18.00, 1, 1,
+    (3, 'Bidu', 'CACHORRO', 'Sem raça definida','MEDIO',  'MACHO', DATE '2019-11-30', 18.00, 1, 1,
         NULL, 'Displasia coxofemoral leve', 3);
 INSERT INTO T_PB_ANIMAL (ID_ANIMAL, NM_NOME_ANIMAL, ES_ESPECIE, RC_RACA, PT_PORTE, SX_SEXO,
                          DT_DATA_NASCIMENTO, NR_PESO, CN_CONDICAO_CRONICA, CT_CASTRADO,
                          OB_ALERGIA, OB_OBSERVACOES, ID_RESPONSAVEL) VALUES
     (4, 'Nina', 'GATO',     'Persa',           'PEQUENO', 'FEMEA', DATE '2020-01-20',  5.10, 1, 0,
-        'Alergia a dipirona', 'DoenÃ§a renal crÃ´nica em acompanhamento', 4);
+        'Alergia a dipirona', 'Doença renal crônica em acompanhamento', 4);
 INSERT INTO T_PB_ANIMAL (ID_ANIMAL, NM_NOME_ANIMAL, ES_ESPECIE, RC_RACA, PT_PORTE, SX_SEXO,
                          DT_DATA_NASCIMENTO, NR_PESO, CN_CONDICAO_CRONICA, CT_CASTRADO,
                          OB_ALERGIA, OB_OBSERVACOES, ID_RESPONSAVEL) VALUES
@@ -78,7 +78,7 @@ INSERT INTO T_PB_ANIMAL (ID_ANIMAL, NM_NOME_ANIMAL, ES_ESPECIE, RC_RACA, PT_PORT
 -- =============================================================================
 INSERT INTO T_PB_CONDICAO_CLINICA (ID_CONDICAO_CLINICA, CD_CODIGO, DS_ROTULO, TP_DADO, TP_FONTE_VALOR,
                                    DS_UNIDADE, FL_CRITICA, AT_ATIVO, ID_CLINICA, ID_VETERINARIO_AUTOR) VALUES
-    (1, 'VOMITO',      'O pet vomitou desde o Ãºltimo check-in?', 'BOOLEANO', 'RELATO', NULL,  0, 1, 1, 1);
+    (1, 'VOMITO',      'O pet vomitou desde o último check-in?', 'BOOLEANO', 'RELATO', NULL,  0, 1, 1, 1);
 INSERT INTO T_PB_CONDICAO_CLINICA (ID_CONDICAO_CLINICA, CD_CODIGO, DS_ROTULO, TP_DADO, TP_FONTE_VALOR,
                                    DS_UNIDADE, FL_CRITICA, AT_ATIVO, ID_CLINICA, ID_VETERINARIO_AUTOR) VALUES
     (2, 'DIARREIA',    'Como estavam as fezes?',                 'BOOLEANO', 'RELATO', NULL,  0, 1, 1, 1);
@@ -91,7 +91,7 @@ INSERT INTO T_PB_CONDICAO_CLINICA (ID_CONDICAO_CLINICA, CD_CODIGO, DS_ROTULO, TP
 
 INSERT INTO T_PB_CONDICAO_CLINICA (ID_CONDICAO_CLINICA, CD_CODIGO, DS_ROTULO, TP_DADO, TP_FONTE_VALOR,
                                    DS_UNIDADE, FL_CRITICA, AT_ATIVO, ID_CLINICA, ID_VETERINARIO_AUTOR) VALUES
-    (5, 'CONVULSAO',   'O pet teve algum episÃ³dio de convulsÃ£o?','BOOLEANO', 'RELATO', NULL,  1, 1, 1, 1);
+    (5, 'CONVULSAO',   'O pet teve algum episódio de convulsão?','BOOLEANO', 'RELATO', NULL,  1, 1, 1, 1);
 INSERT INTO T_PB_CONDICAO_CLINICA (ID_CONDICAO_CLINICA, CD_CODIGO, DS_ROTULO, TP_DADO, TP_FONTE_VALOR,
                                    DS_UNIDADE, FL_CRITICA, AT_ATIVO, ID_CLINICA, ID_VETERINARIO_AUTOR) VALUES
     (6, 'PESO',        'Qual o peso atual?',                     'NUMERICO', 'RELATO', 'kg',  0, 1, 1, 1);
@@ -102,26 +102,26 @@ INSERT INTO T_PB_CONDICAO_CLINICA (ID_CONDICAO_CLINICA, CD_CODIGO, DS_ROTULO, TP
 -- =============================================================================
 INSERT INTO T_PB_CONSULTA (ID_CONSULTA, TP_TIPO_CONSULTA, DH_DATA_HORA, ST_STATUS_CONSULTA,
                            OB_OBSERVACAO, MT_MOTIVO, ID_ANIMAL, ID_VETERINARIO) VALUES
-    (1, 'ROTINA',    TIMESTAMP '2026-08-28 09:00:00', 'REALIZADA', NULL, 'VÃ´mito hÃ¡ dois dias', 1, 1);
+    (1, 'ROTINA',    TIMESTAMP '2026-08-28 09:00:00', 'REALIZADA', NULL, 'Vômito há dois dias', 1, 1);
 INSERT INTO T_PB_CONSULTA (ID_CONSULTA, TP_TIPO_CONSULTA, DH_DATA_HORA, ST_STATUS_CONSULTA,
                            OB_OBSERVACAO, MT_MOTIVO, ID_ANIMAL, ID_VETERINARIO) VALUES
     (2, 'ROTINA',    TIMESTAMP '2026-08-28 10:00:00', 'REALIZADA', NULL, 'Espirros frequentes', 2, 1);
 INSERT INTO T_PB_CONSULTA (ID_CONSULTA, TP_TIPO_CONSULTA, DH_DATA_HORA, ST_STATUS_CONSULTA,
                            OB_OBSERVACAO, MT_MOTIVO, ID_ANIMAL, ID_VETERINARIO) VALUES
-    (3, 'RETORNO',   TIMESTAMP '2026-08-29 14:00:00', 'REALIZADA', 'Retorno da cirurgia', 'RevisÃ£o pÃ³s-operatÃ³ria', 3, 2);
+    (3, 'RETORNO',   TIMESTAMP '2026-08-29 14:00:00', 'REALIZADA', 'Retorno da cirurgia', 'Revisão pós-operatória', 3, 2);
 INSERT INTO T_PB_CONSULTA (ID_CONSULTA, TP_TIPO_CONSULTA, DH_DATA_HORA, ST_STATUS_CONSULTA,
                            OB_OBSERVACAO, MT_MOTIVO, ID_ANIMAL, ID_VETERINARIO) VALUES
     (4, 'EXAME',     TIMESTAMP '2026-08-30 11:00:00', 'REALIZADA', NULL, 'Controle renal', 4, 3);
 INSERT INTO T_PB_CONSULTA (ID_CONSULTA, TP_TIPO_CONSULTA, DH_DATA_HORA, ST_STATUS_CONSULTA,
                            OB_OBSERVACAO, MT_MOTIVO, ID_ANIMAL, ID_VETERINARIO) VALUES
     (5, 'VACINACAO', TIMESTAMP '2026-09-15 09:30:00', 'AGENDADA',  NULL, 'Primeira dose', 5, 1);
--- A consulta de 2025 existe por um motivo especÃ­fico: sem histÃ³rico com mais de
--- doze meses, a sugestÃ£o preventiva do ADR s3-24 cai SEMPRE no ramo "nunca fez",
--- e o ramo "vencida" â€” que Ã© a razÃ£o de a Ã¢ncora ULTIMA_REALIZACAO existir â€”
--- nunca Ã© exercitado.
+-- A consulta de 2025 existe por um motivo específico: sem histórico com mais de
+-- doze meses, a sugestão preventiva do ADR s3-24 cai SEMPRE no ramo "nunca fez",
+-- e o ramo "vencida" — que é a razão de a âncora ULTIMA_REALIZACAO existir —
+-- nunca é exercitado.
 INSERT INTO T_PB_CONSULTA (ID_CONSULTA, TP_TIPO_CONSULTA, DH_DATA_HORA, ST_STATUS_CONSULTA,
                            OB_OBSERVACAO, MT_MOTIVO, ID_ANIMAL, ID_VETERINARIO) VALUES
-    (6, 'VACINACAO', TIMESTAMP '2025-08-20 10:00:00', 'REALIZADA', NULL, 'VacinaÃ§Ã£o anual', 2, 1);
+    (6, 'VACINACAO', TIMESTAMP '2025-08-20 10:00:00', 'REALIZADA', NULL, 'Vacinação anual', 2, 1);
 
 
 -- =============================================================================
@@ -137,7 +137,7 @@ INSERT INTO T_PB_JANELA_ATENDIMENTO (ID_JANELA_ATENDIMENTO, DH_DATA_HORA_INICIO,
     (4, TIMESTAMP '2026-08-30 11:00:00', 3, 4);
 INSERT INTO T_PB_JANELA_ATENDIMENTO (ID_JANELA_ATENDIMENTO, DH_DATA_HORA_INICIO, ID_VETERINARIO, ID_CONSULTA) VALUES
     (5, TIMESTAMP '2026-09-15 09:30:00', 1, 5);
--- Livre: Ã© assim que a agenda oferece horÃ¡rio ao tutor.
+-- Livre: é assim que a agenda oferece horário ao tutor.
 INSERT INTO T_PB_JANELA_ATENDIMENTO (ID_JANELA_ATENDIMENTO, DH_DATA_HORA_INICIO, ID_VETERINARIO, ID_CONSULTA) VALUES
     (6, TIMESTAMP '2026-09-15 10:00:00', 1, NULL);
 INSERT INTO T_PB_JANELA_ATENDIMENTO (ID_JANELA_ATENDIMENTO, DH_DATA_HORA_INICIO, ID_VETERINARIO, ID_CONSULTA) VALUES
@@ -150,38 +150,38 @@ INSERT INTO T_PB_JANELA_ATENDIMENTO (ID_JANELA_ATENDIMENTO, DH_DATA_HORA_INICIO,
 INSERT INTO T_PB_REGISTRO_ATENDIMENTO (ID_REGISTRO_ATENDIMENTO, DT_DATA_ATENDIMENTO, AN_ANAMNESE,
                                        DG_DIAGNOSTICO, TR_TRATAMENTO, OB_OBSERVACAO,
                                        PR_PROXIMO_RETORNO, PR_PROXIMA_VACINA, ID_ANIMAL, ID_CONSULTA) VALUES
-    (1, TIMESTAMP '2026-08-28 09:20:00', 'Tutor relata vÃ´mito hÃ¡ dois dias, sem sangue.',
-        'Gastrite aguda', 'AntibiÃ³tico e analgÃ©sico por sete dias', NULL,
+    (1, TIMESTAMP '2026-08-28 09:20:00', 'Tutor relata vômito há dois dias, sem sangue.',
+        'Gastrite aguda', 'Antibiótico e analgésico por sete dias', NULL,
         DATE '2026-09-10', DATE '2026-11-01', 1, 1);
 INSERT INTO T_PB_REGISTRO_ATENDIMENTO (ID_REGISTRO_ATENDIMENTO, DT_DATA_ATENDIMENTO, AN_ANAMNESE,
                                        DG_DIAGNOSTICO, TR_TRATAMENTO, OB_OBSERVACAO,
                                        PR_PROXIMO_RETORNO, PR_PROXIMA_VACINA, ID_ANIMAL, ID_CONSULTA) VALUES
-    (2, TIMESTAMP '2026-08-28 10:25:00', 'Espirros frequentes hÃ¡ uma semana.',
-        'RinotraqueÃ­te felina', 'AntibiÃ³tico por sete dias', NULL,
+    (2, TIMESTAMP '2026-08-28 10:25:00', 'Espirros frequentes há uma semana.',
+        'Rinotraqueíte felina', 'Antibiótico por sete dias', NULL,
         DATE '2026-09-11', NULL, 2, 2);
 INSERT INTO T_PB_REGISTRO_ATENDIMENTO (ID_REGISTRO_ATENDIMENTO, DT_DATA_ATENDIMENTO, AN_ANAMNESE,
                                        DG_DIAGNOSTICO, TR_TRATAMENTO, OB_OBSERVACAO,
                                        PR_PROXIMO_RETORNO, PR_PROXIMA_VACINA, ID_ANIMAL, ID_CONSULTA) VALUES
-    (3, TIMESTAMP '2026-08-29 14:30:00', 'Retorno de cirurgia ortopÃ©dica.',
-        'PÃ³s-operatÃ³rio sem intercorrÃªncia', 'Anti-inflamatÃ³rio por cinco dias', 'Retirar pontos em 10 dias',
+    (3, TIMESTAMP '2026-08-29 14:30:00', 'Retorno de cirurgia ortopédica.',
+        'Pós-operatório sem intercorrência', 'Anti-inflamatório por cinco dias', 'Retirar pontos em 10 dias',
         DATE '2026-09-08', NULL, 3, 3);
 INSERT INTO T_PB_REGISTRO_ATENDIMENTO (ID_REGISTRO_ATENDIMENTO, DT_DATA_ATENDIMENTO, AN_ANAMNESE,
                                        DG_DIAGNOSTICO, TR_TRATAMENTO, OB_OBSERVACAO,
                                        PR_PROXIMO_RETORNO, PR_PROXIMA_VACINA, ID_ANIMAL, ID_CONSULTA) VALUES
-    (4, TIMESTAMP '2026-08-30 11:20:00', 'Acompanhamento de doenÃ§a renal crÃ´nica.',
-        'DRC estÃ¡gio 2 estÃ¡vel', 'Corticoide em dose baixa', NULL,
+    (4, TIMESTAMP '2026-08-30 11:20:00', 'Acompanhamento de doença renal crônica.',
+        'DRC estágio 2 estável', 'Corticoide em dose baixa', NULL,
         DATE '2026-09-30', NULL, 4, 4);
 INSERT INTO T_PB_REGISTRO_ATENDIMENTO (ID_REGISTRO_ATENDIMENTO, DT_DATA_ATENDIMENTO, AN_ANAMNESE,
                                        DG_DIAGNOSTICO, TR_TRATAMENTO, OB_OBSERVACAO,
                                        PR_PROXIMO_RETORNO, PR_PROXIMA_VACINA, ID_ANIMAL, ID_CONSULTA) VALUES
-    (5, TIMESTAMP '2026-08-30 15:00:00', 'AvaliaÃ§Ã£o inicial de filhote.',
-        'Animal hÃ­gido', 'Iniciar protocolo preventivo', NULL,
+    (5, TIMESTAMP '2026-08-30 15:00:00', 'Avaliação inicial de filhote.',
+        'Animal hígido', 'Iniciar protocolo preventivo', NULL,
         NULL, DATE '2026-09-15', 5, 5);
 INSERT INTO T_PB_REGISTRO_ATENDIMENTO (ID_REGISTRO_ATENDIMENTO, DT_DATA_ATENDIMENTO, AN_ANAMNESE,
                                        DG_DIAGNOSTICO, TR_TRATAMENTO, OB_OBSERVACAO,
                                        PR_PROXIMO_RETORNO, PR_PROXIMA_VACINA, ID_ANIMAL, ID_CONSULTA) VALUES
-    (6, TIMESTAMP '2025-08-20 10:15:00', 'VacinaÃ§Ã£o anual de rotina.',
-        'Animal hÃ­gido', 'Vacina aplicada sem intercorrÃªncia', NULL,
+    (6, TIMESTAMP '2025-08-20 10:15:00', 'Vacinação anual de rotina.',
+        'Animal hígido', 'Vacina aplicada sem intercorrência', NULL,
         NULL, DATE '2026-08-20', 2, 6);
 
 
@@ -201,7 +201,7 @@ INSERT INTO T_PB_PROCEDIMENTO (ID_PROCEDIMENTO, TP_TIPO_PROCEDIMENTO, NM_NOME, D
 INSERT INTO T_PB_PROCEDIMENTO (ID_PROCEDIMENTO, TP_TIPO_PROCEDIMENTO, NM_NOME, DS_DESCRICAO,
                                ST_STATUS_PROCEDIMENTO, DT_DATA_PREVISTA_INICIO, DT_DATA_PREVISTA_FIM,
                                ID_REGISTRO_ATENDIMENTO, ID_ANIMAL, ID_VETERINARIO) VALUES
-    (3, 'CIRURGIA', 'RevisÃ£o de osteossÃ­ntese', 'Procedimento anterior', 'REALIZADO',
+    (3, 'CIRURGIA', 'Revisão de osteossíntese', 'Procedimento anterior', 'REALIZADO',
         TIMESTAMP '2026-08-29 15:00:00', TIMESTAMP '2026-08-29 16:30:00', 3, 3, 2);
 INSERT INTO T_PB_PROCEDIMENTO (ID_PROCEDIMENTO, TP_TIPO_PROCEDIMENTO, NM_NOME, DS_DESCRICAO,
                                ST_STATUS_PROCEDIMENTO, DT_DATA_PREVISTA_INICIO, DT_DATA_PREVISTA_FIM,
@@ -217,7 +217,7 @@ INSERT INTO T_PB_PROCEDIMENTO (ID_PROCEDIMENTO, TP_TIPO_PROCEDIMENTO, NM_NOME, D
 INSERT INTO T_PB_PROCEDIMENTO (ID_PROCEDIMENTO, TP_TIPO_PROCEDIMENTO, NM_NOME, DS_DESCRICAO,
                                ST_STATUS_PROCEDIMENTO, DT_DATA_PREVISTA_INICIO, DT_DATA_PREVISTA_FIM,
                                ID_REGISTRO_ATENDIMENTO, ID_ANIMAL, ID_VETERINARIO) VALUES
-    (6, 'VACINACAO', 'Vacina quÃ¡drupla felina - anual', 'Aplicada em 2025', 'REALIZADO',
+    (6, 'VACINACAO', 'Vacina quádrupla felina - anual', 'Aplicada em 2025', 'REALIZADO',
         TIMESTAMP '2025-08-20 10:15:00', TIMESTAMP '2025-08-20 10:30:00', 6, 2, 1);
 
 
@@ -233,7 +233,7 @@ INSERT INTO T_PB_PRESCRICAO (ID_PRESCRICAO, NM_MEDICAMENTO, NR_DOSE_MIN, NR_DOSE
                              NR_FREQUENCIA_DIA, NR_DURACAO_DIAS, DT_INICIO, TX_ORIENTACAO,
                              ID_ANIMAL, ID_VETERINARIO, ID_REGISTRO_ATENDIMENTO) VALUES
     (2, 'Amoxicilina',  0.500, 1.000, 'ml', 2, 7, DATE '2026-09-01',
-        'Dar pela manhÃ£ e Ã  noite.', 2, 1, 2);
+        'Dar pela manhã e à noite.', 2, 1, 2);
 INSERT INTO T_PB_PRESCRICAO (ID_PRESCRICAO, NM_MEDICAMENTO, NR_DOSE_MIN, NR_DOSE_MAX, DS_UNIDADE,
                              NR_FREQUENCIA_DIA, NR_DURACAO_DIAS, DT_INICIO, TX_ORIENTACAO,
                              ID_ANIMAL, ID_VETERINARIO, ID_REGISTRO_ATENDIMENTO) VALUES
@@ -243,21 +243,21 @@ INSERT INTO T_PB_PRESCRICAO (ID_PRESCRICAO, NM_MEDICAMENTO, NR_DOSE_MIN, NR_DOSE
                              NR_FREQUENCIA_DIA, NR_DURACAO_DIAS, DT_INICIO, TX_ORIENTACAO,
                              ID_ANIMAL, ID_VETERINARIO, ID_REGISTRO_ATENDIMENTO) VALUES
     (4, 'Meloxicam',    0.250, 0.750, 'ml', 1, 5, DATE '2026-09-01',
-        'ApÃ³s a refeiÃ§Ã£o. Reduzir se houver diarreia.', 3, 2, 3);
+        'Após a refeição. Reduzir se houver diarreia.', 3, 2, 3);
 INSERT INTO T_PB_PRESCRICAO (ID_PRESCRICAO, NM_MEDICAMENTO, NR_DOSE_MIN, NR_DOSE_MAX, DS_UNIDADE,
                              NR_FREQUENCIA_DIA, NR_DURACAO_DIAS, DT_INICIO, TX_ORIENTACAO,
                              ID_ANIMAL, ID_VETERINARIO, ID_REGISTRO_ATENDIMENTO) VALUES
     (5, 'Prednisolona', 1.000, 3.000, 'mg', 1, 10, DATE '2026-09-01',
-        'NÃ£o interromper sem orientaÃ§Ã£o.', 4, 3, 4);
+        'Não interromper sem orientação.', 4, 3, 4);
 
 
 -- =============================================================================
--- 11. T_PB_REGRA_PRESCRICAO - condição â†’ aÃ§Ã£o, com o rótulo congelado
+-- 11. T_PB_REGRA_PRESCRICAO - condição → ação, com o rótulo congelado
 -- =============================================================================
 INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDICAO_CLINICA,
                                    DS_ROTULO_CONGELADO, TP_DADO_CONGELADO, TP_FONTE_VALOR_CONGELADA,
                                    TP_OPERADOR, NR_LIMITE, TP_ACAO_DOSE, NR_ORDEM) VALUES
-    (1, 1, 1, 'O pet vomitou desde o Ãºltimo check-in?', 'BOOLEANO', 'RELATO',
+    (1, 1, 1, 'O pet vomitou desde o último check-in?', 'BOOLEANO', 'RELATO',
         NULL, NULL, 'SUSPENDER', 1);
 INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDICAO_CLINICA,
                                    DS_ROTULO_CONGELADO, TP_DADO_CONGELADO, TP_FONTE_VALOR_CONGELADA,
@@ -267,7 +267,7 @@ INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDIC
 INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDICAO_CLINICA,
                                    DS_ROTULO_CONGELADO, TP_DADO_CONGELADO, TP_FONTE_VALOR_CONGELADA,
                                    TP_OPERADOR, NR_LIMITE, TP_ACAO_DOSE, NR_ORDEM) VALUES
-    (3, 3, 5, 'O pet teve algum episÃ³dio de convulsÃ£o?', 'BOOLEANO', 'RELATO',
+    (3, 3, 5, 'O pet teve algum episódio de convulsão?', 'BOOLEANO', 'RELATO',
         NULL, NULL, 'ACIONAR_CLINICA', 1);
 INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDICAO_CLINICA,
                                    DS_ROTULO_CONGELADO, TP_DADO_CONGELADO, TP_FONTE_VALOR_CONGELADA,
@@ -277,7 +277,7 @@ INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDIC
 INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDICAO_CLINICA,
                                    DS_ROTULO_CONGELADO, TP_DADO_CONGELADO, TP_FONTE_VALOR_CONGELADA,
                                    TP_OPERADOR, NR_LIMITE, TP_ACAO_DOSE, NR_ORDEM) VALUES
-    (5, 2, 1, 'O pet vomitou desde o Ãºltimo check-in?', 'BOOLEANO', 'RELATO',
+    (5, 2, 1, 'O pet vomitou desde o último check-in?', 'BOOLEANO', 'RELATO',
         NULL, NULL, 'SUSPENDER', 1);
 INSERT INTO T_PB_REGRA_PRESCRICAO (ID_REGRA_PRESCRICAO, ID_PRESCRICAO, ID_CONDICAO_CLINICA,
                                    DS_ROTULO_CONGELADO, TP_DADO_CONGELADO, TP_FONTE_VALOR_CONGELADA,
@@ -304,20 +304,20 @@ INSERT INTO T_PB_USUARIO (ID_USUARIO, DS_LOGIN, DS_SENHA_HASH, TP_PERFIL, ID_VET
 -- 13. T_PB_PROTOCOLO - o catálogo da clínica
 -- =============================================================================
 INSERT INTO T_PB_PROTOCOLO (ID_PROTOCOLO, NM_NOME, TP_CATEGORIA_PROTOCOLO, ES_ESPECIE, AT_ATIVO, DS_DESCRICAO) VALUES
-    (1, 'Preventivo CÃ£o Adulto',    'PREVENTIVO',    'CACHORRO', 1,
-        'VacinaÃ§Ã£o anual, vermifugaÃ§Ã£o trimestral e controle mensal de ectoparasitas.');
+    (1, 'Preventivo Cão Adulto',    'PREVENTIVO',    'CACHORRO', 1,
+        'Vacinação anual, vermifugação trimestral e controle mensal de ectoparasitas.');
 INSERT INTO T_PB_PROTOCOLO (ID_PROTOCOLO, NM_NOME, TP_CATEGORIA_PROTOCOLO, ES_ESPECIE, AT_ATIVO, DS_DESCRICAO) VALUES
     (2, 'Preventivo Gato Adulto',   'PREVENTIVO',    'GATO',     1,
-        'VacinaÃ§Ã£o anual e vermifugaÃ§Ã£o semestral.');
+        'Vacinação anual e vermifugação semestral.');
 INSERT INTO T_PB_PROTOCOLO (ID_PROTOCOLO, NM_NOME, TP_CATEGORIA_PROTOCOLO, ES_ESPECIE, AT_ATIVO, DS_DESCRICAO) VALUES
-    (3, 'Preventivo Filhote CÃ£o',   'PREVENTIVO',    'CACHORRO', 1,
-        'Protocolo vacinal de filhote, trÃªs doses a partir das seis semanas.');
+    (3, 'Preventivo Filhote Cão',   'PREVENTIVO',    'CACHORRO', 1,
+        'Protocolo vacinal de filhote, três doses a partir das seis semanas.');
 INSERT INTO T_PB_PROTOCOLO (ID_PROTOCOLO, NM_NOME, TP_CATEGORIA_PROTOCOLO, ES_ESPECIE, AT_ATIVO, DS_DESCRICAO) VALUES
-    (4, 'PÃ³s-cirÃºrgico OrtopÃ©dico', 'POS_CIRURGICO', 'CACHORRO', 1,
-        'Acompanhamento de dez dias apÃ³s osteossÃ­ntese.');
+    (4, 'Pós-cirúrgico Ortopédico', 'POS_CIRURGICO', 'CACHORRO', 1,
+        'Acompanhamento de dez dias após osteossíntese.');
 INSERT INTO T_PB_PROTOCOLO (ID_PROTOCOLO, NM_NOME, TP_CATEGORIA_PROTOCOLO, ES_ESPECIE, AT_ATIVO, DS_DESCRICAO) VALUES
     (5, 'Preventivo Coelho',        'PREVENTIVO',    'COELHO',   1,
-        'VermifugaÃ§Ã£o semestral e checagem dentÃ¡ria.');
+        'Vermifugação semestral e checagem dentária.');
 
 
 -- =============================================================================
@@ -326,35 +326,35 @@ INSERT INTO T_PB_PROTOCOLO (ID_PROTOCOLO, NM_NOME, TP_CATEGORIA_PROTOCOLO, ES_ES
 INSERT INTO T_PB_REGRA_PROTOCOLO (ID_REGRA_PROTOCOLO, ID_PROTOCOLO, TP_TIPO_CUIDADO, NM_NOME, NR_OFFSET,
                                   TP_UNIDADE_OFFSET, TP_DATA_BASE, NR_INTERVALO, TP_UNIDADE_INTERVALO,
                                   NR_REPETICOES, DS_DESCRICAO) VALUES
-    (1, 1, 'VACINACAO',    'Vacina V10 (reforÃ§o anual)', 12, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
-        'Reavaliada a cada leitura: vence doze meses depois da Ãºltima aplicaÃ§Ã£o.');
+    (1, 1, 'VACINACAO',    'Vacina V10 (reforço anual)', 12, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
+        'Reavaliada a cada leitura: vence doze meses depois da última aplicação.');
 INSERT INTO T_PB_REGRA_PROTOCOLO (ID_REGRA_PROTOCOLO, ID_PROTOCOLO, TP_TIPO_CUIDADO, NM_NOME, NR_OFFSET,
                                   TP_UNIDADE_OFFSET, TP_DATA_BASE, NR_INTERVALO, TP_UNIDADE_INTERVALO,
                                   NR_REPETICOES, DS_DESCRICAO) VALUES
-    (2, 1, 'VERMIFUGACAO', 'VermÃ­fugo oral',              3, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
+    (2, 1, 'VERMIFUGACAO', 'Vermífugo oral',              3, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
         'O tutor administra em casa.');
 INSERT INTO T_PB_REGRA_PROTOCOLO (ID_REGRA_PROTOCOLO, ID_PROTOCOLO, TP_TIPO_CUIDADO, NM_NOME, NR_OFFSET,
                                   TP_UNIDADE_OFFSET, TP_DATA_BASE, NR_INTERVALO, TP_UNIDADE_INTERVALO,
                                   NR_REPETICOES, DS_DESCRICAO) VALUES
-    (3, 1, 'HIGIENE',      'Antipulgas tÃ³pico',           1, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
+    (3, 1, 'HIGIENE',      'Antipulgas tópico',           1, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
         'Mensal.');
 INSERT INTO T_PB_REGRA_PROTOCOLO (ID_REGRA_PROTOCOLO, ID_PROTOCOLO, TP_TIPO_CUIDADO, NM_NOME, NR_OFFSET,
                                   TP_UNIDADE_OFFSET, TP_DATA_BASE, NR_INTERVALO, TP_UNIDADE_INTERVALO,
                                   NR_REPETICOES, DS_DESCRICAO) VALUES
-    (4, 2, 'VACINACAO',    'Vacina quÃ¡drupla felina',    12, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
-        'Ã‰ esta regra que a vacina de 2025 do animal 2 faz vencer.');
+    (4, 2, 'VACINACAO',    'Vacina quádrupla felina',    12, 'MESES', 'ULTIMA_REALIZACAO', NULL, NULL, 1,
+        'É esta regra que a vacina de 2025 do animal 2 faz vencer.');
 
 INSERT INTO T_PB_REGRA_PROTOCOLO (ID_REGRA_PROTOCOLO, ID_PROTOCOLO, TP_TIPO_CUIDADO, NM_NOME, NR_OFFSET,
                                   TP_UNIDADE_OFFSET, TP_DATA_BASE, NR_INTERVALO, TP_UNIDADE_INTERVALO,
                                   NR_REPETICOES, DS_DESCRICAO) VALUES
     (5, 4, 'RETORNO',      'Retirada de pontos',         10, 'DIAS',  'DATA_CIRURGIA',     NULL, NULL, 1,
-        'Retorno Ãºnico, dez dias apÃ³s a cirurgia.');
+        'Retorno único, dez dias após a cirurgia.');
 
 INSERT INTO T_PB_REGRA_PROTOCOLO (ID_REGRA_PROTOCOLO, ID_PROTOCOLO, TP_TIPO_CUIDADO, NM_NOME, NR_OFFSET,
                                   TP_UNIDADE_OFFSET, TP_DATA_BASE, NR_INTERVALO, TP_UNIDADE_INTERVALO,
                                   NR_REPETICOES, DS_DESCRICAO) VALUES
     (6, 3, 'VACINACAO',    'Vacina V10 (filhote)',       45, 'DIAS',  'NASCIMENTO',          21, 'DIAS', 3,
-        'TrÃªs doses com 21 dias de intervalo.');
+        'Três doses com 21 dias de intervalo.');
 
 
 -- =============================================================================
@@ -363,17 +363,17 @@ INSERT INTO T_PB_REGRA_PROTOCOLO (ID_REGRA_PROTOCOLO, ID_PROTOCOLO, TP_TIPO_CUID
 INSERT INTO T_PB_CHECKIN (ID_CHECKIN, ID_ANIMAL, ID_ITEM_PLANO_CUIDADO, DT_REFERENCIA,
                           DH_REGISTRADO_EM, TX_NARRATIVA, TX_OBSERVACOES_GERAIS, DS_TIC_UTILIZADA) VALUES
     (1, 1, NULL, DATE '2026-09-01', TIMESTAMP '2026-09-01 08:15:00',
-       'O Thor passou bem a noite, comeu tudo e nÃ£o vomitou. Medi a temperatura e deu 38.5.',
-       'Tutor relatou por Ã¡udio', 'PetBuddies App - transcricao on-device');
+       'O Thor passou bem a noite, comeu tudo e não vomitou. Medi a temperatura e deu 38.5.',
+       'Tutor relatou por áudio', 'PetBuddies App - transcricao on-device');
 INSERT INTO T_PB_CHECKIN (ID_CHECKIN, ID_ANIMAL, ID_ITEM_PLANO_CUIDADO, DT_REFERENCIA,
                           DH_REGISTRADO_EM, TX_NARRATIVA, TX_OBSERVACOES_GERAIS, DS_TIC_UTILIZADA) VALUES
     (2, 1, NULL, DATE '2026-09-02', TIMESTAMP '2026-09-02 08:10:00',
-       'Hoje ele vomitou duas vezes de manhÃ£ e teve um episÃ³dio de tremor forte que parecia convulsÃ£o.',
+       'Hoje ele vomitou duas vezes de manhã e teve um episódio de tremor forte que parecia convulsão.',
        'Tutor muito preocupado', 'PetBuddies App - transcricao on-device');
 INSERT INTO T_PB_CHECKIN (ID_CHECKIN, ID_ANIMAL, ID_ITEM_PLANO_CUIDADO, DT_REFERENCIA,
                           DH_REGISTRADO_EM, TX_NARRATIVA, TX_OBSERVACOES_GERAIS, DS_TIC_UTILIZADA) VALUES
     (3, 2, NULL, DATE '2026-09-01', TIMESTAMP '2026-09-01 09:00:00',
-       'A Mia estÃ¡ bem, sem vÃ´mito, comendo normal.', NULL, 'PetBuddies App - texto');
+       'A Mia está bem, sem vômito, comendo normal.', NULL, 'PetBuddies App - texto');
 INSERT INTO T_PB_CHECKIN (ID_CHECKIN, ID_ANIMAL, ID_ITEM_PLANO_CUIDADO, DT_REFERENCIA,
                           DH_REGISTRADO_EM, TX_NARRATIVA, TX_OBSERVACOES_GERAIS, DS_TIC_UTILIZADA) VALUES
     (4, 3, NULL, DATE '2026-09-01', TIMESTAMP '2026-09-01 10:30:00',
@@ -410,8 +410,8 @@ INSERT INTO T_PB_CONDICAO_OBSERVADA (ID_CONDICAO_OBSERVADA, ID_CHECKIN, ID_CONDI
 INSERT INTO T_PB_CONDICAO_OBSERVADA (ID_CONDICAO_OBSERVADA, ID_CHECKIN, ID_CONDICAO_CLINICA,
                                      CD_CODIGO_CONGELADO, BL_VALOR_BOOLEANO, NR_VALOR_NUMERICO, NR_CONFIANCA) VALUES
     (6, 4, 2, 'DIARREIA',    1,    NULL,   0.9100);
--- CondiÃ§Ã£o observada que NENHUMA regra cobre: fica registrada mesmo assim, para
--- a veterinÃ¡ria ver. Ã‰ por isso que a observaÃ§Ã£o aponta para o catÃ¡logo, e nÃ£o
+-- Condição observada que NENHUMA regra cobre: fica registrada mesmo assim, para
+-- a veterinária ver. É por isso que a observação aponta para o catálogo, e não
 -- para a regra.
 INSERT INTO T_PB_CONDICAO_OBSERVADA (ID_CONDICAO_OBSERVADA, ID_CHECKIN, ID_CONDICAO_CLINICA,
                                      CD_CODIGO_CONGELADO, BL_VALOR_BOOLEANO, NR_VALOR_NUMERICO, NR_CONFIANCA) VALUES
@@ -468,7 +468,7 @@ INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
                                      ID_CHECKIN, TP_DESFECHO, NR_DOSE_APLICADA, ID_REGRA_APLICADA) VALUES
     (4, 2, NULL, 'PRESCRICAO', 3, 'MEDICACAO', 'Dipirona - dia 2',    DATE '2026-09-02', 'CANCELADO',
-        'ConvulsÃ£o relatada: clÃ­nica acionada', NULL, NULL, 2, 'ACIONAR_CLINICA', NULL, 3);
+        'Convulsão relatada: clínica acionada', NULL, NULL, 2, 'ACIONAR_CLINICA', NULL, 3);
 INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID_REGRA_PROTOCOLO, TP_ORIGEM,
                                      ID_PRESCRICAO, TP_TIPO_CUIDADO, NM_NOME, DT_DATA_ALVO, ST_STATUS_ITEM, OB_OBSERVACAO,
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
@@ -480,7 +480,7 @@ INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
                                      ID_CHECKIN, TP_DESFECHO, NR_DOSE_APLICADA, ID_REGRA_APLICADA) VALUES
     (6, 6, NULL, 'PRESCRICAO', 4, 'MEDICACAO', 'Meloxicam - dia 1',   DATE '2026-09-01', 'REALIZADO',
-        'Dose mÃ­nima: diarreia relatada', NULL, TIMESTAMP '2026-09-01 10:40:00', 4, 'DOSE_CALCULADA', 0.250, 6);
+        'Dose mínima: diarreia relatada', NULL, TIMESTAMP '2026-09-01 10:40:00', 4, 'DOSE_CALCULADA', 0.250, 6);
 INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID_REGRA_PROTOCOLO, TP_ORIGEM,
                                      ID_PRESCRICAO, TP_TIPO_CUIDADO, NM_NOME, DT_DATA_ALVO, ST_STATUS_ITEM, OB_OBSERVACAO,
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
@@ -499,26 +499,26 @@ INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID
                                      ID_PRESCRICAO, TP_TIPO_CUIDADO, NM_NOME, DT_DATA_ALVO, ST_STATUS_ITEM, OB_OBSERVACAO,
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
                                      ID_CHECKIN, TP_DESFECHO, NR_DOSE_APLICADA, ID_REGRA_APLICADA) VALUES
-    (9, 1, 1, 'PROTOCOLO', NULL, 'VACINACAO',    'Vacina V10 (reforÃ§o anual)', DATE '2026-09-15', 'PENDENTE',
+    (9, 1, 1, 'PROTOCOLO', NULL, 'VACINACAO',    'Vacina V10 (reforço anual)', DATE '2026-09-15', 'PENDENTE',
         NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID_REGRA_PROTOCOLO, TP_ORIGEM,
                                      ID_PRESCRICAO, TP_TIPO_CUIDADO, NM_NOME, DT_DATA_ALVO, ST_STATUS_ITEM, OB_OBSERVACAO,
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
                                      ID_CHECKIN, TP_DESFECHO, NR_DOSE_APLICADA, ID_REGRA_APLICADA) VALUES
-    (10, 1, 2, 'PROTOCOLO', NULL, 'VERMIFUGACAO','VermÃ­fugo oral',             DATE '2026-09-11', 'PENDENTE',
+    (10, 1, 2, 'PROTOCOLO', NULL, 'VERMIFUGACAO','Vermífugo oral',             DATE '2026-09-11', 'PENDENTE',
         NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID_REGRA_PROTOCOLO, TP_ORIGEM,
                                      ID_PRESCRICAO, TP_TIPO_CUIDADO, NM_NOME, DT_DATA_ALVO, ST_STATUS_ITEM, OB_OBSERVACAO,
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
                                      ID_CHECKIN, TP_DESFECHO, NR_DOSE_APLICADA, ID_REGRA_APLICADA) VALUES
-    (11, 1, 3, 'PROTOCOLO', NULL, 'HIGIENE',     'Antipulgas tÃ³pico',          DATE '2026-09-27', 'PENDENTE',
+    (11, 1, 3, 'PROTOCOLO', NULL, 'HIGIENE',     'Antipulgas tópico',          DATE '2026-09-27', 'PENDENTE',
         NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 -- ESTE É O ITEM QUE FAZ A PERIODICIDADE EXISTIR. 
 INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID_REGRA_PROTOCOLO, TP_ORIGEM,
                                      ID_PRESCRICAO, TP_TIPO_CUIDADO, NM_NOME, DT_DATA_ALVO, ST_STATUS_ITEM, OB_OBSERVACAO,
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
                                      ID_CHECKIN, TP_DESFECHO, NR_DOSE_APLICADA, ID_REGRA_APLICADA) VALUES
-    (12, 3, 4, 'PROTOCOLO', NULL, 'VACINACAO',   'Vacina quÃ¡drupla felina',    DATE '2025-08-20', 'REALIZADO',
+    (12, 3, 4, 'PROTOCOLO', NULL, 'VACINACAO',   'Vacina quádrupla felina',    DATE '2025-08-20', 'REALIZADO',
         NULL, 6, TIMESTAMP '2025-08-20 10:30:00', NULL, NULL, NULL, NULL);
 INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID_REGRA_PROTOCOLO, TP_ORIGEM,
                                      ID_PRESCRICAO, TP_TIPO_CUIDADO, NM_NOME, DT_DATA_ALVO, ST_STATUS_ITEM, OB_OBSERVACAO,
@@ -532,7 +532,7 @@ INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID
                                      ID_PROCEDIMENTO, DT_EXECUTADO_EM,
                                      ID_CHECKIN, TP_DESFECHO, NR_DOSE_APLICADA, ID_REGRA_APLICADA) VALUES
     (14, 8, 6, 'PROTOCOLO', NULL, 'VACINACAO',   'Vacina V10 (filhote) - 1a dose', DATE '2026-08-20', 'ATRASADO',
-        'Tutor nÃ£o compareceu', NULL, NULL, NULL, NULL, NULL, NULL);
+        'Tutor não compareceu', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- =============================================================================
 -- 19. T_PB_CHECKIN aponta para o item de que fala; o item aponta para o check-in que
@@ -541,8 +541,8 @@ INSERT INTO T_PB_ITEM_PLANO_CUIDADO (ID_ITEM_PLANO_CUIDADO, ID_PLANO_CUIDADO, ID
 INSERT INTO T_PB_CHECKIN (ID_CHECKIN, ID_ANIMAL, ID_ITEM_PLANO_CUIDADO, DT_REFERENCIA,
                           DH_REGISTRADO_EM, TX_NARRATIVA, TX_OBSERVACOES_GERAIS, DS_TIC_UTILIZADA) VALUES
     (7, 1, 1, DATE '2026-09-01', TIMESTAMP '2026-09-01 20:30:00',
-       'Sobre a amoxicilina de hoje: ele tomou direitinho junto com a raÃ§Ã£o, sem cuspir nada.',
-       'Relato especÃ­fico sobre um item do checklist', 'PetBuddies App - texto');
+       'Sobre a amoxicilina de hoje: ele tomou direitinho junto com a ração, sem cuspir nada.',
+       'Relato específico sobre um item do checklist', 'PetBuddies App - texto');
 
 
 -- =============================================================================
@@ -560,13 +560,13 @@ INSERT INTO T_PB_OFERTA (ID_OFERTA, ID_CLINICA, TP_ATO, TP_SUBTIPO, ID_PROTOCOLO
 INSERT INTO T_PB_OFERTA (ID_OFERTA, ID_CLINICA, TP_ATO, TP_SUBTIPO, ID_PROTOCOLO,
                          DS_DESCRICAO, NR_VALOR, DT_INICIO_VIGENCIA) VALUES
     (4, 1, 'PROCEDIMENTO', 'EXAME_LABORATORIAL', NULL, 'Hemograma completo', 95.00, DATE '2026-01-01');
--- Protocolo vendido como pacote: aqui o alvo Ã© uma LINHA, nÃ£o um valor de enum.
+-- Protocolo vendido como pacote: aqui o alvo é uma LINHA, não um valor de enum.
 INSERT INTO T_PB_OFERTA (ID_OFERTA, ID_CLINICA, TP_ATO, TP_SUBTIPO, ID_PROTOCOLO,
                          DS_DESCRICAO, NR_VALOR, DT_INICIO_VIGENCIA) VALUES
-    (5, 1, 'PROTOCOLO', NULL, 1, 'Pacote preventivo cÃ£o adulto (anual)', 450.00, DATE '2026-01-01');
+    (5, 1, 'PROTOCOLO', NULL, 1, 'Pacote preventivo cão adulto (anual)', 450.00, DATE '2026-01-01');
 INSERT INTO T_PB_OFERTA (ID_OFERTA, ID_CLINICA, TP_ATO, TP_SUBTIPO, ID_PROTOCOLO,
                          DS_DESCRICAO, NR_VALOR, DT_INICIO_VIGENCIA) VALUES
-    (6, 1, 'PROTOCOLO', NULL, 3, 'Pacote filhote (trÃªs doses)', 380.00, DATE '2026-01-01');
+    (6, 1, 'PROTOCOLO', NULL, 3, 'Pacote filhote (três doses)', 380.00, DATE '2026-01-01');
 
 
 -- =============================================================================
@@ -580,8 +580,8 @@ INSERT INTO T_PB_REGRA_PONTUACAO (ID_REGRA_PONTUACAO, ID_CLINICA, TP_GESTO, NR_P
     (3, 1, 'CONSULTA_REALIZADA',     30, DATE '2026-01-01');
 INSERT INTO T_PB_REGRA_PONTUACAO (ID_REGRA_PONTUACAO, ID_CLINICA, TP_GESTO, NR_PONTOS, DT_INICIO_VIGENCIA) VALUES
     (4, 1, 'PROCEDIMENTO_EXECUTADO', 20, DATE '2026-01-01');
--- Comparecer passou a valer mais a partir de julho: Ã© o gesto que a clÃ­nica quer
--- estimular, e mudar isso Ã© configuraÃ§Ã£o, nÃ£o deploy.
+-- Comparecer passou a valer mais a partir de julho: é o gesto que a clínica quer
+-- estimular, e mudar isso é configuração, não deploy.
 INSERT INTO T_PB_REGRA_PONTUACAO (ID_REGRA_PONTUACAO, ID_CLINICA, TP_GESTO, NR_PONTOS, DT_INICIO_VIGENCIA) VALUES
     (5, 1, 'CONSULTA_REALIZADA',     40, DATE '2026-07-01');
 INSERT INTO T_PB_REGRA_PONTUACAO (ID_REGRA_PONTUACAO, ID_CLINICA, TP_GESTO, NR_PONTOS, DT_INICIO_VIGENCIA) VALUES
