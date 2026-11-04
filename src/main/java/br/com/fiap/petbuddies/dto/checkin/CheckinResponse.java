@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.dto.checkin;
 
 import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
+import br.com.fiap.petbuddies.dto.cadastro.ContatoClinicaResponse;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -23,10 +24,11 @@ public class CheckinResponse {
     private List<CondicaoObservadaResponse> condicoesObservadas;
     private List<CheckinDesfechoResponse> desfechos;
     private boolean escalado;
+    private ContatoClinicaResponse clinica;
 
     public static CheckinResponse of(
             CheckinEntity checkin, List<CondicaoObservadaResponse> condicoesObservadas,
-            List<CheckinDesfechoResponse> desfechos, boolean escalado) {
+            List<CheckinDesfechoResponse> desfechos, boolean escalado, ContatoClinicaResponse clinica) {
         CheckinResponse dto = new CheckinResponse();
         dto.id = checkin.getId();
         dto.animalId = checkin.getAnimal() == null ? null : checkin.getAnimal().getId();
@@ -39,6 +41,7 @@ public class CheckinResponse {
         dto.condicoesObservadas = condicoesObservadas;
         dto.desfechos = desfechos;
         dto.escalado = escalado;
+        dto.clinica = clinica;
         return dto;
     }
 }

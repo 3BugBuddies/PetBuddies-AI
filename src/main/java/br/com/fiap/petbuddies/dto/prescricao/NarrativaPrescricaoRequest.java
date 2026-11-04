@@ -11,7 +11,10 @@ import lombok.*;
 @AllArgsConstructor
 public class NarrativaPrescricaoRequest {
 
-    @NotNull(message = "Registro de atendimento é obrigatório.")
+    @NotNull(message = "Animal é obrigatório.")
+    private Long animalId;
+
+    /** Opcional: com ele, o rascunho sai vinculado ao registro (prescricaoBase). */
     private Long registroAtendimentoId;
 
     @NotBlank(message = "Narrativa é obrigatória.")

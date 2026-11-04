@@ -13,6 +13,7 @@ public class ResponsavelResponse {
     private String nome;
     private String telefone;
     private String email;
+    private String endereco;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -22,6 +23,7 @@ public class ResponsavelResponse {
         dto.nome = entity.getNome();
         dto.telefone = entity.getContato().getTelefone();
         dto.email = entity.getContato().getEmail();
+        dto.endereco = entity.getEndereco();
         dto.createdAt = entity.getAuditoria().getCreatedAt();
         dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;

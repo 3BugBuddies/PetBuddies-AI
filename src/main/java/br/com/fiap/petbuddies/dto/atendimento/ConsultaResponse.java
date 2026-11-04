@@ -4,6 +4,7 @@ import br.com.fiap.petbuddies.domain.entity.ConsultaEntity;
 import br.com.fiap.petbuddies.domain.enums.atendimento.StatusConsulta;
 import br.com.fiap.petbuddies.domain.enums.atendimento.TipoConsulta;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +21,8 @@ public class ConsultaResponse {
     private String motivo;
     private Long animalId;
     private Long veterinarioId;
+    private String animalNome;
+    private String veterinarioNome;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -31,9 +34,15 @@ public class ConsultaResponse {
         dto.status = entity.getStatus();
         dto.observacao = entity.getObservacao();
         dto.motivo = entity.getMotivo();
-        // Só os ids: com open-in-view=false, ler outro campo do proxy LAZY aqui lança LazyInitializationException.
         dto.animalId = entity.getAnimal() == null ? null : entity.getAnimal().getId();
         dto.veterinarioId = entity.getVeterinario() == null ? null : entity.getVeterinario().getId();
+        // Com open-in-view=false, proxy LAZY não inicializado lançaria LazyInitializationException; a leitura precisa do JOIN FETCH.
+        if (entity.getAnimal() != null && Hibernate.isInitialized(entity.getAnimal())) {
+            dto.animalNome = entity.getAnimal().getNome();
+        }
+        if (entity.getVeterinario() != null && Hibernate.isInitialized(entity.getVeterinario())) {
+            dto.veterinarioNome = entity.getVeterinario().getNome();
+        }
         dto.createdAt = entity.getAuditoria().getCreatedAt();
         dto.updatedAt = entity.getAuditoria().getUpdatedAt();
         return dto;

@@ -13,6 +13,7 @@ import br.com.fiap.petbuddies.domain.repository.RegistroAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
 import br.com.fiap.petbuddies.dto.atendimento.AgendamentoRequest;
 import br.com.fiap.petbuddies.dto.atendimento.CancelamentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.ConsultaAgendaDto;
 import br.com.fiap.petbuddies.dto.atendimento.ConsultaRequest;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaComVinculosException;
@@ -21,6 +22,7 @@ import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaExcepti
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaNoPassadoException;
+import br.com.fiap.petbuddies.exception.atendimento.ConsultaFuturaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoPodeSerFechadaException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
@@ -69,7 +71,7 @@ public class ConsultaService {
         if (veterinarioId != null) {
             return repository.findByVeterinarioIdOrderByDataHoraDesc(veterinarioId);
         }
-        return repository.findAll();
+        return repository.findAllComAnimalEVeterinario();
     }
 
     @Transactional(readOnly = true)
@@ -82,6 +84,13 @@ public class ConsultaService {
         return repository.findNoPeriodo(dia.atStartOfDay(), dia.plusDays(1).atStartOfDay());
     }
 
+    @Transactional(readOnly = true)
+    public List<ConsultaAgendaDto> agendaDoDia(LocalDate dia) {
+        return repository.findNoPeriodo(dia.atStartOfDay(), dia.plusDays(1).atStartOfDay()).stream()
+                .map(c -> ConsultaAgendaDto.from(c, STATUS_FECHAVEL.contains(c.getStatus())))
+                .toList();
+    }
+
     @Transactional
     public ConsultaEntity criar(ConsultaRequest request) {
         ConsultaEntity entity = new ConsultaEntity();
@@ -89,14 +98,14 @@ public class ConsultaService {
         if (request.getStatus() == null) {
             entity.setStatus(StatusConsulta.AGENDADA);
         }
-        return repository.save(entity);
+        return encontrarOuFalhar(repository.save(entity).getId());
     }
 
     @Transactional
     public ConsultaEntity atualizar(Long id, ConsultaRequest request) {
         ConsultaEntity entity = encontrarOuFalhar(id);
         aplicar(request, entity);
-        return repository.save(entity);
+        return encontrarOuFalhar(repository.save(entity).getId());
     }
 
     @Transactional
@@ -136,7 +145,8 @@ public class ConsultaService {
 
         janela.setConsulta(consulta);
         janelaAtendimentoRepository.save(janela);
-        return consulta;
+        // o JOIN FETCH inicializa a vet, que veio da janela como proxy; sem ele o nome sai nulo na resposta
+        return encontrarOuFalhar(consulta.getId());
     }
 
     // CK_CONSULTA_STATUS não impede reabrir REALIZADA; a regra de negócio, sim
@@ -166,12 +176,15 @@ public class ConsultaService {
         if (!STATUS_FECHAVEL.contains(entity.getStatus())) {
             throw new ConsultaNaoPodeSerFechadaException(id, entity.getStatus());
         }
+        if (entity.getDataHora().toLocalDate().isAfter(LocalDate.now())) {
+            throw new ConsultaFuturaNaoPodeSerFechadaException(id, entity.getDataHora().toLocalDate());
+        }
         entity.setStatus(StatusConsulta.REALIZADA);
         return repository.save(entity);
     }
 
     private ConsultaEntity encontrarOuFalhar(Long id) {
-        return repository.findById(id).orElseThrow(() -> new ConsultaNaoEncontradaException(id));
+        return repository.findComAnimalEVeterinarioById(id).orElseThrow(() -> new ConsultaNaoEncontradaException(id));
     }
 
     private void aplicar(ConsultaRequest request, ConsultaEntity entity) {

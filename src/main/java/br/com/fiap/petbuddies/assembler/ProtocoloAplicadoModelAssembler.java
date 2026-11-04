@@ -21,6 +21,6 @@ public class ProtocoloAplicadoModelAssembler
                 linkTo(methodOn(MotorPlanoController.class).protocoloAplicado(dto.getAnimalId())).withSelfRel(),
                 linkTo(methodOn(MotorPlanoController.class).buscarPlano(dto.getAnimalId())).withRel("plano"),
                 linkTo(methodOn(MotorPlanoController.class)
-                        .listarEventos(dto.getAnimalId(), null)).withRel("eventos"));
+                        .listarEventos(dto.getAnimalId(), null, false, null)).withRel("eventos"));
     }
 }

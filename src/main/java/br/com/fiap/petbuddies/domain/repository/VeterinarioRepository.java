@@ -23,5 +23,8 @@ public interface VeterinarioRepository extends JpaRepository<VeterinarioEntity, 
     @Query("select v.clinica.id from VeterinarioEntity v where v.id = :id")
     Optional<Long> findClinicaIdById(@Param("id") Long id);
 
+    @Query("select v from VeterinarioEntity v join fetch v.clinica where v.id = :id")
+    Optional<VeterinarioEntity> findComClinicaById(@Param("id") Long id);
+
     boolean existsByClinicaId(Long clinicaId);
 }

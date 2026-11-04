@@ -10,4 +10,8 @@ public class CheckinDuplicadoException extends ConflitoException {
         super("CHECKIN_DUPLICADO", "Já existe check-in para o animal " + animalId + " em " + dataReferencia
                 + (itemPlanoCuidadoId == null ? " (relato geral)." : " para o item " + itemPlanoCuidadoId + "."));
     }
+
+    public CheckinDuplicadoException(Long animalId, LocalDate dataReferencia, String motivo) {
+        super("CHECKIN_DUPLICADO", motivo + " (animal " + animalId + ", " + dataReferencia + ").");
+    }
 }

@@ -28,6 +28,6 @@ public class PlanoModelAssembler
         return EntityModel.of(plano,
                 linkTo(methodOn(MotorPlanoController.class).buscarPlano(plano.getAnimalId())).withSelfRel(),
                 linkTo(methodOn(MotorPlanoController.class)
-                        .listarEventos(plano.getAnimalId(), null)).withRel("eventos"));
+                        .listarEventos(plano.getAnimalId(), null, false, null)).withRel("eventos"));
     }
 }

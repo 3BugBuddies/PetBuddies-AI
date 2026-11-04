@@ -4,7 +4,9 @@ import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Schema(description = "Evento de um plano de cuidado")
 @Getter
@@ -38,6 +40,15 @@ public class ItemPlanoCuidadoDto {
         + "Derivado na leitura: nada no sistema hoje transiciona um item para ATRASADO")
     private boolean vencido;
 
+    @Schema(description = "Quando o check-in encerrou o item (só itens de receita com desfecho)")
+    private LocalDateTime executadoEm;
+
+    @Schema(description = "Dose aplicada pelo desfecho do check-in")
+    private BigDecimal doseAplicada;
+
+    @Schema(description = "Intervalo do cuidado no modelo de plano, ex.: 'a cada 6 meses'. Só no GET do plano ativo")
+    private String intervalo;
+
     public static ItemPlanoCuidadoDto from(ItemPlanoCuidadoEntity e) {
         ItemPlanoCuidadoDto dto = new ItemPlanoCuidadoDto();
         dto.id = e.getId();
@@ -48,6 +59,8 @@ public class ItemPlanoCuidadoDto {
         dto.origem = e.getOrigem() != null ? e.getOrigem().name() : null;
         dto.prescricaoId = e.getPrescricaoId();
         dto.vencido = isVencido(e);
+        dto.executadoEm = e.getExecutadoEm();
+        dto.doseAplicada = e.getDesfecho() == null ? null : e.getDesfecho().getDoseAplicada();
         return dto;
     }
 

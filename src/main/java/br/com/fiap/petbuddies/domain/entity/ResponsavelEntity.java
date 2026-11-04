@@ -24,6 +24,9 @@ public class ResponsavelEntity {
     @Embedded
     private Contato contato;
 
+    @Column(name = "DS_ENDERECO", length = 255)
+    private String endereco;
+
     @Embedded
     @Setter(AccessLevel.NONE)
     private Auditoria auditoria;

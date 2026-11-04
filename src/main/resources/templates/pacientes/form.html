@@ -68,10 +68,10 @@
         <textarea id="observacoes" rows="3" th:field="*{observacoes}"></textarea>
         <div class="erro-campo" th:if="${#fields.hasErrors('observacoes')}" th:errors="*{observacoes}">erro</div>
 
-        <label for="responsavelId">Tutor responsável</label>
+        <label for="responsavelId">Responsável</label>
         <select id="responsavelId" th:field="*{responsavelId}">
             <option value="">Selecione</option>
-            <option th:each="tutor : ${responsaveis}" th:value="${tutor.id}" th:text="${tutor.nome}">Tutor</option>
+            <option th:each="responsavel : ${responsaveis}" th:value="${responsavel.id}" th:text="${responsavel.nome}">Responsável</option>
         </select>
         <div class="erro-campo" th:if="${#fields.hasErrors('responsavelId')}" th:errors="*{responsavelId}">erro</div>
 

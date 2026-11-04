@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.dto.checkin;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,7 +27,7 @@ public class CheckinRequest {
     @Size(max = 4000, message = "Narrativa deve ter no máximo 4000 caracteres.")
     private String narrativa;
 
-    /** Relato sobre um item específico do plano, em vez do relato geral do dia. */
+    @Schema(description = "LEGADO: relato por item. O app envia sempre null (relato geral do dia, que cobre todos os medicamentos); recusado com 409 se já existe relato geral no dia, e o contrário.")
     private Long itemPlanoCuidadoId;
 
     @Size(max = 120, message = "TIC utilizada deve ter no máximo 120 caracteres.")

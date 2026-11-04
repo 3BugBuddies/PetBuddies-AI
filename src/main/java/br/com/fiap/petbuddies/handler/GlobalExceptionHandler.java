@@ -5,6 +5,8 @@ import br.com.fiap.petbuddies.exception.AcessoNegadoException;
 import br.com.fiap.petbuddies.exception.ConflitoException;
 import br.com.fiap.petbuddies.exception.RecursoNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaDeOutroAnimalException;
+import br.com.fiap.petbuddies.exception.atendimento.ItemPlanoInvalidoParaProcedimentoException;
+import br.com.fiap.petbuddies.exception.atendimento.PeriodoInvalidoException;
 import br.com.fiap.petbuddies.exception.atendimento.RegistroDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
 import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
@@ -12,8 +14,11 @@ import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException
 import br.com.fiap.petbuddies.exception.cadastro.ClinicaNaoProvisionadaException;
 import br.com.fiap.petbuddies.exception.cadastro.RegistroIncompletoException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaNoPassadoException;
+import br.com.fiap.petbuddies.exception.prescricao.MedicamentoRepetidoException;
+import br.com.fiap.petbuddies.exception.prescricao.ReceitaModeloIncoerenteException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoException;
+import br.com.fiap.petbuddies.exception.pontuacao.PontuacaoIndisponivelException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.slf4j.Logger;
@@ -26,6 +31,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -71,6 +77,13 @@ public class GlobalExceptionHandler {
                 "Parâmetro obrigatório ausente: " + ex.getParameterName() + "."));
     }
 
+    // Rotas com params condicionais (ex.: /livres): combinação sem mapeamento cairia no handleGeneric como 500.
+    @ExceptionHandler(UnsatisfiedServletRequestParameterException.class)
+    public ResponseEntity<ErrorDto> handleCombinacaoDeParametros(UnsatisfiedServletRequestParameterException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("PARAMETRO_OBRIGATORIO",
+                "Combinação de parâmetros inválida. Esperado um destes: " + String.join(" | ", ex.getParamConditions()) + "."));
+    }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorDto> handleParametroInvalido(MethodArgumentTypeMismatchException ex) {
         Class<?> type = ex.getRequiredType();
@@ -105,6 +118,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(403).body(new ErrorDto(ex.getCodigo(), ex.getMessage()));
     }
 
+    @ExceptionHandler(PontuacaoIndisponivelException.class)
+    public ResponseEntity<ErrorDto> handlePontuacaoIndisponivel(PontuacaoIndisponivelException ex) {
+        return ResponseEntity.status(503).body(new ErrorDto("PONTUACAO_INDISPONIVEL", ex.getMessage()));
+    }
+
     @ExceptionHandler(RegistroIncompletoException.class)
     public ResponseEntity<ErrorDto> handleRegistroIncompleto(RegistroIncompletoException ex) {
         return ResponseEntity.badRequest().body(new ErrorDto("REGISTRO_INCOMPLETO", ex.getMessage()));
@@ -120,9 +138,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(new ErrorDto("JANELA_NO_PASSADO", ex.getMessage()));
     }
 
+    @ExceptionHandler(PeriodoInvalidoException.class)
+    public ResponseEntity<ErrorDto> handlePeriodoInvalido(PeriodoInvalidoException ex) {
+        return ResponseEntity.status(400).body(new ErrorDto("PERIODO_INVALIDO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MedicamentoRepetidoException.class)
+    public ResponseEntity<ErrorDto> handleMedicamentoRepetido(MedicamentoRepetidoException ex) {
+        return ResponseEntity.unprocessableEntity().body(new ErrorDto("MEDICAMENTO_REPETIDO", ex.getMessage()));
+    }
+
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
     public ResponseEntity<ErrorDto> handleRegraPrescricaoIncoerente(RegraPrescricaoIncoerenteException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("REGRA_PRESCRICAO_INCOERENTE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReceitaModeloIncoerenteException.class)
+    public ResponseEntity<ErrorDto> handleReceitaModeloIncoerente(ReceitaModeloIncoerenteException ex) {
+        return ResponseEntity.unprocessableEntity().body(new ErrorDto("REGRA_RECEITA_MODELO_INCOERENTE", ex.getMessage()));
     }
 
     @ExceptionHandler(CondicaoObservadaIncoerenteException.class)
@@ -155,6 +188,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RegistroDeOutroAnimalException.class)
     public ResponseEntity<ErrorDto> handleRegistroDeOutroAnimal(RegistroDeOutroAnimalException ex) {
         return ResponseEntity.status(400).body(new ErrorDto("REGISTRO_DE_OUTRO_ANIMAL", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ItemPlanoInvalidoParaProcedimentoException.class)
+    public ResponseEntity<ErrorDto> handleItemPlanoInvalido(ItemPlanoInvalidoParaProcedimentoException ex) {
+        return ResponseEntity.unprocessableEntity().body(new ErrorDto("ITEM_PLANO_INVALIDO", ex.getMessage()));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

@@ -6,21 +6,44 @@ import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.domain.repository.ConsultaRepository;
 import br.com.fiap.petbuddies.domain.repository.JanelaAtendimentoRepository;
 import br.com.fiap.petbuddies.domain.repository.VeterinarioRepository;
+import br.com.fiap.petbuddies.domain.enums.atendimento.StatusConsulta;
+import br.com.fiap.petbuddies.dto.atendimento.ConsultaAgendaDto;
 import br.com.fiap.petbuddies.dto.atendimento.JanelaAtendimentoRequest;
+import br.com.fiap.petbuddies.dto.atendimento.JanelaLivreDto;
+import br.com.fiap.petbuddies.dto.atendimento.ModeloSemanal;
+import br.com.fiap.petbuddies.dto.atendimento.ModeloSemanal.Faixa;
+import br.com.fiap.petbuddies.dto.atendimento.PrevisaoJanelas;
+import br.com.fiap.petbuddies.dto.atendimento.SemanaAgendaDto;
+import br.com.fiap.petbuddies.dto.atendimento.SemanaAgendaDto.Celula;
+import br.com.fiap.petbuddies.dto.atendimento.SemanaAgendaDto.Estado;
+import br.com.fiap.petbuddies.dto.atendimento.SemanaAgendaDto.Linha;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaJaEmOutraJanelaException;
 import br.com.fiap.petbuddies.exception.atendimento.ConsultaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaAtendimentoNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.atendimento.JanelaConflitanteException;
+import br.com.fiap.petbuddies.exception.atendimento.PeriodoInvalidoException;
 import br.com.fiap.petbuddies.exception.cadastro.VeterinarioNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.DayOfWeek;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Service
 public class JanelaAtendimentoService {
+
+    private static final long MAX_DIAS_PERIODO = 62;
+    private static final int MAX_SEMANAS_GERADAS = 8;
 
     private final JanelaAtendimentoRepository repository;
     private final VeterinarioRepository veterinarioRepository;
@@ -56,6 +79,169 @@ public class JanelaAtendimentoService {
         // mesma regra do agendamento, que recusa janela ja iniciada
         LocalDateTime inicio = inicioDoDia.isAfter(agora) ? inicioDoDia : agora;
         return repository.findLivresNoPeriodo(veterinarioId, inicio, inicioDoDia.plusDays(1));
+    }
+
+    // calendario do agendamento: so os dias com ao menos um slot livre ficam clicaveis
+    @Transactional(readOnly = true)
+    public List<LocalDate> listarDatasLivres(Long veterinarioId, LocalDate de, LocalDate ate) {
+        if (ate.isBefore(de)) {
+            throw new PeriodoInvalidoException("O fim do período (ate) não pode ser anterior ao início (de).");
+        }
+        if (ChronoUnit.DAYS.between(de, ate) > MAX_DIAS_PERIODO) {
+            throw new PeriodoInvalidoException("O período não pode passar de " + MAX_DIAS_PERIODO + " dias.");
+        }
+        LocalDateTime inicioDoPeriodo = de.atStartOfDay();
+        LocalDateTime agora = LocalDateTime.now();
+        // mesma regra do agendamento, que recusa janela ja iniciada
+        LocalDateTime inicio = inicioDoPeriodo.isAfter(agora) ? inicioDoPeriodo : agora;
+        return repository.findLivresNoPeriodo(veterinarioId, inicio, ate.plusDays(1).atStartOfDay()).stream()
+                .map(j -> j.getDataHoraInicio().toLocalDate())
+                .distinct()
+                .toList();
+    }
+
+    /** Horários abertos de toda a clínica, a partir de agora, para a tela de agendar. */
+    @Transactional(readOnly = true)
+    public List<JanelaLivreDto> listarLivresDaClinica(LocalDate de, LocalDate ate) {
+        LocalDateTime inicioDoPeriodo = de.atStartOfDay();
+        LocalDateTime agora = LocalDateTime.now();
+        LocalDateTime inicio = inicioDoPeriodo.isAfter(agora) ? inicioDoPeriodo : agora;
+        return repository.findLivresDaClinica(inicio, ate.plusDays(1).atStartOfDay()).stream()
+                .map(j -> new JanelaLivreDto(j.getId(), j.getDataHoraInicio(),
+                        j.getVeterinario().getId(), j.getVeterinario().getNome()))
+                .toList();
+    }
+
+    /**
+     * A grade de um veterinário numa semana (segunda a sábado, domingo só se tiver janela). Uma consulta
+     * sem janela também aparece, para a veterinária nunca perder uma consulta marcada fora do fluxo novo.
+     */
+    @Transactional(readOnly = true)
+    public SemanaAgendaDto semana(Long veterinarioId, LocalDate segunda) {
+        LocalDateTime inicio = segunda.atStartOfDay();
+        LocalDateTime fim = segunda.plusDays(7).atStartOfDay();
+        LocalDateTime agora = LocalDateTime.now();
+
+        Map<LocalDateTime, Celula> celulas = new HashMap<>();
+        Set<Long> consultasComJanela = new HashSet<>();
+        long livres = 0;
+        for (JanelaAtendimentoEntity janela : repository.findDaSemana(veterinarioId, inicio, fim)) {
+            ConsultaEntity consulta = janela.getConsulta();
+            if (consulta == null) {
+                boolean passou = janela.getDataHoraInicio().isBefore(agora);
+                celulas.put(janela.getDataHoraInicio(),
+                        new Celula(passou ? Estado.PASSOU : Estado.LIVRE, janela.getId(), null));
+                livres += passou ? 0 : 1;
+            } else {
+                consultasComJanela.add(consulta.getId());
+                celulas.put(janela.getDataHoraInicio(), celulaDaConsulta(janela.getId(), consulta));
+            }
+        }
+        for (ConsultaEntity consulta : consultaRepository.findNoPeriodo(inicio, fim)) {
+            boolean ativa = consulta.getStatus() != StatusConsulta.CANCELADA;
+            if (ativa && consulta.getVeterinario().getId().equals(veterinarioId)
+                    && !consultasComJanela.contains(consulta.getId())) {
+                celulas.putIfAbsent(consulta.getDataHora(), celulaDaConsulta(null, consulta));
+            }
+        }
+
+        boolean temDomingo = celulas.keySet().stream().anyMatch(d -> d.getDayOfWeek() == DayOfWeek.SUNDAY);
+        List<LocalDate> dias = new ArrayList<>();
+        for (int i = 0; i < (temDomingo ? 7 : 6); i++) {
+            dias.add(segunda.plusDays(i));
+        }
+        TreeSet<LocalTime> horas = new TreeSet<>();
+        celulas.keySet().forEach(d -> horas.add(d.toLocalTime()));
+        List<Linha> linhas = horas.stream()
+                .map(hora -> new Linha(hora, dias.stream()
+                        .map(dia -> celulas.getOrDefault(dia.atTime(hora), new Celula(Estado.FORA, null, null)))
+                        .toList()))
+                .toList();
+        return new SemanaAgendaDto(segunda, segunda.minusWeeks(1), segunda.plusWeeks(1), dias, linhas, livres);
+    }
+
+    private Celula celulaDaConsulta(Long janelaId, ConsultaEntity consulta) {
+        Estado estado = consulta.getStatus() == StatusConsulta.REALIZADA ? Estado.REALIZADA : Estado.OCUPADA;
+        return new Celula(estado, janelaId,
+                ConsultaAgendaDto.from(consulta, ConsultaService.STATUS_FECHAVEL.contains(consulta.getStatus())));
+    }
+
+    /** Conta o que o modelo abriria para o veterinário, a partir de amanhã, sem gravar nada. */
+    @Transactional(readOnly = true)
+    public PrevisaoJanelas prever(Long veterinarioId, ModeloSemanal modelo) {
+        validar(modelo);
+        LocalDate de = LocalDate.now().plusDays(1);
+        LocalDate ate = de.plusWeeks(modelo.semanas()).minusDays(1);
+
+        Set<LocalDateTime> existentes = new HashSet<>(
+                repository.findInicios(veterinarioId, de.atStartOfDay(), ate.plusDays(1).atStartOfDay()));
+        List<LocalDateTime> novas = new ArrayList<>();
+        int jaExistem = 0;
+        int bloqueadas = 0;
+        for (LocalDate dia = de; !dia.isAfter(ate); dia = dia.plusDays(1)) {
+            for (LocalDateTime inicio : iniciosDoDia(modelo, dia)) {
+                if (modelo.bloqueados().contains(dia)) {
+                    bloqueadas++;
+                } else if (existentes.contains(inicio)) {
+                    jaExistem++;
+                } else {
+                    novas.add(inicio);
+                }
+            }
+        }
+        return new PrevisaoJanelas(novas, jaExistem, bloqueadas, de, ate);
+    }
+
+    /** Abre as janelas que {@link #prever} contou. Devolve quantas foram criadas. */
+    @Transactional
+    public int gerar(Long veterinarioId, ModeloSemanal modelo) {
+        PrevisaoJanelas previsao = prever(veterinarioId, modelo);
+        VeterinarioEntity veterinario = veterinarioRepository.findById(veterinarioId)
+                .orElseThrow(() -> new VeterinarioNaoEncontradoException(veterinarioId));
+        List<JanelaAtendimentoEntity> janelas = previsao.inicios().stream().map(inicio -> {
+            JanelaAtendimentoEntity janela = new JanelaAtendimentoEntity();
+            janela.setDataHoraInicio(inicio);
+            janela.setVeterinario(veterinario);
+            return janela;
+        }).toList();
+        repository.saveAll(janelas);
+        return janelas.size();
+    }
+
+    // Faixas sobrepostas no mesmo dia não duplicam horário: o TreeSet ordena e deduplica.
+    private Set<LocalDateTime> iniciosDoDia(ModeloSemanal modelo, LocalDate dia) {
+        Set<LocalDateTime> inicios = new TreeSet<>();
+        for (Faixa faixa : modelo.faixas()) {
+            if (faixa.dia() != dia.getDayOfWeek()) {
+                continue;
+            }
+            int fim = faixa.fim().toSecondOfDay() / 60;
+            for (int minuto = faixa.inicio().toSecondOfDay() / 60; minuto + modelo.duracaoMinutos() <= fim;
+                    minuto += modelo.duracaoMinutos()) {
+                inicios.add(dia.atTime(LocalTime.ofSecondOfDay(minuto * 60L)));
+            }
+        }
+        return inicios;
+    }
+
+    private void validar(ModeloSemanal modelo) {
+        if (modelo.duracaoMinutos() < 5 || modelo.duracaoMinutos() > 240) {
+            throw new PeriodoInvalidoException("A duração da consulta deve ficar entre 5 e 240 minutos.");
+        }
+        if (modelo.semanas() < 1 || modelo.semanas() > MAX_SEMANAS_GERADAS) {
+            throw new PeriodoInvalidoException("O número de semanas deve ficar entre 1 e " + MAX_SEMANAS_GERADAS + ".");
+        }
+        if (modelo.faixas().isEmpty()) {
+            throw new PeriodoInvalidoException("Informe ao menos uma faixa de atendimento.");
+        }
+        for (Faixa faixa : modelo.faixas()) {
+            if (faixa.inicio() == null || faixa.fim() == null) {
+                throw new PeriodoInvalidoException("Preencha o início e o fim de cada faixa.");
+            }
+            if (!faixa.fim().isAfter(faixa.inicio())) {
+                throw new PeriodoInvalidoException("Em cada faixa, o fim deve ser depois do início.");
+            }
+        }
     }
 
     @Transactional

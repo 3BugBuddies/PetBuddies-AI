@@ -56,6 +56,13 @@ public class PrescricaoFechamentoRequest {
     @Max(value = 9999, message = "Versão de origem excede a precisão NUMBER(4).")
     private Integer versaoOrigem;
 
+    /** Receita-modelo de onde o conteúdo foi copiado; vira materialOrigemId/versaoOrigem. Sem FK: é só rastro. */
+    private Long receitaModeloId;
+
+    @Positive(message = "Versão da receita-modelo deve ser maior que zero.")
+    @Max(value = 9999, message = "Versão da receita-modelo excede a precisão NUMBER(4).")
+    private Integer receitaModeloVersao;
+
     @Valid
     private List<RegraPrescricaoFechamentoRequest> regras;
 
@@ -65,5 +72,11 @@ public class PrescricaoFechamentoRequest {
     @AssertTrue(message = "Dose mínima não pode ser maior que a dose máxima.")
     public boolean isFaixaDoseValida() {
         return doseMin == null || doseMax == null || doseMin.compareTo(doseMax) <= 0;
+    }
+
+    // Id sem versão (ou o inverso) deixaria a origem sem como dizer qual edição foi copiada.
+    @AssertTrue(message = "Informe receitaModeloId e receitaModeloVersao juntos.")
+    public boolean isOrigemReceitaModeloCompleta() {
+        return (receitaModeloId == null) == (receitaModeloVersao == null);
     }
 }

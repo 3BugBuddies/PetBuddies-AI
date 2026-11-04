@@ -2,132 +2,95 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: page(~{::title}, ~{::main})}">
 <head>
-    <title>Painel · PetBuddies</title>
+    <title>Início · PetBuddies</title>
 </head>
 <body>
-<main>
-    <div class="cabecalho-pagina">
+<main class="pn-main">
+    <div class="pn-head">
         <div>
-            <h1>Painel</h1>
-            <p class="subtitulo">
-                <span th:text="${clinica != null ? clinica.nome : 'Clínica'}">Clínica</span> ·
-                <span th:text="${#temporals.format(hoje, 'dd ''de'' MMMM ''de'' yyyy')}">11 de setembro de 2026</span>
-            </p>
+            <div class="sub">
+                <span th:text="${@formatador.dataExtenso(agora.toLocalDate())}">Quinta, 22/10</span> ·
+                <span th:text="${@formatador.hora(agora)}">21h30</span> ·
+                <span th:text="${clinica != null ? clinica.nome : 'Clínica'}">Clínica</span>
+            </div>
+            <h1 class="pn-h1">
+                <span th:text="${@formatador.saudacao(agora)}">Boa noite</span><span
+                    th:if="${veterinario != null}">, <span th:text="${#strings.arraySplit(veterinario.nome, ' ')[0]}">Ana</span></span>.
+            </h1>
         </div>
-        <a class="botao" th:href="@{/agenda/novo}">Agendar consulta</a>
+        <a class="pn-btn line" th:href="@{/agenda/novo}">Agendar consulta</a>
     </div>
 
-    <section class="grade-painel">
-        <div class="indicador">
-            <div class="indicador-rotulo">Planos ativos</div>
-            <div class="numero-painel" th:text="${resumo.planosAtivos}">0</div>
-            <div class="indicador-nota">
-                em <span th:text="${resumo.animaisComPlano}">0</span> animais
-            </div>
+    <div class="pn-grid4">
+        <div class="pn-card pn-kpi">
+            <span class="pn-eyebrow">Consultas hoje</span>
+            <span class="n" th:text="${#lists.size(consultasHoje)}">2</span>
+            <span class="l" th:text="${atendidasHoje} + (${atendidasHoje == 1} ? ' atendida' : ' atendidas')">2 atendidas</span>
         </div>
-
-        <div class="indicador" th:classappend="${resumo.itensVencidos > 0} ? 'atencao'">
-            <div class="indicador-rotulo">Itens vencidos</div>
-            <div class="numero-painel" th:text="${resumo.itensVencidos}">0</div>
-            <div class="indicador-nota" th:if="${resumo.itensVencidos > 0}">
-                em <span th:text="${resumo.animaisComVencido}">0</span> animais · esperando você olhar hoje
-            </div>
-            <div class="indicador-nota" th:unless="${resumo.itensVencidos > 0}">
-                nada em atraso
-            </div>
+        <div class="pn-card pn-kpi" th:classappend="${#lists.size(relatos) > 0} ? 'brand'">
+            <span class="pn-eyebrow">Relatos para ler</span>
+            <span class="n" th:text="${#lists.size(relatos)}">2</span>
+            <span class="l"><span th:text="${alarmes}">1</span> sinal de alarme · <span th:text="${semRegra}">1</span> sem regra</span>
         </div>
+        <div class="pn-card pn-kpi">
+            <span class="pn-eyebrow">Check-ins hoje</span>
+            <span class="n" th:text="${checkinsHoje}">2</span>
+            <span class="l" th:text="${checkinsHoje > 0} ? ${checkinsHoraResumo} : 'nenhum ainda'">Paçoca às 20h</span>
+        </div>
+        <div class="pn-card pn-kpi">
+            <span class="pn-eyebrow">Cuidados atrasados</span>
+            <span class="n" th:text="${resumo.itensVencidos}">0</span>
+            <span class="l">contados de hoje em diante</span>
+        </div>
+    </div>
 
-        <div class="indicador">
-            <div class="indicador-rotulo">
-                Adesão · <span th:text="${resumo.diasDaJanela}">30</span> dias
+    <div class="pn-split">
+        <div class="pn-card">
+            <div class="pn-row pn-between">
+                <h2 class="pn-h2">Para ler hoje</h2>
+                <span class="pn-muted">a regra já agiu; você confirma · últimas 48 h</span>
             </div>
-            <th:block th:if="${resumo.adesaoPercentual != null}">
-                <div class="numero-painel"><span th:text="${resumo.adesaoPercentual}">0</span>%</div>
-                <div class="barra">
-                    <span th:style="'width:' + ${resumo.adesaoPercentual} + '%'"></span>
+            <p class="pn-muted" th:if="${#lists.isEmpty(relatos)}">Nenhum relato nas últimas 48 horas.</p>
+            <div class="pn-list" th:unless="${#lists.isEmpty(relatos)}">
+                <div class="pn-item" th:each="relato : ${relatos}">
+                    <span class="pn-chip"
+                          th:classappend="${relato.tipo.name() == 'ALARME'} ? 'alert' : (${relato.tipo.name() == 'SEM_REGRA'} ? 'wait' : 'ok')"
+                          th:text="${relato.tipo.rotulo}">alarme</span>
+                    <div class="body">
+                        <b>
+                            <span th:text="${relato.animalNome}">Paçoca</span> ·
+                            <span th:text="${@formatador.hora(relato.registradoEm)}">21h</span> ·
+                            <span th:text="${relato.responsavelNome}">Joana</span>
+                        </b>
+                        <span>&ldquo;<span th:text="${relato.narrativa}">relato</span>&rdquo;
+                            <span th:text="${relato.tipo.name() == 'SEM_REGRA'} ? ${relato.resumo} : '→ ' + ${relato.resumo}">→ regra</span></span>
+                    </div>
+                    <a class="pn-btn sm line"
+                       th:href="@{/pacientes/{id}(id=${relato.animalId})}"
+                       th:text="${relato.tipo.name() == 'SEM_REGRA'} ? 'Responder' : 'Abrir ficha'">Abrir ficha</a>
                 </div>
-                <div class="indicador-nota">
-                    <span th:text="${resumo.realizadosNaJanela}">0</span> de
-                    <span th:text="${resumo.previstosNaJanela}">0</span> cuidados em dia
-                </div>
-            </th:block>
-            <th:block th:unless="${resumo.adesaoPercentual != null}">
-                <div class="numero-painel">—</div>
-                <div class="indicador-nota">nenhum cuidado previsto na janela</div>
-            </th:block>
-        </div>
-
-        <div class="indicador">
-            <div class="indicador-rotulo">Consultas hoje</div>
-            <div class="numero-painel" th:text="${#lists.size(consultasHoje)}">0</div>
-            <div class="indicador-nota">na agenda de hoje</div>
-        </div>
-    </section>
-
-    <section class="bloco destaque" th:if="${!#lists.isEmpty(vencidos)}">
-        <h2>
-            Precisa de atenção
-            <span class="conta"><span th:text="${resumo.itensVencidos}">0</span> vencidos</span>
-            <span class="nota-direita">ordenado por atraso</span>
-        </h2>
-        <div class="lista-eventos">
-            <div class="linha" th:each="item : ${vencidos}">
-                <span class="avatar">&#128062;</span>
-                <span class="linha-corpo">
-                    <span class="linha-titulo">
-                        <span th:text="${item.animalNome}">Filó</span> ·
-                        <span th:text="${item.tutorNome}">Maria Oliveira</span>
-                    </span><br/>
-                    <span class="linha-sub">
-                        <span th:text="${item.cuidado}">Antirrábica</span> ·
-                        venceu em <span th:text="${#temporals.format(item.dataAlvo, 'dd/MM')}">28/08</span>
-                    </span>
-                </span>
-                <span class="selo atencao">
-                    <span th:text="${item.diasAtraso}">14</span>
-                    <span th:text="${item.diasAtraso == 1} ? 'dia' : 'dias'">dias</span>
-                </span>
-                <a class="botao pequeno" th:href="@{/pacientes/{id}(id=${item.animalId})}">Abrir</a>
             </div>
         </div>
-    </section>
 
-    <section class="bloco">
-        <h2>
-            Consultas de hoje
-            <span class="conta" th:text="${#lists.size(consultasHoje)}">0</span>
-        </h2>
-        <p th:if="${#lists.isEmpty(consultasHoje)}" class="texto-fraco">
-            Nenhuma consulta agendada para hoje.
-        </p>
-        <table th:unless="${#lists.isEmpty(consultasHoje)}">
-            <thead>
-            <tr>
-                <th>Horário</th>
-                <th>Tipo</th>
-                <th>Status</th>
-                <th>Ações</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="consulta : ${consultasHoje}">
-                <td class="num" th:text="${#temporals.format(consulta.dataHora, 'HH:mm')}">10:00</td>
-                <td th:text="${consulta.tipo}">ROTINA</td>
-                <td>
-                    <span class="selo"
-                          th:classappend="${consulta.status.name() == 'REALIZADA'} ? 'ativo' :
-                                          (${consulta.status.name() == 'AGENDADA'} ? 'espera' : '')"
-                          th:text="${consulta.status}">AGENDADA</span>
-                </td>
-                <td>
-                    <a th:if="${statusFechavel.contains(consulta.status)}"
-                       th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Fechar atendimento</a>
-                    <span th:unless="${statusFechavel.contains(consulta.status)}" class="texto-fraco">—</span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
+        <div class="pn-card">
+            <div class="pn-row pn-between">
+                <h2 class="pn-h2">Agenda de hoje</h2>
+                <a class="pn-btn ghost sm" th:href="@{/agenda}">ver semana</a>
+            </div>
+            <p class="pn-muted" th:if="${#lists.isEmpty(consultasHoje)}">Nenhuma consulta agendada para hoje.</p>
+            <div class="pn-list" th:unless="${#lists.isEmpty(consultasHoje)}">
+                <div class="pn-item" th:each="consulta : ${consultasHoje}">
+                    <span class="t" th:text="${@formatador.hora(consulta.dataHora)}">10h</span>
+                    <div class="body">
+                        <b th:text="${consulta.animalNome}">Rex</b>
+                        <span><span th:text="${consulta.tipo.rotulo}">Rotina</span> · <span th:text="${consulta.responsavelNome}">Maria</span></span>
+                    </div>
+                    <a th:if="${consulta.fechavel}" class="pn-btn sm line" th:href="@{/agenda/{id}/fechar(id=${consulta.id})}">Atender</a>
+                    <span th:unless="${consulta.fechavel}" class="pn-chip" th:text="${consulta.status.rotulo}">atendida</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

@@ -4,6 +4,7 @@ import br.com.fiap.petbuddies.assembler.ResponsavelModelAssembler;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelRequest;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResponse;
 import br.com.fiap.petbuddies.service.cadastro.ResponsavelService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -68,8 +70,9 @@ public class ResponsavelController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "404", description = "Responsável não encontrado")
     })
-    public EntityModel<ResponsavelResponse> atualizar(@PathVariable Long id, @RequestBody @Valid ResponsavelRequest request) {
-        return assembler.toModel(service.atualizar(id, request));
+    public EntityModel<ResponsavelResponse> atualizar(@PathVariable Long id, @RequestBody @Valid ResponsavelRequest request,
+                                                      Authentication autenticacao) {
+        return assembler.toModel(service.atualizarComo(id, request, Long.valueOf(autenticacao.getName())));
     }
 
     @DeleteMapping("/{id}")

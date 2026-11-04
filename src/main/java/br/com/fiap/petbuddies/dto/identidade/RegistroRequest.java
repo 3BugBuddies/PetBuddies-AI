@@ -40,6 +40,10 @@ public class RegistroRequest {
     @Schema(description = "Obrigatório quando o tipo é VET.", example = "SP-54321")
     private String crmv;
 
+    @Size(max = 255, message = "Endereço deve ter no máximo 255 caracteres.")
+    @Schema(description = "Opcional; usado só quando o tipo é TUTOR.", example = "Rua das Flores, 120 - Pinheiros, São Paulo")
+    private String endereco;
+
     @Override
     public String toString() {
         return "RegistroRequest{tipo=" + tipo + ", email='" + email + "'}";

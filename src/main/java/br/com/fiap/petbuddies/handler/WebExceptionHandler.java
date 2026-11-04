@@ -7,6 +7,8 @@ import br.com.fiap.petbuddies.exception.cuidado.DuracaoTratamentoExcedeTetoExcep
 import br.com.fiap.petbuddies.exception.identidade.CredenciaisInvalidasException;
 import br.com.fiap.petbuddies.exception.prescricao.RegraPrescricaoIncoerenteException;
 import br.com.fiap.petbuddies.security.UsuarioPrincipal;
+import br.com.fiap.petbuddies.web.UsuarioModelAdvice;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,66 +29,79 @@ public class WebExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(WebExceptionHandler.class);
 
+    private final UsuarioModelAdvice usuarioModelAdvice;
+
+    public WebExceptionHandler(UsuarioModelAdvice usuarioModelAdvice) {
+        this.usuarioModelAdvice = usuarioModelAdvice;
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ModelAndView handleNaoEncontrado(RecursoNaoEncontradoException ex, HttpServletResponse response) {
-        return erro(response, HttpStatus.NOT_FOUND, ex.getMessage());
+    public ModelAndView handleNaoEncontrado(RecursoNaoEncontradoException ex, HttpServletRequest request, HttpServletResponse response) {
+        return erro(request, response, HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(ConflitoException.class)
-    public ModelAndView handleConflito(ConflitoException ex, HttpServletResponse response) {
-        return erro(response, HttpStatus.CONFLICT, ex.getMessage());
+    public ModelAndView handleConflito(ConflitoException ex, HttpServletRequest request, HttpServletResponse response) {
+        return erro(request, response, HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(RegraPrescricaoIncoerenteException.class)
-    public ModelAndView handleIncoerente(RegraPrescricaoIncoerenteException ex, HttpServletResponse response) {
-        return erro(response, HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ModelAndView handleIncoerente(RegraPrescricaoIncoerenteException ex, HttpServletRequest request, HttpServletResponse response) {
+        return erro(request, response, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(CredenciaisInvalidasException.class)
-    public ModelAndView handleCredenciaisInvalidas(CredenciaisInvalidasException ex, HttpServletResponse response) {
-        return erro(response, HttpStatus.UNAUTHORIZED, ex.getMessage());
+    public ModelAndView handleCredenciaisInvalidas(CredenciaisInvalidasException ex, HttpServletRequest request, HttpServletResponse response) {
+        return erro(request, response, HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(DuracaoTratamentoExcedeTetoException.class)
-    public ModelAndView handleDuracaoTratamentoExcedeTeto(DuracaoTratamentoExcedeTetoException ex, HttpServletResponse response) {
-        return erro(response, HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ModelAndView handleDuracaoTratamentoExcedeTeto(DuracaoTratamentoExcedeTetoException ex, HttpServletRequest request, HttpServletResponse response) {
+        return erro(request, response, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(ConsultaDeOutroAnimalException.class)
-    public ModelAndView handleConsultaDeOutroAnimal(ConsultaDeOutroAnimalException ex, HttpServletResponse response) {
-        return erro(response, HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ModelAndView handleConsultaDeOutroAnimal(ConsultaDeOutroAnimalException ex, HttpServletRequest request, HttpServletResponse response) {
+        return erro(request, response, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ModelAndView handleParametroInvalido(MethodArgumentTypeMismatchException ex, HttpServletResponse response) {
-        return erro(response, HttpStatus.BAD_REQUEST, "Endereço inválido.");
+    public ModelAndView handleParametroInvalido(MethodArgumentTypeMismatchException ex, HttpServletRequest request, HttpServletResponse response) {
+        return erro(request, response, HttpStatus.BAD_REQUEST, "Endereço inválido.");
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ModelAndView handleConflitoDeDados(DataIntegrityViolationException ex, HttpServletResponse response) {
+    public ModelAndView handleConflitoDeDados(DataIntegrityViolationException ex, HttpServletRequest request, HttpServletResponse response) {
         log.warn("Violação de integridade não prevista numa tela web", ex);
-        return erro(response, HttpStatus.CONFLICT, "A operação conflita com dados já existentes.");
+        return erro(request, response, HttpStatus.CONFLICT, "A operação conflita com dados já existentes.");
     }
 
     @ExceptionHandler(Exception.class)
-    public ModelAndView handleGenerico(Exception ex, HttpServletResponse response) {
+    public ModelAndView handleGenerico(Exception ex, HttpServletRequest request, HttpServletResponse response) {
         log.error("Erro não tratado numa tela web", ex);
-        return erro(response, HttpStatus.INTERNAL_SERVER_ERROR,
+        return erro(request, response, HttpStatus.INTERNAL_SERVER_ERROR,
                 "Ocorreu um erro inesperado. Tente novamente em instantes.");
     }
 
-    private ModelAndView erro(HttpServletResponse response, HttpStatus status, String mensagem) {
+    private ModelAndView erro(HttpServletRequest request, HttpServletResponse response, HttpStatus status, String mensagem) {
         response.setStatus(status.value());
         ModelAndView mv = new ModelAndView("erro");
         mv.addObject("mensagem", mensagem);
         // O ModelAndView é novo aqui — não herda o Model original, então o menu
-        // do layout perderia o usuário logado sem repor este atributo.
+        // do layout perderia usuário, veterinário e seção sem repor estes atributos.
         Object principal = SecurityContextHolder.getContext().getAuthentication() != null
                 ? SecurityContextHolder.getContext().getAuthentication().getPrincipal()
                 : null;
         if (principal instanceof UsuarioPrincipal usuario) {
             mv.addObject("usuario", usuario);
+            try {
+                mv.addObject("veterinario", usuarioModelAdvice.veterinario(usuario));
+            } catch (RuntimeException ex) {
+                // A página de erro não pode falhar de novo por causa do rodapé: sem veterinário, o layout mostra o login.
+                log.warn("Rodapé da página de erro sem o veterinário", ex);
+            }
         }
+        mv.addObject("secao", usuarioModelAdvice.secao(request));
         return mv;
     }
 }

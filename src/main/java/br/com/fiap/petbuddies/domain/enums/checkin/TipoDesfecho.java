@@ -6,5 +6,17 @@ package br.com.fiap.petbuddies.domain.enums.checkin;
  * ternario e nao binario.
  */
 public enum TipoDesfecho {
-    DOSE_CALCULADA, ACIONAR_CLINICA, SEM_DOSE
+    DOSE_CALCULADA("dose calculada"),
+    ACIONAR_CLINICA("acionar clínica"),
+    SEM_DOSE("sem dose");
+
+    private final String rotulo;
+
+    TipoDesfecho(String rotulo) {
+        this.rotulo = rotulo;
+    }
+
+    public String getRotulo() {
+        return rotulo;
+    }
 }

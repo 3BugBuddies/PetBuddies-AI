@@ -7,8 +7,14 @@ import br.com.fiap.petbuddies.domain.entity.CheckinEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoClinicaEntity;
 import br.com.fiap.petbuddies.domain.entity.CondicaoObservadaEntity;
 import br.com.fiap.petbuddies.domain.entity.ItemPlanoCuidadoEntity;
+import br.com.fiap.petbuddies.domain.entity.PlanoCuidadoEntity;
 import br.com.fiap.petbuddies.domain.entity.PrescricaoEntity;
 import br.com.fiap.petbuddies.domain.entity.RegraPrescricaoEntity;
+import br.com.fiap.petbuddies.domain.enums.checkin.TipoDesfecho;
+import br.com.fiap.petbuddies.domain.enums.cuidado.CategoriaPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusItem;
+import br.com.fiap.petbuddies.domain.enums.cuidado.StatusPlano;
+import br.com.fiap.petbuddies.domain.enums.cuidado.TipoOrigemItem;
 import br.com.fiap.petbuddies.domain.enums.prescricao.TipoDado;
 import br.com.fiap.petbuddies.domain.repository.AnimalRepository;
 import br.com.fiap.petbuddies.domain.repository.CheckinRepository;
@@ -22,14 +28,17 @@ import br.com.fiap.petbuddies.dto.checkin.CheckinRequest;
 import br.com.fiap.petbuddies.dto.checkin.CheckinResponse;
 import br.com.fiap.petbuddies.dto.checkin.CondicaoConfirmadaRequest;
 import br.com.fiap.petbuddies.dto.checkin.CondicaoObservadaResponse;
+import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.cadastro.AnimalNaoEncontradoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinDuplicadoException;
 import br.com.fiap.petbuddies.exception.checkin.CheckinNaoEncontradoException;
-import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
-import br.com.fiap.petbuddies.exception.atendimento.CondicaoClinicaNaoEncontradaException;
 import br.com.fiap.petbuddies.exception.checkin.CondicaoObservadaIncoerenteException;
+import br.com.fiap.petbuddies.exception.checkin.ItemDeOutroAnimalException;
 import br.com.fiap.petbuddies.exception.cuidado.ItemPlanoCuidadoNaoEncontradoException;
+import br.com.fiap.petbuddies.service.cadastro.ContatoClinicaService;
 import br.com.fiap.petbuddies.service.prescricao.PrescricaoAtivaResolver;
+import br.com.fiap.petbuddies.web.Formatador;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +48,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 // Sem chamada ao modelo aqui — ja aconteceu em CheckinExtracaoService; deterministico do inicio ao fim.
 @Service
@@ -53,6 +65,8 @@ public class CheckinService {
     private final RegraPrescricaoRepository regraPrescricaoRepository;
     private final PrescricaoAtivaResolver prescricaoAtivaResolver;
     private final AvaliadorRegraService avaliadorRegraService;
+    private final Formatador formatador;
+    private final ContatoClinicaService contatoClinicaService;
 
     public CheckinService(
             CheckinRepository checkinRepository,
@@ -63,7 +77,9 @@ public class CheckinService {
             PrescricaoRepository prescricaoRepository,
             RegraPrescricaoRepository regraPrescricaoRepository,
             PrescricaoAtivaResolver prescricaoAtivaResolver,
-            AvaliadorRegraService avaliadorRegraService) {
+            AvaliadorRegraService avaliadorRegraService,
+            Formatador formatador,
+            ContatoClinicaService contatoClinicaService) {
         this.checkinRepository = checkinRepository;
         this.condicaoObservadaRepository = condicaoObservadaRepository;
         this.animalRepository = animalRepository;
@@ -73,6 +89,8 @@ public class CheckinService {
         this.regraPrescricaoRepository = regraPrescricaoRepository;
         this.prescricaoAtivaResolver = prescricaoAtivaResolver;
         this.avaliadorRegraService = avaliadorRegraService;
+        this.formatador = formatador;
+        this.contatoClinicaService = contatoClinicaService;
     }
 
     @Transactional(readOnly = true)
@@ -105,6 +123,13 @@ public class CheckinService {
         if (checkinRepository.findExistente(animal.getId(), referencia, request.getItemPlanoCuidadoId()).isPresent()) {
             throw new CheckinDuplicadoException(animal.getId(), referencia, request.getItemPlanoCuidadoId());
         }
+        // Relato geral e relato por item no mesmo dia avaliariam a mesma prescrição duas vezes.
+        if (itemRelatado != null && checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(animal.getId(), referencia)) {
+            throw new CheckinDuplicadoException(animal.getId(), referencia, "Já existe relato geral neste dia; o relato por item não é aceito.");
+        }
+        if (itemRelatado == null && checkinRepository.existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNotNull(animal.getId(), referencia)) {
+            throw new CheckinDuplicadoException(animal.getId(), referencia, "Já existe relato por item neste dia; o relato geral não é aceito.");
+        }
 
         CheckinEntity checkin = new CheckinEntity();
         checkin.setAnimal(animal);
@@ -125,6 +150,8 @@ public class CheckinService {
                 : prescricaoAtivaResolver.listar(animal.getId(), referencia);
 
         List<CheckinDesfechoResponse> desfechos = new ArrayList<>();
+        // A suspensão roda depois do laço: suspender no meio faria o plano parecer SUSPENSO para as prescrições seguintes do mesmo relato.
+        Map<PrescricaoEntity, ItemPlanoCuidadoEntity> aSuspender = new java.util.LinkedHashMap<>();
         for (PrescricaoEntity prescricao : prescricoesParaAvaliar) {
             List<RegraPrescricaoEntity> regras = regraPrescricaoRepository.findByPrescricaoIdOrderByOrdemAsc(prescricao.getId());
             AvaliadorRegraService.Resultado resultado =
@@ -133,21 +160,61 @@ public class CheckinService {
             ItemPlanoCuidadoEntity item = itemParaGravar(itemRelatado, prescricao, referencia);
             if (item != null) {
                 item.setDesfecho(new Desfecho(checkin.getId(), resultado.desfecho(), resultado.doseAplicada(), resultado.regraAplicadaId()));
+                // Plano suspenso pelo alarme: o desfecho é registrado, mas o item não volta para REALIZADO.
+                if (item.getOrigem() == TipoOrigemItem.PRESCRICAO && item.getPlano().getStatus() != StatusPlano.SUSPENSO) {
+                    item.setStatus(statusPorDesfecho(resultado.desfecho()));
+                    item.setExecutadoEm(checkin.getRegistradoEm());
+                }
                 itemPlanoCuidadoRepository.save(item);
+            }
+            if (resultado.desfecho() == TipoDesfecho.ACIONAR_CLINICA) {
+                aSuspender.put(prescricao, item);
             }
 
             desfechos.add(CheckinDesfechoResponse.of(
                     prescricao.getId(), prescricao.getMedicamento(), item == null ? null : item.getId(),
-                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId()));
+                    resultado.desfecho(), resultado.doseAplicada(), prescricao.getFaixaDose().getUnidade(), resultado.regraAplicadaId(),
+                    prescricao).comRegra(regras.stream()
+                            .filter(r -> r.getId().equals(resultado.regraAplicadaId())).findFirst().orElse(null)));
         }
+
+        aSuspender.forEach((prescricao, item) -> suspenderTratamento(prescricao, item, referencia));
 
         if (escalarPorCritica) {
             checkin.setObservacoesGerais(montarObservacaoEscalacao(observadas, prescricoesParaAvaliar));
             checkin = checkinRepository.save(checkin);
         }
 
+        boolean escalado = escalarPorCritica || acionouClinica(desfechos);
         List<CondicaoObservadaResponse> condicoesResponse = observadas.stream().map(CondicaoObservadaResponse::from).toList();
-        return CheckinResponse.of(checkin, condicoesResponse, desfechos, escalarPorCritica);
+        return CheckinResponse.of(checkin, condicoesResponse, desfechos, escalado,
+                contatoClinicaService.doAnimal(animal.getId(), prescricoesParaAvaliar));
+    }
+
+    // Sinal de alarme suspende o tratamento até a veterinária reavaliar; o preventivo segue.
+    private void suspenderTratamento(PrescricaoEntity prescricao, ItemPlanoCuidadoEntity item, LocalDate referencia) {
+        ItemPlanoCuidadoEntity referenciaDoPlano = item != null ? item
+                : itemPlanoCuidadoRepository.findFirstByPrescricaoIdOrderByDataAlvoAsc(prescricao.getId()).orElse(null);
+        if (referenciaDoPlano == null) {
+            return;
+        }
+        PlanoCuidadoEntity plano = referenciaDoPlano.getPlano();
+        if (plano.getCategoria() != CategoriaPlano.TRATAMENTO || plano.getStatus() != StatusPlano.ATIVO) {
+            return;
+        }
+        plano.setStatus(StatusPlano.SUSPENSO);
+        plano.getItens().stream()
+                .filter(i -> i.getStatus() == StatusItem.PENDENTE && i.getDataAlvo() != null && i.getDataAlvo().isAfter(referencia))
+                .forEach(i -> i.setStatus(StatusItem.SUSPENSO));
+    }
+
+
+    private StatusItem statusPorDesfecho(TipoDesfecho desfecho) {
+        return switch (desfecho) {
+            case DOSE_CALCULADA -> StatusItem.REALIZADO;
+            case SEM_DOSE -> StatusItem.SUSPENSO;
+            case ACIONAR_CLINICA -> StatusItem.ENCAMINHADO;
+        };
     }
 
     private CheckinEntity encontrarOuFalhar(Long id) {
@@ -222,7 +289,11 @@ public class CheckinService {
                 .findFirst()
                 .orElse(null);
         String base = "Sinal de atenção identificado (" + rotulos + "). Procure a clínica";
-        return telefone == null ? base + "." : base + ": " + telefone + ".";
+        return telefone == null ? base + "." : base + ": " + formatador.telefone(telefone) + ".";
+    }
+
+    private boolean acionouClinica(List<CheckinDesfechoResponse> desfechos) {
+        return desfechos.stream().anyMatch(d -> d.getDesfecho() == TipoDesfecho.ACIONAR_CLINICA);
     }
 
     private CheckinResponse montarResposta(CheckinEntity checkin) {
@@ -231,10 +302,14 @@ public class CheckinService {
 
         // Só reconstitui o que foi de fato gravado no item — prescrição
         // avaliada sem item na hora do POST não deixa rastro para o GET.
-        List<CheckinDesfechoResponse> desfechos = itemPlanoCuidadoRepository.findByDesfechoCheckinId(checkin.getId()).stream()
+        List<ItemPlanoCuidadoEntity> itens = itemPlanoCuidadoRepository.findByDesfechoCheckinId(checkin.getId());
+        List<Long> prescricaoIds = itens.stream().map(ItemPlanoCuidadoEntity::getPrescricaoId).filter(Objects::nonNull).distinct().toList();
+        Map<Long, PrescricaoEntity> prescricoes = prescricaoIds.isEmpty() ? Map.of()
+                : prescricaoRepository.findComPrescritorPorIds(prescricaoIds).stream()
+                        .collect(Collectors.toMap(PrescricaoEntity::getId, p -> p));
+        List<CheckinDesfechoResponse> desfechos = itens.stream()
                 .map(item -> {
-                    PrescricaoEntity prescricao = item.getPrescricaoId() == null
-                            ? null : prescricaoRepository.findById(item.getPrescricaoId()).orElse(null);
+                    PrescricaoEntity prescricao = item.getPrescricaoId() == null ? null : prescricoes.get(item.getPrescricaoId());
                     // Com todas as colunas nulas, o Hibernate devolve o Desfecho inteiro como null.
                     Desfecho desfecho = item.getDesfecho();
                     return CheckinDesfechoResponse.of(
@@ -242,14 +317,15 @@ public class CheckinService {
                             item.getId(), desfecho == null ? null : desfecho.getTipo(),
                             desfecho == null ? null : desfecho.getDoseAplicada(),
                             prescricao == null ? null : prescricao.getFaixaDose().getUnidade(),
-                            desfecho == null ? null : desfecho.getRegraAplicadaId());
+                            desfecho == null ? null : desfecho.getRegraAplicadaId(),
+                            prescricao).comRegra(desfecho == null || desfecho.getRegraAplicadaId() == null ? null
+                            : regraPrescricaoRepository.findById(desfecho.getRegraAplicadaId()).orElse(null));
                 })
                 .toList();
 
-        // Mesmo critério do POST (escalarPorCritica): condição crítica
-        // observada, não "algum item terminou ACIONAR_CLINICA" — a
-        // escalação vale mesmo quando não existe item pra gravar.
-        boolean escalado = observadas.stream().anyMatch(this::observacaoCritica);
-        return CheckinResponse.of(checkin, condicoes, desfechos, escalado);
+        // Mesmo critério do POST e do painel: condição crítica ou algum desfecho ACIONAR_CLINICA.
+        boolean escalado = observadas.stream().anyMatch(this::observacaoCritica) || acionouClinica(desfechos);
+        return CheckinResponse.of(checkin, condicoes, desfechos, escalado,
+                contatoClinicaService.doAnimal(checkin.getAnimal().getId(), prescricoes.values()));
     }
 }

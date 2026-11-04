@@ -1,6 +1,8 @@
 package br.com.fiap.petbuddies.web;
 
+import br.com.fiap.petbuddies.domain.entity.VeterinarioEntity;
 import br.com.fiap.petbuddies.security.UsuarioPrincipal;
+import br.com.fiap.petbuddies.service.cadastro.VeterinarioService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,9 +12,24 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice(basePackages = "br.com.fiap.petbuddies.web")
 public class UsuarioModelAdvice {
 
+    private final VeterinarioService veterinarioService;
+
+    public UsuarioModelAdvice(VeterinarioService veterinarioService) {
+        this.veterinarioService = veterinarioService;
+    }
+
     @ModelAttribute("usuario")
     public UsuarioPrincipal usuario(@AuthenticationPrincipal UsuarioPrincipal principal) {
         return principal;
+    }
+
+    /** Quem aparece no rodapé da lateral. Nulo para quem não é veterinário. */
+    @ModelAttribute("veterinario")
+    public VeterinarioEntity veterinario(@AuthenticationPrincipal UsuarioPrincipal principal) {
+        if (principal == null || principal.getVeterinarioId() == null) {
+            return null;
+        }
+        return veterinarioService.buscarPorId(principal.getVeterinarioId());
     }
 
     /**

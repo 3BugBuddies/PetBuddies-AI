@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Agendar consulta · PetBuddies</title>
+</head>
+<body>
+<main class="pn-main">
+    <div class="pn-head">
+        <div>
+            <div class="sub">Agenda</div>
+            <h1 class="pn-h1">Agendar consulta</h1>
+        </div>
+        <a class="pn-btn ghost" th:href="@{/agenda}">Voltar à agenda</a>
+    </div>
+
+    <form method="post" th:action="@{/agenda}" th:object="${agendamentoRequest}" class="pn-main">
+        <div class="pn-card">
+            <div class="pn-grid3">
+                <div class="pn-field">
+                    <label for="animalId">Animal</label>
+                    <select id="animalId" class="pn-input" th:field="*{animalId}">
+                        <option value="">Selecione</option>
+                        <option th:each="animal : ${animais}" th:value="${animal.id}"
+                                th:text="${animal.nome} + ' · ' + ${animal.responsavelNome}">Paçoca · Joana</option>
+                    </select>
+                    <div class="pn-erro" th:if="${#fields.hasErrors('animalId')}" th:errors="*{animalId}">erro</div>
+                </div>
+                <div class="pn-field">
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" class="pn-input" th:field="*{tipo}">
+                        <option value="">Selecione</option>
+                        <option th:each="valor : ${tiposConsulta}" th:value="${valor}" th:text="${valor.rotulo}">Rotina</option>
+                    </select>
+                    <div class="pn-erro" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}">erro</div>
+                </div>
+                <div class="pn-field">
+                    <label for="veterinaria">Veterinária</label>
+                    <select id="veterinaria" class="pn-input">
+                        <option th:each="vet : ${veterinarios}" th:value="${vet.id}" th:text="${vet.nome}"
+                                th:selected="${vet.id == veterinarioPadrao}">Ana Souza</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pn-field">
+                <label>Horários livres</label>
+                <p class="pn-muted" th:if="${#maps.isEmpty(livresPorDia)}">
+                    Nenhum horário livre nos próximos <span th:text="${diasJanela}">21</span> dias.
+                    Abra horários em <a th:href="@{/horarios}">Horários</a>.
+                </p>
+                <div class="dias-livres" th:unless="${#maps.isEmpty(livresPorDia)}">
+                    <div class="dia-livre" th:each="entrada : ${livresPorDia}">
+                        <span class="pn-eyebrow" th:text="${@formatador.diaCurto(entrada.key)}">qui 22</span>
+                        <div class="horas">
+                            <label class="hora-opcao" th:each="janela : ${entrada.value}" th:attr="data-vet=${janela.veterinarioId}">
+                                <input type="radio" name="janelaId" th:value="${janela.id}"
+                                       th:checked="${agendamentoRequest.janelaId != null and agendamentoRequest.janelaId == janela.id}"/>
+                                <span th:text="${@formatador.hora(janela.inicio)}">11h</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="pn-erro" th:if="${#fields.hasErrors('janelaId')}" th:errors="*{janelaId}">erro</div>
+                <span class="pn-muted">Só aparecem horários abertos pela veterinária.</span>
+            </div>
+
+            <div class="pn-field">
+                <label for="observacao">Motivo ou observação</label>
+                <textarea id="observacao" class="pn-input" rows="2" th:field="*{observacao}"
+                          placeholder="Ex.: retorno do tratamento"></textarea>
+                <div class="pn-erro" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}">erro</div>
+            </div>
+        </div>
+        <div class="pn-row">
+            <button type="submit" class="pn-btn">Agendar</button>
+            <a class="pn-btn ghost" th:href="@{/agenda}">Cancelar</a>
+        </div>
+    </form>
+<script>
+    (function () {
+        var select = document.getElementById('veterinaria');
+        if (!select) return;
+        function filtrar() {
+            document.querySelectorAll('.hora-opcao').forEach(function (opcao) {
+                var visivel = opcao.dataset.vet === select.value;
+                opcao.style.display = visivel ? '' : 'none';
+                if (!visivel) opcao.querySelector('input').checked = false;
+            });
+            document.querySelectorAll('.dia-livre').forEach(function (dia) {
+                var algum = Array.prototype.some.call(dia.querySelectorAll('.hora-opcao'), function (o) { return o.style.display !== 'none'; });
+                dia.style.display = algum ? '' : 'none';
+            });
+        }
+        var marcada = document.querySelector('input[name="janelaId"]:checked');
+        if (marcada) select.value = marcada.closest('.hora-opcao').dataset.vet;
+        select.addEventListener('change', filtrar);
+        filtrar();
+    })();
+</script>
+</main>
+</body>
+</html>

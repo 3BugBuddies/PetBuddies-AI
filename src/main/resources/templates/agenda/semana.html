@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(~{::title}, ~{::main})}">
+<head>
+    <title>Agenda · PetBuddies</title>
+</head>
+<body>
+<main class="pn-main">
+    <div class="pn-head">
+        <div>
+            <div class="sub">Grade da semana</div>
+            <h1 class="pn-h1">Agenda</h1>
+        </div>
+        <a class="pn-btn" th:href="@{/agenda/novo}">Agendar consulta</a>
+    </div>
+
+    <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+
+    <div class="pn-row pn-between">
+        <div class="pn-row" style="gap:8px">
+            <a class="pn-btn line sm" aria-label="Semana anterior" th:href="@{/agenda(semana=${grade.anterior})}">&#8249;</a>
+            <b class="pn-h2"
+               th:text="${#temporals.format(grade.segunda, 'dd/MM')} + ' a ' + ${#temporals.format(grade.dias[grade.dias.size() - 1], 'dd/MM')}">19/10 a 24/10</b>
+            <a class="pn-btn line sm" aria-label="Próxima semana" th:href="@{/agenda(semana=${grade.proxima})}">&#8250;</a>
+            <a class="pn-btn ghost sm" th:href="@{/agenda}">hoje</a>
+        </div>
+        <span class="pn-muted"><span th:text="${grade.livres}">0</span> horário(s) livre(s) nesta semana</span>
+    </div>
+
+    <div class="pn-card" style="padding:14px">
+        <p class="pn-muted" th:if="${#lists.isEmpty(grade.linhas)}">
+            Nenhuma janela aberta nesta semana. Abra horários em <a th:href="@{/horarios}">Horários</a>.
+        </p>
+        <div class="sem-grade" th:unless="${#lists.isEmpty(grade.linhas)}"
+             th:style="'grid-template-columns:44px repeat(' + ${#lists.size(grade.dias)} + ',minmax(0,1fr))'">
+            <div></div>
+            <div class="sem-dia" th:each="dia : ${grade.dias}" th:classappend="${dia == hoje} ? 'hoje'"
+                 th:text="${@formatador.diaCurto(dia)}">seg 19</div>
+
+            <th:block th:each="linha : ${grade.linhas}">
+                <div class="sem-hora" th:text="${@formatador.hora(linha.hora)}">09h</div>
+                <th:block th:each="celula : ${linha.celulas}" th:switch="${celula.estado.name()}">
+                    <div th:case="'FORA'" class="sem-cel fora"></div>
+                    <div th:case="'PASSOU'" class="sem-cel passou">&ndash;</div>
+                    <a th:case="'LIVRE'" class="sem-cel livre" th:href="@{/agenda/novo(janelaId=${celula.janelaId})}">livre</a>
+                    <th:block th:case="*">
+                        <a th:if="${celula.consulta.fechavel}" class="sem-cel ocupada"
+                           th:href="@{/agenda/{id}/fechar(id=${celula.consulta.id})}"
+                           th:title="${celula.consulta.responsavelNome} + ' · atender'">
+                            <b th:text="${celula.consulta.animalNome}">Rex</b>
+                            <span th:text="${celula.consulta.tipo.rotulo}">Rotina</span>
+                        </a>
+                        <div th:unless="${celula.consulta.fechavel}" class="sem-cel"
+                             th:classappend="${celula.estado.name() == 'REALIZADA'} ? 'realizada' : 'ocupada'"
+                             th:title="${celula.consulta.responsavelNome}">
+                            <b th:text="${celula.consulta.animalNome}">Rex</b>
+                            <span th:text="${celula.consulta.tipo.rotulo} + ' · ' + ${celula.consulta.status.rotulo}">Rotina · atendida</span>
+                        </div>
+                    </th:block>
+                </th:block>
+            </th:block>
+        </div>
+    </div>
+    <p class="pn-muted">Clique num horário livre para agendar. Clique numa consulta marcada para atender.</p>
+</main>
+</body>
+</html>
