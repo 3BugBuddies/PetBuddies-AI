@@ -12,9 +12,9 @@ são feitos pelo [`azure-pipelines.yml`](azure-pipelines.yml), que dispara a cad
 |---------|-----|
 | Repositório GitHub | https://github.com/3BugBuddies/PetBuddies-AI |
 | Azure DevOps (Boards, Repos, Pipelines) | [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps) |
-| Aplicação (Azure Web App) | https://petbuddies-java-rm563925.azurewebsites.net |
-| Swagger UI | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
-| Saúde | https://petbuddies-java-rm563925.azurewebsites.net/actuator/health |
+| Aplicação (Azure Web App) | https://petbuddies-java-cl-rm563925.azurewebsites.net |
+| Swagger UI | https://petbuddies-java-cl-rm563925.azurewebsites.net/swagger-ui.html |
+| Saúde | https://petbuddies-java-cl-rm563925.azurewebsites.net/actuator/health |
 | Vídeo | a preencher |
 | Serviço .NET (PetBuddies-API) | https://github.com/3BugBuddies/PetBuddies-API |
 
@@ -42,6 +42,7 @@ são feitos pelo [`azure-pipelines.yml`](azure-pipelines.yml), que dispara a cad
 7. [Testes](#7-testes)
 8. [CRUD do Responsável](#8-crud-do-responsável)
 9. [Credenciais de teste](#9-credenciais-de-teste)
+10. [Incidente na Azure e migração para Chile Central (04/11/2026)](#10-incidente-na-azure-e-migração-para-chile-central-04112026)
 
 ---
 
@@ -64,7 +65,7 @@ conduta que a veterinária deixou assinada.
 | IA | Spring AI com Gemini 2.5 Flash (Java); Groq Whisper para a transcrição de voz (app mobile) |
 | Serviço parceiro | `PetBuddies-API` em .NET 8, num segundo Web App |
 | Banco | Oracle da FIAP (as duas APIs) e Cosmos DB com a API do MongoDB (pontuação do .NET) |
-| Nuvem | Azure Web App Linux, App Service Plan B2, Application Insights, região brazilsouth |
+| Nuvem | Azure Web App Linux e App Service Plan B2 em chilecentral; Application Insights e Cosmos DB em brazilsouth |
 | DevOps | Azure DevOps: Boards (Scrum), Azure Repos, Azure Pipelines em YAML, Pipeline Artifacts |
 | Testes | JUnit 5 com Maven no Java; xUnit com `dotnet test` no .NET |
 | Clientes | navegador (painel da clínica) e app mobile em React Native com Expo |
@@ -125,7 +126,7 @@ Cada task da execução, com o tempo dela: o Maven compila e roda os testes no C
 Os resultados dos testes estão na aba **Tests** da execução (ver a [seção 7](#7-testes)), e o artefato `app` está na aba
 **Artifacts**.
 
-A pipeline `petbuddies-net` do repositório `PetBuddies-API` tem o mesmo desenho, com `dotnet test` no CI e o Zip Deploy no Web App `petbuddies-net-rm563925`.
+A pipeline `petbuddies-net` do repositório `PetBuddies-API` tem o mesmo desenho, com `dotnet test` no CI e o Zip Deploy no Web App `petbuddies-net-cl-rm563925`.
 
 ### Variáveis da pipeline
 
@@ -133,7 +134,7 @@ Cadastradas em Pipelines → Edit → Variables. O CD grava cada uma como config
 
 | Variável | Secreta | Conteúdo |
 |----------|:-------:|----------|
-| `NOME_WEBAPP` | não | nome do Web App de destino (`petbuddies-java-rm563925`) |
+| `NOME_WEBAPP` | não | nome do Web App de destino (`petbuddies-java-cl-rm563925`) |
 | `ORACLE_URL` | não | JDBC do Oracle da FIAP |
 | `ORACLE_USER` | sim | usuário do Oracle |
 | `ORACLE_PASSWORD` | sim | senha do Oracle |
@@ -148,9 +149,8 @@ Cadastradas em Pipelines → Edit → Variables. O CD grava cada uma como config
 Script: [`infra/infra-app.sh`](infra/infra-app.sh), para o lado Java. O Web App do .NET e o Cosmos DB são criados pelo
 repositório `PetBuddies-API` e usam o mesmo resource group e o mesmo plano.
 
-<img src="assets/prints/portal-rg-petbuddies.png" alt="Resource group rg-petbuddies no Portal da Azure, com o plano, os dois Web Apps, os Application Insights e o Cosmos DB">
-
-O script cria o plano em B1. A produção foi escalada para B2: no B1, o Java levava cerca de 6 minutos para subir.
+O plano `plan-petbuddies-alt` (B2 Linux) e os dois Web Apps rodam em Chile Central. O Cosmos DB e os Application
+Insights ficam em Brazil South, no mesmo resource group. Ver a [seção 10](#10-incidente-na-azure-e-migração-para-chile-central-04112026).
 
 <details>
 <summary>Como recriar o ambiente do zero</summary>
@@ -195,12 +195,14 @@ connection e do environment `petbuddies-java`, se o Azure DevOps pedir.
 
 **7. Acessar o app**
 
-https://petbuddies-java-rm563925.azurewebsites.net
+https://petbuddies-java-cl-rm563925.azurewebsites.net
 
 Na primeira subida, o Flyway cria as tabelas no Oracle e semeia os dados de demonstração. `GET /actuator/health`
 responde `UP` quando o banco está no ar.
 
 </details>
+
+<img src="assets/prints/portal-rg-petbuddies.png" alt="Resource group rg-petbuddies no Portal da Azure, com o plano, os dois Web Apps, os Application Insights e o Cosmos DB">
 
 ---
 
@@ -223,7 +225,7 @@ os mesmos testes no `clean package` e publica o resultado na aba **Tests**, com 
 
 ## 8. CRUD do Responsável
 
-Base URL: `https://petbuddies-java-rm563925.azurewebsites.net`. Autenticação: `POST /api/auth/login` devolve o token;
+Base URL: `https://petbuddies-java-cl-rm563925.azurewebsites.net`. Autenticação: `POST /api/auth/login` devolve o token;
 as demais rotas usam `Authorization: Bearer <token>`. O mesmo CRUD está no painel, na tela **Responsáveis**.
 
 | Método | Rota | Descrição |
@@ -275,3 +277,19 @@ Depois do `DELETE`, o responsável some do primeiro SELECT.
 
 Os dois usuários são criados pelo seed do Flyway (`V2__seed_demonstracao.sql`). As demais rotas da API estão no
 [README da `main`](https://github.com/3BugBuddies/PetBuddies-AI/blob/main/README.md).
+
+---
+
+## 10. Incidente na Azure e migração para Chile Central (04/11/2026)
+
+Por volta de 20:18 UTC, o Web App do Java em Brazil South deixou de responder. A Azure abriu o incidente **MZTM-6L0**,
+que afeta o App Service em Brazil South desde 20:30 UTC.
+
+Criamos em Chile Central um plano novo, `plan-petbuddies-alt` (B2 Linux), e os Web Apps `petbuddies-java-cl-rm563925`
+e `petbuddies-net-cl-rm563925`, no mesmo resource group e no mesmo Oracle. Nas pipelines, trocamos `NOME_WEBAPP` (Java e
+.NET), `PETNETAPI_URL` (Java) e `MOTOR_API_URL` (.NET). Os builds 22 e 23 republicaram as duas aplicações no Chile.
+
+O Cosmos DB e os Application Insights continuaram em Brazil South. O incidente atinge só o App Service, e a assinatura
+tem uma única conta gratuita do Cosmos DB. A migração foi só do compute.
+
+<img src="assets/prints/incidente-azure.png" alt="Aviso do incidente MZTM-6L0 da Azure sobre o App Service em Brazil South">
