@@ -178,6 +178,10 @@ A mesma execução no Azure DevOps, com os stages CI e CD verdes:
 
 <img src="assets/prints/pipeline-build-21.png" alt="Execução do build 21 da pipeline petbuddies-java no Azure DevOps, com os stages CI - Build e Testes e CD - Deploy no Azure Web App concluídos com sucesso">
 
+Cada task da execução, com o tempo dela: o Maven compila e roda os testes no CI, e o Zip Deploy publica o `.jar` no CD.
+
+<img src="assets/prints/pipeline-jobs.png" alt="Jobs do build 21 no Azure DevOps: o CI instala o Java 21, roda o Maven com os testes em 44 s, prepara e publica o artefato app; o CD baixa o artefato, grava as variáveis no Web App e faz o Zip Deploy em 45 s">
+
 Os resultados dos testes estão na aba **Tests** da execução (ver a [seção 9](#9-testes)), e o artefato `app` está na aba
 **Artifacts**.
 
