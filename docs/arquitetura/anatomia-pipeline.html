@@ -85,12 +85,12 @@
   </header>
 
   <div class="summary">
-    <span class="pill ok">build 21 · succeeded</span>
-    <span class="pill"><b>número</b> 20261104.6</span>
-    <span class="pill"><b>commit</b> <code>efe7fd0</code> na <code>main</code></span>
+    <span class="pill ok">build 24 · succeeded</span>
+    <span class="pill"><b>número</b> 20261104.8</span>
+    <span class="pill"><b>commit</b> <code>5e03507</code> na <code>main</code></span>
     <span class="pill"><b>disparo</b> automático (individualCI)</span>
     <span class="pill"><b>testes</b> 25 de 25 passaram</span>
-    <span class="pill"><b>duração total</b> 3 min 13 s</span>
+    <span class="pill"><b>duração total</b> 4 min 32 s</span>
   </div>
 
   <!-- CI -->
@@ -112,13 +112,13 @@
           <path d="M8 18l3-7 7-5-2 8-7 5z" fill="#fff"/><circle cx="15" cy="10" r="1.6" fill="#2560E0"/>
         </svg>
         <div class="t">Stage CI · Build e Testes</div><span class="badge">succeeded</span>
-        <div class="s">preparação do agente 11,9 s</div>
+        <div class="s">preparação do agente 12,2 s</div>
         <div class="time">1 min 22 s</div>
       </div>
       <div class="tasks">
         <div class="task">
           <div class="k">checkout</div><div class="t">Baixar o código</div><div class="s">PetBuddies-AI@main</div>
-          <div class="bar"><i style="width:7%"></i></div><div class="d"><span class="check"></span>2,9 s</div>
+          <div class="bar"><i style="width:7%"></i></div><div class="d"><span class="check"></span>3,7 s</div>
         </div>
         <div class="tarrow"></div>
         <div class="task">
@@ -129,17 +129,17 @@
         <div class="task main">
           <div class="k">Maven@4</div><div class="t">Compilar e executar testes</div><div class="s"><code>clean package</code> · JUnit 5</div>
           <span class="sub">resultados publicados · 25/25</span>
-          <div class="bar"><i style="width:100%"></i></div><div class="d"><span class="check"></span>44,3 s</div>
+          <div class="bar"><i style="width:100%"></i></div><div class="d"><span class="check"></span>50,1 s</div>
         </div>
         <div class="tarrow"></div>
         <div class="task">
           <div class="k">CopyFiles@2</div><div class="t">Preparar o .jar</div><div class="s"><code>**/target/*.jar</code></div>
-          <div class="bar"><i style="width:2%"></i></div><div class="d"><span class="check"></span>0,8 s</div>
+          <div class="bar"><i style="width:4%"></i></div><div class="d"><span class="check"></span>1,8 s</div>
         </div>
         <div class="tarrow"></div>
         <div class="task">
           <div class="k">PublishPipelineArtifact@1</div><div class="t">Publicar artefato</div><div class="s">artefato <code>app</code></div>
-          <div class="bar"><i style="width:13%"></i></div><div class="d"><span class="check"></span>5,6 s</div>
+          <div class="bar"><i style="width:8%"></i></div><div class="d"><span class="check"></span>4,1 s</div>
         </div>
       </div>
     </div>
@@ -170,23 +170,23 @@
           <path d="M8 18l3-7 7-5-2 8-7 5z" fill="#fff"/><circle cx="15" cy="10" r="1.6" fill="#2560E0"/>
         </svg>
         <div class="t">Stage CD · Deploy no Azure Web App</div><span class="badge">succeeded</span>
-        <div class="s">environment <code>petbuddies-java</code> · preparação 11,7 s</div>
-        <div class="time">1 min 13 s</div>
+        <div class="s">environment <code>petbuddies-java</code> · preparação 15,6 s</div>
+        <div class="time">2 min 27 s</div>
       </div>
       <div class="tasks">
         <div class="task">
           <div class="k">download: current</div><div class="t">Baixar o artefato</div><div class="s"><code>app</code> desta execução</div>
-          <div class="bar"><i style="width:14%"></i></div><div class="d"><span class="check"></span>6,4 s</div>
+          <div class="bar"><i style="width:12%"></i></div><div class="d"><span class="check"></span>9,3 s</div>
         </div>
         <div class="tarrow"></div>
         <div class="task">
           <div class="k">AzureAppServiceSettings@1</div><div class="t">Gravar as variáveis</div><div class="s">segredos viram app settings</div>
-          <div class="bar"><i style="width:5%"></i></div><div class="d"><span class="check"></span>2,5 s</div>
+          <div class="bar"><i style="width:46%"></i></div><div class="d"><span class="check"></span>36,3 s</div>
         </div>
         <div class="tarrow"></div>
         <div class="task main">
           <div class="k">AzureWebApp@1</div><div class="t">Deploy via Zip Deploy</div><div class="s"><code>deploymentMethod: zipDeploy</code></div>
-          <div class="bar"><i style="width:100%"></i></div><div class="d"><span class="check"></span>45,1 s</div>
+          <div class="bar"><i style="width:100%"></i></div><div class="d"><span class="check"></span>79,5 s</div>
         </div>
       </div>
     </div>
@@ -198,12 +198,12 @@
         <ellipse cx="26" cy="26" rx="10" ry="24" fill="none" stroke="#fff" stroke-width="2.2"/>
         <path d="M3 19h46M3 33h46M26 2v48" stroke="#fff" stroke-width="2.2"/>
       </svg>
-      <div><div class="t">Azure Web App</div><div class="n">petbuddies-java-rm563925</div><div class="s">Java 21 · brazilsouth</div></div>
+      <div><div class="t">Azure Web App</div><div class="n">petbuddies-java-rm563925</div><div class="s">Java 21 · chilecentral</div></div>
     </div>
   </div>
 
   <div class="foot">
-    <span>As barras comparam cada task com a mais longa do estágio. Tempos da timeline do build 21 (REST do Azure DevOps), em 04/11/2026.</span>
+    <span>As barras comparam cada task com a mais longa do estágio. Tempos da timeline do build 24 (REST do Azure DevOps), em 04/11/2026.</span>
     <span>Service connection <code>sc-petbuddies-azure</code></span>
   </div>
 </div>
