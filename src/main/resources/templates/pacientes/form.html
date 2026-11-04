@@ -77,9 +77,14 @@
 
         <div class="acoes-formulario">
             <button type="submit">Salvar</button>
+            <button type="submit" class="botao secundario" th:if="${animalId != null}" form="paciente-excluir">Excluir</button>
             <a class="botao secundario" th:href="@{/pacientes}">Cancelar</a>
         </div>
     </form>
+
+    <form id="paciente-excluir" method="post" th:if="${animalId != null}"
+          th:action="@{/pacientes/{id}/excluir(id=${animalId})}"
+          onsubmit="return confirm('Excluir este paciente?');"></form>
 </main>
 </body>
 </html>
