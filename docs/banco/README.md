@@ -71,8 +71,12 @@ que as migrations do Java criam, com as mesmas colunas.
   [`V9__pacotes_plsql_e_auditoria.sql`](../../src/main/resources/db/migration/V9__pacotes_plsql_e_auditoria.sql)
   instala os blocos 02, 04, 05 e 06 quando o Java sobe. Ela é **gerada** a partir desta pasta por
   [gerar_migration.py](gerar_migration.py), para a entrega e o banco da aplicação nunca divergirem.
-  Mudou um bloco antes de a V9 rodar em algum banco? `python docs/banco/gerar_migration.py`.
-  Depois que ela rodou, a mudança vira uma V10.
+  A V9 já rodou em produção e está congelada.
+- **Correção:** a
+  [`V10__corrige_numero_inteiro_no_json.sql`](../../src/main/resources/db/migration/V10__corrige_numero_inteiro_no_json.sql)
+  recompila o corpo do `PKG_PB_JSON`. A Função 1 escrevia número inteiro com um ponto sobrando
+  (`"planoId":4.`), JSON inválido que o `mongoimport` recusa. A V10 também é gerada pelo
+  `gerar_migration.py`, a partir do `05_pacotes.sql`. Mudança depois que ela rodar vira uma V11.
 - **`PKG_PB_JSON.PLANO_JSON`** — `GET /api/exportacao/planos-cuidado` (perfil `VET`) executa o
   procedimento e devolve o arquivo `planos_cuidado.json`. Com `?animalId=1`, só os planos daquele
   animal. As exceções do procedimento chegam como resposta da API: `404` para animal inexistente
