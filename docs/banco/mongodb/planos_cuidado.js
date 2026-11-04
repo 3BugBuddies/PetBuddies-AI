@@ -1,11 +1,12 @@
 // =============================================================================
-// planos_cuidado.js — prepara e consulta a coleção importada do Oracle
+// planos_cuidado.js — consulta a coleção importada do Oracle
 // =============================================================================
-// Roda DEPOIS do mongoimport (passo a passo em docs/banco/README.md):
+// Roda DEPOIS do planos_cuidado_indices.js e do mongoimport (passo a passo em
+// docs/banco/README.md):
 //
 //   mongosh "mongodb://localhost:27017/petbuddies" docs/banco/mongodb/planos_cuidado.js
 //
-// Na Azure, troque a URI pela connection string do Cosmos DB, com /petbuddies
+// Na Azure, troque a URI pela connection string de produção, com /petbuddies
 // antes do "?".
 //
 // A COLEÇÃO: um documento por plano de cuidado, com os dados do animal no topo
@@ -21,31 +22,13 @@
 
 const planos = db.getCollection("planos_cuidado");
 
-print(`\nColeção planos_cuidado: ${planos.countDocuments()} documento(s)\n`);
+print(`\nColeção planos_cuidado: ${planos.countDocuments()} documento(s)`);
 
-// -----------------------------------------------------------------------------
-// 1. Índices — um por pergunta que o app faz, nenhum "por via das dúvidas".
-// -----------------------------------------------------------------------------
-// planoId é a chave que vem do Oracle: único, para reimportar o mesmo arquivo
-// não duplicar plano.
-planos.createIndex({ planoId: 1 }, { unique: true, name: "ux_plano" });
-
-// "os planos ativos deste pet" — a tela do tutor.
-planos.createIndex({ animalId: 1, status: 1 }, { name: "ix_animal_status" });
-
-// "o que vence nos próximos dias" — índice multichave: o MongoDB indexa cada
-// elemento do array de eventos, então dá para buscar DENTRO do documento.
-planos.createIndex({ "eventos.status": 1, "eventos.dataAlvo": 1 }, { name: "ix_eventos_status_data" });
-
-print("Índices:");
-planos.getIndexes().forEach(i => print(`  ${i.name}  ${JSON.stringify(i.key)}`));
-
-// -----------------------------------------------------------------------------
-// 2. Consultas
-// -----------------------------------------------------------------------------
+print("\nÍndices (criados por planos_cuidado_indices.js antes da importação):");
+planos.getIndexes().forEach(i => print(`  ${i.name}  ${JSON.stringify(i.key)}${i.unique ? "  (único)" : ""}`));
 
 // 2.1 O plano de um pet, inteiro, numa leitura só (no Oracle: JOIN de 3 tabelas).
-print("\n2.1 Planos do animal 1 (Thor), com os eventos embutidos:");
+print("\n2.1 Planos do animal 1, com os eventos embutidos:");
 planos.find(
     { animalId: 1 },
     { _id: 0, planoId: 1, categoria: 1, status: 1, animalNome: 1, totalEventos: 1,
@@ -81,8 +64,12 @@ planos.aggregate([
 ]).forEach(r => printjson(r));
 
 // 2.5 Flexibilidade do documento: um campo novo entra só onde faz sentido, sem
-// ALTER TABLE e sem mexer nos outros documentos.
-print("\n2.5 Acrescenta 'observacaoClinica' só no plano 1 e lê de volta:");
-planos.updateOne({ planoId: 1 }, { $set: { observacaoClinica: "Revisar dose na próxima consulta." } });
-printjson(planos.findOne({ planoId: 1 }, { _id: 0, planoId: 1, animalNome: 1, observacaoClinica: 1 }));
-print(`Documentos com o campo: ${planos.countDocuments({ observacaoClinica: { $exists: true } })} de ${planos.countDocuments()}`);
+// ALTER TABLE e sem mexer nos outros documentos. O alvo é o primeiro plano da
+// coleção, para o script funcionar com qualquer dataset importado.
+const alvo = planos.find({}, { _id: 0, planoId: 1 }).sort({ planoId: 1 }).limit(1).toArray()[0];
+if (alvo) {
+    print(`\n2.5 Acrescenta 'observacaoClinica' só no plano ${alvo.planoId} e lê de volta:`);
+    planos.updateOne({ planoId: alvo.planoId }, { $set: { observacaoClinica: "Revisar dose na próxima consulta." } });
+    printjson(planos.findOne({ planoId: alvo.planoId }, { _id: 0, planoId: 1, animalNome: 1, observacaoClinica: 1 }));
+    print(`Documentos com o campo: ${planos.countDocuments({ observacaoClinica: { $exists: true } })} de ${planos.countDocuments()}`);
+}
