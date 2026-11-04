@@ -108,20 +108,20 @@ Private, com Git e o processo Scrum. O professor João Menk é membro com o nív
 ## 5. Pipelines CI/CD
 
 Arquivo: [`azure-pipelines.yml`](azure-pipelines.yml), no modo YAML. Gatilho: push na `main`, o que inclui o merge de
-PR. Service connection: `sc-petbuddies-azure` (Azure Resource Manager). A figura mostra a execução real do build 21,
+PR. Service connection: `sc-petbuddies-azure` (Azure Resource Manager). A figura mostra a execução real do build 24,
 de 04/11/2026, com o tempo de cada task.
 
-<img src="assets/figuras/anatomia-pipeline.png" alt="Anatomia da pipeline petbuddies-java no build 21: o push na main dispara o stage CI (checkout, Java 21, Maven com 25 testes, cópia do jar e publicação do artefato app, 1 min 22 s); o stage CD só roda se o CI passou e baixa o artefato, grava as variáveis no Web App e faz o Zip Deploy (1 min 13 s); total de 3 min 13 s">
+<img src="assets/figuras/anatomia-pipeline.png" alt="Anatomia da pipeline petbuddies-java no build 24: o push na main dispara o stage CI (checkout, Java 21, Maven com 25 testes, cópia do jar e publicação do artefato app, 1 min 22 s); o stage CD só roda se o CI passou e baixa o artefato, grava as variáveis no Web App e faz o Zip Deploy (2 min 27 s); total de 4 min 32 s">
 
-<sub>Fonte do desenho: <a href="docs/arquitetura/anatomia-pipeline.html"><code>docs/arquitetura/anatomia-pipeline.html</code></a> · tempos da timeline do build 21 na REST do Azure DevOps</sub>
+<sub>Fonte do desenho: <a href="docs/arquitetura/anatomia-pipeline.html"><code>docs/arquitetura/anatomia-pipeline.html</code></a> · tempos da timeline do build 24 na REST do Azure DevOps</sub>
 
-A mesma execução no Azure DevOps, com os stages CI e CD verdes:
+Uma execução de exemplo no Azure DevOps, com os stages CI e CD verdes:
 
-<img src="assets/prints/pipeline-build-21.png" alt="Execução do build 21 da pipeline petbuddies-java no Azure DevOps, com os stages CI - Build e Testes e CD - Deploy no Azure Web App concluídos com sucesso">
+<img src="assets/prints/pipeline-build-21.png" alt="Execução de exemplo da pipeline petbuddies-java no Azure DevOps, com os stages CI - Build e Testes e CD - Deploy no Azure Web App concluídos com sucesso">
 
-Cada task da execução, com o tempo dela: o Maven compila e roda os testes no CI, e o Zip Deploy publica o `.jar` no CD.
+Cada task dessa execução de exemplo, com o tempo dela: o Maven compila e roda os testes no CI, e o Zip Deploy publica o `.jar` no CD.
 
-<img src="assets/prints/pipeline-jobs.png" alt="Jobs do build 21 no Azure DevOps: o CI instala o Java 21, roda o Maven com os testes em 44 s, prepara e publica o artefato app; o CD baixa o artefato, grava as variáveis no Web App e faz o Zip Deploy em 45 s">
+<img src="assets/prints/pipeline-jobs.png" alt="Jobs de uma execução de exemplo no Azure DevOps: o CI instala o Java 21, roda o Maven com os testes em 44 s, prepara e publica o artefato app; o CD baixa o artefato, grava as variáveis no Web App e faz o Zip Deploy em 45 s">
 
 Os resultados dos testes estão na aba **Tests** da execução (ver a [seção 7](#7-testes)), e o artefato `app` está na aba
 **Artifacts**.
@@ -218,7 +218,7 @@ os mesmos testes no `clean package` e publica o resultado na aba **Tests**, com 
 | `ResumoPeriodoTest` | resumo do cuidado entre duas consultas: doses com check-in, dias distintos e período vazio | 4 |
 | **Total** | | **25** |
 
-<img src="assets/prints/pipeline-testes.png" alt="Aba Tests do build 21 no Azure DevOps, com os 25 testes da execução Testes de Código aprovados">
+<img src="assets/prints/pipeline-testes.png" alt="Aba Tests de uma execução de exemplo no Azure DevOps, com os 25 testes da execução Testes de Código aprovados">
 
 ---
 
