@@ -101,7 +101,7 @@ A figura do topo mostra a esteira e a produção. Fonte do desenho:
 
 ## 3. Banco de dados em nuvem
 
-O banco é o **Oracle da FIAP** (`oracle.fiap.com.br:1521/ORCL`), um dos bancos aceitos na lista do briefing. Cada
+O banco é o **Oracle da FIAP** (`oracle.fiap.com.br:1521/ORCL`), um banco gerenciado em nuvem. Cada
 serviço tem o próprio schema.
 
 - O schema do Java é criado e versionado pelo **Flyway** (`src/main/resources/db/migration`), na subida da aplicação.
@@ -131,7 +131,7 @@ Link: [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/Pe
 
 ## 5. Acesso do professor
 
-O professor foi convidado para o projeto com o nível de acesso **Basic** (Organization settings → Users), o que dá
+O professor João Menck é membro do projeto com o nível de acesso **Basic** (Organization settings → Users), o que dá
 acesso a Boards, Repos e Pipelines.
 
 ---
