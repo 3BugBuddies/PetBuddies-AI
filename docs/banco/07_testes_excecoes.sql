@@ -2,14 +2,30 @@ SET SERVEROUTPUT ON SIZE UNLIMITED
 
 PROMPT
 PROMPT ############################################################
-PROMPT # 1. FUNÇÃO 1 - PB_MONTA_JSON
+PROMPT # 0. EMPACOTAMENTO - os objetos compilaram?
+PROMPT ############################################################
+-- Especificação e corpo de cada pacote, a trigger e os tipos. Qualquer um com
+-- STATUS diferente de VALID quer dizer erro de compilação: rode
+-- SHOW ERRORS PACKAGE BODY <nome> para ver a linha.
+COLUMN OBJECT_NAME FORMAT A24
+COLUMN OBJECT_TYPE FORMAT A14
+SELECT OBJECT_NAME, OBJECT_TYPE, STATUS
+  FROM USER_OBJECTS
+ WHERE OBJECT_NAME IN ('PKG_PB_JSON', 'PKG_PB_TRATAMENTO', 'PKG_PB_AUDITORIA',
+                       'PB_AUDITA_CONDICAO', 'PB_PAR_JSON', 'PB_PARES_JSON',
+                       'PB_RESULTADO_DOSE')
+ ORDER BY OBJECT_NAME, OBJECT_TYPE;
+
+PROMPT
+PROMPT ############################################################
+PROMPT # 1. FUNÇÃO 1 - PKG_PB_JSON.MONTA_JSON
 PROMPT ############################################################
 
 -- ---------- 1.1 caminho feliz -----------------------------------------------
 DECLARE
     v_json CLOB;
 BEGIN
-    v_json := PB_MONTA_JSON(PB_PARES_JSON(
+    v_json := PKG_PB_JSON.MONTA_JSON(PB_PARES_JSON(
         PB_PAR_JSON('nome',      'Thor',      'TEXTO'),
         PB_PAR_JSON('especie',   'CACHORRO',  'TEXTO'),
         PB_PAR_JSON('pesoKg',    '32.5',      'NUMERO'),
@@ -27,7 +43,7 @@ END;
 DECLARE
     v_json CLOB;
 BEGIN
-    v_json := PB_MONTA_JSON(PB_PARES_JSON(
+    v_json := PKG_PB_JSON.MONTA_JSON(PB_PARES_JSON(
         PB_PAR_JSON('observacao', 'Tutor disse: "vomitou 2x"' || CHR(10) || 'caminho C:\dados',
                     'TEXTO')
     ));
@@ -39,7 +55,7 @@ END;
 DECLARE
     v_json CLOB;
 BEGIN
-    v_json := PB_MONTA_JSON(PB_PARES_JSON());
+    v_json := PKG_PB_JSON.MONTA_JSON(PB_PARES_JSON());
     DBMS_OUTPUT.PUT_LINE('1.3 FALHOU: deveria ter levantado exceção');
 EXCEPTION
     WHEN OTHERS THEN
@@ -51,7 +67,7 @@ END;
 DECLARE
     v_json CLOB;
 BEGIN
-    v_json := PB_MONTA_JSON(PB_PARES_JSON(
+    v_json := PKG_PB_JSON.MONTA_JSON(PB_PARES_JSON(
         PB_PAR_JSON('peso', '32.5', 'DECIMAL')   -- tipo que não existe
     ));
     DBMS_OUTPUT.PUT_LINE('1.4 FALHOU: deveria ter levantado exceção');
@@ -65,7 +81,7 @@ END;
 DECLARE
     v_json CLOB;
 BEGIN
-    v_json := PB_MONTA_JSON(PB_PARES_JSON(
+    v_json := PKG_PB_JSON.MONTA_JSON(PB_PARES_JSON(
         PB_PAR_JSON('peso', 'trinta e dois', 'NUMERO')
     ));
     DBMS_OUTPUT.PUT_LINE('1.5 FALHOU: deveria ter levantado exceção');
@@ -78,7 +94,7 @@ END;
 
 PROMPT
 PROMPT ############################################################
-PROMPT # 2. FUNÇÃO 2 - PB_DOSE_DO_DIA
+PROMPT # 2. FUNÇÃO 2 - PKG_PB_TRATAMENTO.DOSE_DO_DIA
 PROMPT ############################################################
 
 -- ---------- 2.1 o motor confere com a carga ---------------------------------
@@ -98,7 +114,7 @@ BEGIN
                  AND ID_CHECKIN IS NOT NULL
                ORDER BY ID_ITEM_PLANO_CUIDADO)
     LOOP
-        v_calc := PB_DOSE_DO_DIA(r.ID_PRESCRICAO, r.ID_CHECKIN);
+        v_calc := PKG_PB_TRATAMENTO.DOSE_DO_DIA(r.ID_PRESCRICAO, r.ID_CHECKIN);
 
         IF v_calc.TP_DESFECHO = r.TP_DESFECHO
            AND NVL(v_calc.NR_DOSE_APLICADA, -1) = NVL(r.NR_DOSE_APLICADA, -1) THEN
@@ -124,7 +140,7 @@ END;
 DECLARE
     v_calc PB_RESULTADO_DOSE;
 BEGIN
-    v_calc := PB_DOSE_DO_DIA(9999, 1);
+    v_calc := PKG_PB_TRATAMENTO.DOSE_DO_DIA(9999, 1);
     DBMS_OUTPUT.PUT_LINE('2.2 FALHOU: deveria ter levantado exceção');
 EXCEPTION
     WHEN OTHERS THEN
@@ -139,7 +155,7 @@ END;
 DECLARE
     v_calc PB_RESULTADO_DOSE;
 BEGIN
-    v_calc := PB_DOSE_DO_DIA(1, 9999);
+    v_calc := PKG_PB_TRATAMENTO.DOSE_DO_DIA(1, 9999);
     DBMS_OUTPUT.PUT_LINE('2.3 FALHOU: deveria ter levantado exceção');
 EXCEPTION
     WHEN OTHERS THEN
@@ -150,18 +166,18 @@ END;
 
 PROMPT
 PROMPT ############################################################
-PROMPT # 3. PROCEDIMENTO 1 - PB_PLANO_JSON  (JOIN de 3 tabelas -> JSON)
+PROMPT # 3. PROCEDIMENTO 1 - PKG_PB_JSON.PLANO_JSON  (JOIN de 3 tabelas -> JSON)
 PROMPT ############################################################
 
 -- ---------- 3.1 caminho feliz: o plano do Thor, com 6 eventos embutidos -----
 BEGIN
-    PB_PLANO_JSON(1);
+    PKG_PB_JSON.PLANO_JSON(1);
 END;
 /
 
 -- ---------- 3.2 EXCEÇÃO: animal inexistente (-20021) ------------------------
 BEGIN
-    PB_PLANO_JSON(9999);
+    PKG_PB_JSON.PLANO_JSON(9999);
 EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('3.2 EXCECAO TRATADA (' || SQLCODE || ') -> ' || SQLERRM);
@@ -184,7 +200,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('3.3 animal criado com id ' || v_id
                          || ' (gerador realinhado: id > 5)');
     BEGIN
-        PB_PLANO_JSON(v_id);
+        PKG_PB_JSON.PLANO_JSON(v_id);
     EXCEPTION
         WHEN OTHERS THEN
             DBMS_OUTPUT.PUT_LINE('3.3 EXCECAO TRATADA (' || SQLCODE || ') -> ' || SQLERRM);
@@ -195,16 +211,30 @@ BEGIN
 END;
 /
 
+-- ---------- 3.4 o dataset inteiro, que vai para o MongoDB ------------------
+-- p_id_animal nulo: todos os animais com plano, num array JSON só. É a mesma
+-- chamada que o backend Java faz em GET /api/exportacao/planos-cuidado; o
+-- arquivo devolvido é o que a Sprint 4 importa no MongoDB.
+DECLARE
+    v_json CLOB;
+BEGIN
+    PKG_PB_JSON.PLANO_JSON(NULL, v_json);
+    DBMS_OUTPUT.PUT_LINE('3.4 OK  -> dataset com ' || DBMS_LOB.GETLENGTH(v_json)
+                         || ' caracteres, começando por: '
+                         || DBMS_LOB.SUBSTR(v_json, 120, 1));
+END;
+/
+
 
 PROMPT
 PROMPT ############################################################
-PROMPT # 4. PROCEDIMENTO 2 - PB_ADESAO_POR_DESFECHO  (subtotais manuais)
+PROMPT # 4. PROCEDIMENTO 2 - PKG_PB_TRATAMENTO.ADESAO_POR_DESFECHO  (subtotais manuais)
 PROMPT ############################################################
 
 -- ---------- 4.1 caminho feliz: 6 linhas de detalhe, 4 subtotais, total ------
 
 BEGIN
-    PB_ADESAO_POR_DESFECHO;
+    PKG_PB_TRATAMENTO.ADESAO_POR_DESFECHO;
 END;
 /
 
@@ -214,7 +244,7 @@ END;
 -- o comportamento desenhado: o print mostra a saída e o motivo de ela não
 -- servir, na mesma tela.
 BEGIN
-    PB_ADESAO_POR_DESFECHO(DATE '2026-09-01', DATE '2026-09-01');
+    PKG_PB_TRATAMENTO.ADESAO_POR_DESFECHO(DATE '2026-09-01', DATE '2026-09-01');
 EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('4.2 EXCECAO TRATADA (' || SQLCODE || ') -> ' || SQLERRM);
@@ -223,7 +253,7 @@ END;
 
 -- ---------- 4.3 EXCEÇÃO: período invertido (-20031) -------------------------
 BEGIN
-    PB_ADESAO_POR_DESFECHO(DATE '2026-09-30', DATE '2026-09-01');
+    PKG_PB_TRATAMENTO.ADESAO_POR_DESFECHO(DATE '2026-09-30', DATE '2026-09-01');
 EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('4.3 EXCECAO TRATADA (' || SQLCODE || ') -> ' || SQLERRM);
@@ -232,7 +262,7 @@ END;
 
 -- ---------- 4.4 EXCEÇÃO: período sem nenhum resultado (-20032) --------------
 BEGIN
-    PB_ADESAO_POR_DESFECHO(DATE '2020-01-01', DATE '2020-12-31');
+    PKG_PB_TRATAMENTO.ADESAO_POR_DESFECHO(DATE '2020-01-01', DATE '2020-12-31');
 EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('4.4 EXCECAO TRATADA (' || SQLCODE || ') -> ' || SQLERRM);

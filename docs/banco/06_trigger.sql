@@ -1,3 +1,11 @@
+-- =============================================================================
+-- 06 — TRIGGER PB_AUDITA_CONDICAO
+-- =============================================================================
+-- Trigger não pode morar dentro de pacote — é objeto próprio do banco. Por isso
+-- ela ficou só com o que é dela: saber qual DML disparou e ler :OLD e :NEW. A
+-- montagem do JSON e a gravação da auditoria estão em PKG_PB_AUDITORIA (bloco
+-- 05), reaproveitáveis por uma próxima trigger de outra tabela.
+-- =============================================================================
 CREATE OR REPLACE TRIGGER PB_AUDITA_CONDICAO
     AFTER INSERT OR UPDATE OR DELETE ON T_PB_CONDICAO_CLINICA
     FOR EACH ROW
@@ -9,7 +17,7 @@ DECLARE
 BEGIN
     -- INSERTING/UPDATING/DELETING são os predicados que dizem qual DML disparou
     -- esta execução. Uma trigger única para as três operações evita repetir a
-    -- montagem dos pares em três gatilhos separados.
+    -- chamada em três gatilhos separados.
     IF INSERTING THEN
         v_operacao := 'INSERT';
     ELSIF UPDATING THEN
@@ -24,53 +32,21 @@ BEGIN
 
     -- Estado ANTERIOR: existe em UPDATE e DELETE, nunca em INSERT.
     IF UPDATING OR DELETING THEN
-        v_anterior := PB_MONTA_JSON(PB_PARES_JSON(
-            PB_PAR_JSON('id',           TO_CHAR(:OLD.ID_CONDICAO_CLINICA),   'NUMERO'),
-            PB_PAR_JSON('codigo',       :OLD.CD_CODIGO,                      'TEXTO'),
-            PB_PAR_JSON('rotulo',       :OLD.DS_ROTULO,                      'TEXTO'),
-            PB_PAR_JSON('tipoValor',    :OLD.TP_DADO,                       'TEXTO'),
-            PB_PAR_JSON('fonte',        :OLD.TP_FONTE_VALOR,                       'TEXTO'),
-            PB_PAR_JSON('unidade',      :OLD.DS_UNIDADE,                     'TEXTO'),
-            -- A coluna que justifica esta trigger existir.
-            PB_PAR_JSON('critica',      TO_CHAR(:OLD.FL_CRITICA),            'BOOLEANO'),
-            PB_PAR_JSON('ativo',        TO_CHAR(:OLD.AT_ATIVO),              'BOOLEANO'),
-            PB_PAR_JSON('clinicaId',    TO_CHAR(:OLD.ID_CLINICA),            'NUMERO'),
-            PB_PAR_JSON('autorId',      TO_CHAR(:OLD.ID_VETERINARIO_AUTOR),  'NUMERO')
-        ));
+        v_anterior := PKG_PB_AUDITORIA.CONDICAO_JSON(
+            :OLD.ID_CONDICAO_CLINICA, :OLD.CD_CODIGO, :OLD.DS_ROTULO, :OLD.TP_DADO,
+            :OLD.TP_FONTE_VALOR, :OLD.DS_UNIDADE, :OLD.FL_CRITICA, :OLD.AT_ATIVO,
+            :OLD.ID_CLINICA, :OLD.ID_VETERINARIO_AUTOR);
     END IF;
 
     -- Estado NOVO: existe em INSERT e UPDATE, nunca em DELETE.
     IF INSERTING OR UPDATING THEN
-        v_novo := PB_MONTA_JSON(PB_PARES_JSON(
-            PB_PAR_JSON('id',           TO_CHAR(:NEW.ID_CONDICAO_CLINICA),   'NUMERO'),
-            PB_PAR_JSON('codigo',       :NEW.CD_CODIGO,                      'TEXTO'),
-            PB_PAR_JSON('rotulo',       :NEW.DS_ROTULO,                      'TEXTO'),
-            PB_PAR_JSON('tipoValor',    :NEW.TP_DADO,                       'TEXTO'),
-            PB_PAR_JSON('fonte',        :NEW.TP_FONTE_VALOR,                       'TEXTO'),
-            PB_PAR_JSON('unidade',      :NEW.DS_UNIDADE,                     'TEXTO'),
-            PB_PAR_JSON('critica',      TO_CHAR(:NEW.FL_CRITICA),            'BOOLEANO'),
-            PB_PAR_JSON('ativo',        TO_CHAR(:NEW.AT_ATIVO),              'BOOLEANO'),
-            PB_PAR_JSON('clinicaId',    TO_CHAR(:NEW.ID_CLINICA),            'NUMERO'),
-            PB_PAR_JSON('autorId',      TO_CHAR(:NEW.ID_VETERINARIO_AUTOR),  'NUMERO')
-        ));
+        v_novo := PKG_PB_AUDITORIA.CONDICAO_JSON(
+            :NEW.ID_CONDICAO_CLINICA, :NEW.CD_CODIGO, :NEW.DS_ROTULO, :NEW.TP_DADO,
+            :NEW.TP_FONTE_VALOR, :NEW.DS_UNIDADE, :NEW.FL_CRITICA, :NEW.AT_ATIVO,
+            :NEW.ID_CLINICA, :NEW.ID_VETERINARIO_AUTOR);
     END IF;
 
-    INSERT INTO T_PB_AUDITORIA (
-        NM_USUARIO, TP_OPERACAO, DH_OPERACAO, NM_TABELA, ID_REGISTRO,
-        TX_VALORES_ANTERIORES, TX_VALORES_NOVOS
-    ) VALUES (
-        -- SESSION_USER é o usuário do BANCO. Como as duas APIs conectam com a
-        -- mesma conta Oracle, este nome é sempre o mesmo — atende o requisito do
-        -- PDF, mas não identifica a veterinária. Está registrado como limitação
-        -- conhecida no bloco 02.
-        NVL(SYS_CONTEXT('USERENV', 'SESSION_USER'), USER),
-        v_operacao,
-        SYSTIMESTAMP,
-        'T_PB_CONDICAO_CLINICA',
-        v_id,
-        v_anterior,
-        v_novo
-    );
+    PKG_PB_AUDITORIA.REGISTRAR('T_PB_CONDICAO_CLINICA', v_operacao, v_id, v_anterior, v_novo);
 
 EXCEPTION
     WHEN OTHERS THEN
