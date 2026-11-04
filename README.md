@@ -187,7 +187,7 @@ Todas em `.env.example`; `.env` está no `.gitignore`.
 
 ## Deploy e CI/CD
 
-A aplicação roda num **Azure Web App** Linux com Java 21, no grupo `rg-petbuddies` (Brazil South), sobre o banco **Oracle da FIAP**. O deploy é feito pelo **Azure Pipelines**, a partir do repositório no **Azure Repos** do projeto [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps).
+A aplicação roda num **Azure Web App** Linux com Java 21, no grupo `rg-petbuddies` (Chile Central), sobre o banco **Oracle da FIAP**. O deploy é feito pelo **Azure Pipelines**, a partir do repositório no **Azure Repos** do projeto [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps).
 
 A pipeline está em [`azure-pipelines.yml`](azure-pipelines.yml) e **dispara sozinha a cada push na `main`**. A figura do topo mostra a esteira numerada.
 
