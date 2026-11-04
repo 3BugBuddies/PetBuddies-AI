@@ -12,7 +12,7 @@ na Azure.
 | Vídeo de apresentação (Sprint 4) | _a publicar_ |
 | API em produção | https://petbuddies-java-rm563925.azurewebsites.net |
 | Swagger UI (produção) | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
-| App mobile | [3BugBuddies/app-pet-buddies-mobile](https://github.com/3BugBuddies/app-pet-buddies-mobile/tree/develop-sprint-4) |
+| App mobile | [3BugBuddies/app-pet-buddies-mobile](https://github.com/3BugBuddies/app-pet-buddies-mobile/tree/feat/pontuacao-fase-2-visual) |
 
 > Esta branch reúne a entrega da disciplina de IA. O código é o mesmo da [`main`](https://github.com/3BugBuddies/PetBuddies-AI/tree/main),
 > cujo README descreve a API, o painel e o deploy para Java Advanced e DevOps.
@@ -100,10 +100,22 @@ cada uma a uma regra da prescrição.
 
 ## 3. Demonstração
 
-Cenário: a veterinária prescreveu Lactulona de 1 a 2 ml com a regra **apetite baixo → menor dose**, e a clínica marca
+**No app:**
+
+<table>
+<tr>
+<td width="25%" valign="top"><img src="assets/ia/app-checkin-condicoes.png" alt="Check-in 2 de 3: o relato e as condições que a IA reconheceu, para o responsável confirmar"><br><b>Check-in 2/3</b> · o relato e o que a IA reconheceu; só o que o responsável confirmar entra na regra</td>
+<td width="25%" valign="top"><img src="assets/ia/app-checkin-dose.png" alt="Check-in 3 de 3: dose de hoje de 1 ml, pela regra apetite baixo para dose mínima"><br><b>Check-in 3/3</b> · 1 ml, a dose mínima, pela regra que a veterinária assinou</td>
+<td width="25%" valign="top"><img src="assets/ia/app-prescricao-ditado.png" alt="Prescrição: a fala da veterinária transcrita no assistente de prescrição"><br><b>Prescrição ditada</b> · a voz vira texto e o texto vira o formulário</td>
+<td width="25%" valign="top"><img src="assets/ia/app-prescricao-regras.png" alt="Rascunho da receita com as regras se, então propostas pela IA"><br><b>Rascunho da receita</b> · regras "se → então" propostas, para revisar e assinar</td>
+</tr>
+</table>
+
+Telas do app gravadas em 24/10/2026, menos o check-in 3/3, que é da produção em 04/11/2026.
+
+**Na produção, em 04/11/2026.** Cenário: a veterinária prescreveu Lactulona de 1 a 2 ml com a regra **apetite baixo → menor dose**, e a clínica marca
 **sem comer há 24 h** como condição crítica.
 
-**Na produção, em 04/11/2026:**
 
 | Relato do responsável | O que a IA reconhece | O que o motor decide |
 |---|---|---|
@@ -228,7 +240,13 @@ medir a transcrição por voz com ruído de ambiente.
 
 A API está no ar em https://petbuddies-java-rm563925.azurewebsites.net. Pelo Swagger (`/swagger-ui.html`):
 
-1. `POST /api/auth/login` com um usuário `TUTOR` dono de um pet com prescrição ativa; cole o `token` em **Authorize**.
+1. `POST /api/auth/login` com a responsável de demonstração, dona da Luna (animal 23, Lactulona de 1 a 2 ml com a
+   regra apetite baixo → dose mínima); cole o `token` em **Authorize**:
+
+   ```json
+   { "login": "lucia.gravacao@petbuddies.com", "senha": "petbuddies123" }
+   ```
+
 2. `POST /api/checkin/extracao` com o relato. Nada é gravado:
 
    ```json
@@ -237,7 +255,8 @@ A API está no ar em https://petbuddies-java-rm563925.azurewebsites.net. Pelo Sw
 
 3. `POST /api/checkin` com as condições confirmadas, para gravar o check-in e receber o desfecho. Um check-in por
    pet por dia: o segundo devolve 409.
-4. Para o rascunho, entre com um usuário `VET` e chame `POST /api/prescricao/rascunho` com `animalId` e `narrativa`.
+4. Para o rascunho, entre com a veterinária `ana@clinica.com` (senha `petbuddies123`) e chame
+   `POST /api/prescricao/rascunho` com `animalId` 23 e a `narrativa` ditada.
 
 ### Demonstração local
 
@@ -275,7 +294,7 @@ prescrição e a regra; com o responsável, faça o check-in como na produção.
 | `ORACLE_URL`, `ORACLE_USER`, `ORACLE_PASSWORD` | conexão com o Oracle; o `.env.example` já aponta para o container local |
 | `ORACLE_SYS_PASSWORD`, `ORACLE_PORT` | senha do `SYS` e porta do Oracle no host; só os arquivos do compose usam |
 
-No app, a transcrição da voz usa a variável `EXPO_PUBLIC_GROQ_API_KEY` (chave do Groq).
+No app, a voz depende da variável `EXPO_PUBLIC_GROQ_API_KEY` (chave do Groq) no `.env`.
 
 ## Tecnologias
 
