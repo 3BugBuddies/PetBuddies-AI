@@ -56,6 +56,10 @@ petbuddies:
   jwt:
     secret: "${PETBUDDIES_JWT_SECRET}"
     expiracao-horas: 8
+  pontuacao:
+    # reenvio ao .NET das consultas que ficaram PENDENTE (o .NET estava fora do ar no fechamento)
+    reenvio-inicial-ms: 60000
+    reenvio-ms: 300000
 
 petnetapi:
   url: "${PETNETAPI_URL:http://localhost:5297}"

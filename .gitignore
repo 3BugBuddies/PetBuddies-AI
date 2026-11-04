@@ -11,6 +11,8 @@ CLAUDE.md
 docs/*
 !docs/postman/
 !docs/postman/*.json
+!docs/banco/
+!docs/banco/**
 /postman/
 sql/*
 !sql/
