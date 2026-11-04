@@ -1,6 +1,7 @@
 package br.com.fiap.petbuddies.domain.entity;
 
 import br.com.fiap.petbuddies.domain.embeddable.Auditoria;
+import br.com.fiap.petbuddies.domain.enums.atendimento.EvolucaoClinica;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -39,6 +40,11 @@ public class RegistroAtendimentoEntity {
 
     @Column(name = "PR_PROXIMA_VACINA")
     private LocalDate proximaVacina;
+
+    // Nula quando o veterinário não avaliou (primeira consulta, check-up, fechamento pela tela web).
+    @Enumerated(EnumType.STRING)
+    @Column(name = "TP_EVOLUCAO", length = 20)
+    private EvolucaoClinica evolucao;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_ANIMAL", nullable = false)

@@ -1,5 +1,6 @@
 package br.com.fiap.petbuddies.dto.atendimento;
 
+import br.com.fiap.petbuddies.domain.enums.atendimento.EvolucaoClinica;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -43,4 +44,7 @@ public class RegistroAtendimentoFechamentoRequest {
     @Positive(message = "Peso deve ser maior que zero.")
     @Digits(integer = 3, fraction = 2, message = "Peso excede a precisão NUMBER(5,2).")
     private BigDecimal peso;
+
+    /** Opcional: como o animal evoluiu desde a consulta anterior. Entra na pontuação do responsável. */
+    private EvolucaoClinica evolucao;
 }

@@ -70,7 +70,10 @@ public class OpenApiConfig {
                         .description("O ato assinado pelo veterinário — imutável depois de criado"),
                 new io.swagger.v3.oas.models.tags.Tag()
                         .name("registro — regras de prescrição")
-                        .description("Condição → ação sobre a dose, com a condição congelada no momento da assinatura")
+                        .description("Condição → ação sobre a dose, com a condição congelada no momento da assinatura"),
+                new io.swagger.v3.oas.models.tags.Tag()
+                        .name("cuidado — pontuação")
+                        .description("Saldo, extrato e memória de cálculo dos pontos do tutor, lidos do PetBuddies-API (.NET)")
         ));
     }
 }

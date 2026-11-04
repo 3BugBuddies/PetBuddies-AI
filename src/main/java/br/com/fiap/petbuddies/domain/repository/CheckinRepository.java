@@ -29,6 +29,14 @@ public interface CheckinRepository extends JpaRepository<CheckinEntity, Long> {
             + "WHERE c.registradoEm >= :desde ORDER BY c.registradoEm DESC")
     List<CheckinEntity> findDesdeComAnimal(@Param("desde") LocalDateTime desde);
 
+    // Dias distintos com relato do tutor no período avaliado pela pontuação: [inicio, fim).
+    @Query("SELECT DISTINCT c.dataReferencia FROM CheckinEntity c WHERE c.animal.id = :animalId "
+            + "AND c.dataReferencia >= :inicio AND c.dataReferencia < :fim")
+    List<LocalDate> findDiasComCheckin(
+            @Param("animalId") Long animalId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim);
+
     boolean existsByAnimalId(Long animalId);
 
     boolean existsByAnimal_IdAndDataReferenciaAndItemPlanoCuidadoIsNull(Long animalId, LocalDate dataReferencia);
