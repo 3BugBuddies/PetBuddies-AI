@@ -2,6 +2,8 @@
 
 API REST e painel web do **PetBuddies**, o cuidado contínuo de pets entre a clínica veterinária e o responsável. Challenge de **Java Advanced (2TDS)**, FIAP 2026.
 
+> **Outras entregas da Sprint 4 neste repositório:** DevOps Tools & Cloud Computing (README, diagrama da arquitetura e CI/CD) em [`entrega/devops-sprint-4`](https://github.com/3BugBuddies/PetBuddies-AI/tree/entrega/devops-sprint-4) · Disruptive Architectures: IoT, IoB & Generative IA em [`entrega/aiot-sprint-4`](https://github.com/3BugBuddies/PetBuddies-AI/tree/entrega/aiot-sprint-4).
+
 A veterinária atende, prescreve e monta o plano de cuidado pelo painel da clínica. Em casa, o responsável conta pelo app como o animal está, e o serviço transforma esse relato na conduta que a veterinária deixou assinada.
 
 - **Cadastro e agenda da clínica:** clínica, equipe, responsáveis, pacientes, horários de atendimento e consultas, numa agenda em grade semanal.
