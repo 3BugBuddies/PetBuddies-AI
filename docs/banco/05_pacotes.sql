@@ -229,8 +229,10 @@ CREATE OR REPLACE PACKAGE BODY PKG_PB_JSON AS
                 END;
                 -- FM tira o padding; o NLS explícito garante ponto decimal mesmo se
                 -- a sessão estiver configurada com vírgula. JSON não aceita vírgula.
-                emitir(TO_CHAR(v_numero, 'FM999999999999999990.999999999999',
-                               'NLS_NUMERIC_CHARACTERS = ''.,'''));
+                -- O RTRIM tira o ponto que o FM deixa sobrando em número inteiro
+                -- (4 viraria "4."), que o JSON também não aceita. Correção da V10.
+                emitir(RTRIM(TO_CHAR(v_numero, 'FM999999999999999990.999999999999',
+                                     'NLS_NUMERIC_CHARACTERS = ''.,'''), '.'));
 
             ELSIF v_tipo = 'BOOLEANO' THEN
                 -- O schema guarda booleano como NUMBER(1). A trigger e o
