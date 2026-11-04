@@ -10,8 +10,8 @@ na Azure.
 | | |
 |---|---|
 | Vídeo de apresentação (Sprint 4) | _a publicar_ |
-| API em produção | https://petbuddies-java-rm563925.azurewebsites.net |
-| Swagger UI (produção) | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
+| API em produção | https://petbuddies-java-cl-rm563925.azurewebsites.net |
+| Swagger UI (produção) | https://petbuddies-java-cl-rm563925.azurewebsites.net/swagger-ui.html |
 | App mobile | [3BugBuddies/app-pet-buddies-mobile](https://github.com/3BugBuddies/app-pet-buddies-mobile/tree/feat/pontuacao-fase-2-visual) |
 
 > Esta branch reúne a entrega da disciplina de IA. O código é o mesmo da [`main`](https://github.com/3BugBuddies/PetBuddies-AI/tree/main),
@@ -238,7 +238,7 @@ medir a transcrição por voz com ruído de ambiente.
 
 ### Na produção
 
-A API está no ar em https://petbuddies-java-rm563925.azurewebsites.net. Pelo Swagger (`/swagger-ui.html`):
+A API está no ar em https://petbuddies-java-cl-rm563925.azurewebsites.net. Pelo Swagger (`/swagger-ui.html`):
 
 1. `POST /api/auth/login` com a responsável de demonstração, dona da Luna (animal 23, Lactulona de 1 a 2 ml com a
    regra apetite baixo → dose mínima); cole o `token` em **Authorize**:
