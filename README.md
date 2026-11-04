@@ -42,7 +42,11 @@ são feitos pelo [`azure-pipelines.yml`](azure-pipelines.yml), que dispara a cad
 5. [Acesso do professor](#5-acesso-do-professor)
 6. [Pipelines CI/CD](#6-pipelines-cicd)
 7. [Recursos na Azure](#7-recursos-na-azure)
-8. [Evidência do CRUD no banco](#8-evidência-do-crud-no-banco)
+8. [How To · deploy na Azure](#8-how-to--deploy-na-azure)
+9. [Testes](#9-testes)
+10. [CRUD do Responsável](#10-crud-do-responsável)
+11. [Evidência do CRUD no banco](#11-evidência-do-crud-no-banco)
+12. [Credenciais de teste](#12-credenciais-de-teste)
 
 ---
 
@@ -62,13 +66,34 @@ conduta que a veterinária deixou assinada.
 | Camada | Tecnologia |
 |--------|------------|
 | Aplicação (este repositório) | Java 21, Spring Boot 3.4.5, Spring Data JPA, Spring Security com JWT, Thymeleaf, Flyway |
-| IA | Spring AI com Gemini 2.5 Flash |
+| IA | Spring AI com Gemini 2.5 Flash (Java); Groq Whisper para a transcrição de voz (app mobile) |
 | Serviço parceiro | `PetBuddies-API` em .NET 8, num segundo Web App |
 | Banco | Oracle da FIAP (as duas APIs) e Cosmos DB com a API do MongoDB (pontuação do .NET) |
 | Nuvem | Azure Web App Linux, App Service Plan B2, Application Insights, região brazilsouth |
 | DevOps | Azure DevOps: Boards (Scrum), Azure Repos, Azure Pipelines em YAML, Pipeline Artifacts |
 | Testes | JUnit 5 com Maven no Java; xUnit com `dotnet test` no .NET |
 | Clientes | navegador (painel da clínica) e app mobile em React Native com Expo |
+
+### Estrutura do repositório
+
+```
+PetBuddies-AI/
+├── azure-pipelines.yml          pipeline CI/CD (estágios CI e CD)
+├── infra/
+│   └── infra-app.sh             cria os recursos do Java na Azure (rodar uma vez)
+├── docs/
+│   ├── arquitetura/             fonte do desenho de arquitetura
+│   ├── banco/                   scripts Oracle (DDL, carga, pacotes)
+│   └── postman/                 coleção do Postman
+├── assets/figuras/              imagens do README
+├── Dockerfile · docker-compose.yml   Oracle local e a aplicação em container
+├── .env.example                 modelo das variáveis locais
+├── pom.xml
+└── src/
+    ├── main/java/…/petbuddies/  controllers, services, entidades, repositórios, segurança
+    ├── main/resources/          application.yml, migrations do Flyway e telas Thymeleaf
+    └── test/java/…/petbuddies/  testes unitários (JUnit)
+```
 
 ---
 
@@ -95,7 +120,8 @@ A figura do topo mostra a esteira e a produção. Fonte do desenho:
 - O Web App Java grava no **Oracle FIAP**, chama o **Gemini** pelo Spring AI e consulta o Web App .NET por REST
   (catálogo de protocolos e pontuação).
 - O Web App .NET usa o Oracle FIAP e o **Cosmos DB**, onde guarda a memória de cálculo da pontuação.
-- Os dois Web Apps mandam requisições, falhas e tempos ao **Application Insights**.
+- O app mobile manda o áudio da fala ao **Groq** (Whisper), que devolve o texto.
+- Cada Web App manda requisições, falhas e tempos ao próprio **Application Insights**.
 
 ---
 
@@ -118,7 +144,7 @@ O Cosmos DB (API do MongoDB) é um armazenamento auxiliar do serviço .NET, só 
 | Campo | Valor |
 |-------|-------|
 | Project name | PetBuddies - Sprint 4 – Azure DevOps |
-| Description | Projeto para entrega da Sprint 4 do professor João Menck, com os integrantes no formato `<RM> - <nome> - <turma>` |
+| Description | Projeto para entrega da Sprint 4 do professor João Menck<br>RM565339 - Felipe Yuiti Ishii - 2TDSR<br>RM563925 - Gabriel Nogueira Peixoto - 2TDSR<br>RM566154 - Giovanna Neri dos Santos - 2TDSR<br>RM565834 - Mariana Inoue - 2TDSR |
 | Visibility | Private |
 | Version control | Git |
 | Work item process | Scrum |
@@ -152,8 +178,9 @@ Arquivo: [`azure-pipelines.yml`](azure-pipelines.yml), no modo YAML. Agente `ubu
 Os resultados dos testes aparecem na aba **Tests** da execução, e o artefato `app` na aba **Artifacts**.
 
 A pipeline `petbuddies-net` do repositório `PetBuddies-API` segue o mesmo desenho: gatilho na `main`, CI com
-`dotnet build`, `dotnet test` e artefato publicado, e CD no environment `petbuddies-net` com Zip Deploy no Web App
-`petbuddies-net-rm563925`.
+`dotnet build`, `dotnet test` (xUnit) e artefato publicado, e CD no environment `petbuddies-net` com Zip Deploy no Web
+App `petbuddies-net-rm563925`. As variáveis secretas dela são `ORACLE_USER`, `ORACLE_PASS`, `PETBUDDIES_JWT_SECRET` e
+`MONGODB_CONNECTION_STRING`.
 
 ### Regras da pipeline
 
@@ -188,22 +215,124 @@ O pool de conexões (`SPRING_DATASOURCE_HIKARI_*`), o fuso (`TZ`) e o tempo de s
 
 ## 7. Recursos na Azure
 
+Script: [`infra/infra-app.sh`](infra/infra-app.sh), para o lado Java. O Web App do .NET e o Cosmos DB são criados pelo
+repositório `PetBuddies-API` e usam o mesmo resource group e o mesmo plano.
+
 | Recurso | Nome | SKU | Região |
 |---------|------|-----|--------|
 | Resource Group | `rg-petbuddies` | — | brazilsouth |
 | App Service Plan | `plan-petbuddies` | B2 Linux | brazilsouth |
-| Web App (Java) | `petbuddies-java-rm563925` | Java 21 | brazilsouth |
+| Web App (Java) | `petbuddies-java-rm563925` | `JAVA:21-java21` | brazilsouth |
+| Application Insights (Java) | `ai-petbuddies-java` | web | brazilsouth |
 | Web App (.NET) | `petbuddies-net-rm563925` | .NET 8 | brazilsouth |
-| Application Insights | um por Web App | — | brazilsouth |
-| Cosmos DB (API do MongoDB) | `cosmos-petbuddies-rm563925` | free tier | — |
+| Application Insights (.NET) | `ai-petbuddies-net` | web | brazilsouth |
+| Cosmos DB (API do MongoDB 4.2) | `cosmos-petbuddies-rm563925` | free tier | brazilsouth |
 | Banco | Oracle da FIAP | — | fora da Azure |
+
+O script:
+
+- registra os providers `Microsoft.Web`, `Microsoft.Insights` e `Microsoft.OperationalInsights`;
+- cria o resource group, o Application Insights, o plano Linux e o Web App Java 21, com o Always On ligado;
+- grava no Web App só as app settings do Application Insights, que não são segredo;
+- conecta o Web App ao Application Insights.
+
+O script cria o plano em B1. Em produção, o plano roda em B2.
+
+Banco, Gemini, JWT e a URL do .NET não ficam no script: a pipeline grava esses valores a partir das variáveis secretas.
 
 ---
 
-## 8. Evidência do CRUD no banco
+## 8. How To · deploy na Azure
 
-O CRUD do vídeo é o do **Responsável**: pelo painel (tela **Responsáveis**) ou pela API em `/api/responsavel`
-(`GET`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`). Cada operação é conferida com um SELECT no Oracle da FIAP,
+Pré-requisitos: Azure CLI, acesso à assinatura e ao projeto do Azure DevOps.
+
+**1. Entrar na assinatura certa**
+
+```bash
+az login
+az account show
+az account set --subscription "<nome-da-assinatura>"   # se precisar trocar
+```
+
+**2. Criar a infraestrutura (uma vez)**
+
+```bash
+bash infra/infra-app.sh
+```
+
+**3. Criar a service connection**
+
+Azure DevOps → Project settings → Service connections → New service connection → Azure Resource Manager.
+Escopo: assinatura. Nome: `sc-petbuddies-azure`.
+
+**4. Criar a pipeline**
+
+Pipelines → New pipeline → Azure Repos Git → repositório `PetBuddies-AI` → *Existing Azure Pipelines YAML file* →
+`/azure-pipelines.yml`.
+
+**5. Cadastrar as variáveis**
+
+Edit → Variables. Cadastre `NOME_WEBAPP`, `ORACLE_URL` e `PETNETAPI_URL`. Cadastre como secretas ("Keep this value
+secret"): `ORACLE_USER`, `ORACLE_PASSWORD`, `GEMINI_API_KEY` e `PETBUDDIES_JWT_SECRET`. A tabela está em
+[Variáveis da pipeline](#variáveis-da-pipeline).
+
+**6. Rodar a pipeline**
+
+Faça um push na `main` ou clique em Run pipeline. O estágio CI compila e roda os testes (aba **Tests**) e publica o
+artefato (aba **Artifacts**). O estágio CD publica no Web App. Na primeira execução, autorize o uso da service
+connection e do environment `petbuddies-java`, se o Azure DevOps pedir.
+
+**7. Acessar o app**
+
+https://petbuddies-java-rm563925.azurewebsites.net
+
+Na primeira subida, o Flyway cria as tabelas no Oracle e semeia os dados de demonstração. `GET /actuator/health`
+responde `UP` quando o banco está no ar.
+
+---
+
+## 9. Testes
+
+`mvn test` roda os testes unitários (JUnit 5, sem banco e sem rede), em `src/test/java/`: o resumo do cuidado e o
+cálculo da pontuação do responsável, e a exportação do dataset. A pipeline roda os mesmos testes no `clean package` e
+publica o resultado na aba **Tests**, com o título "Testes de Código".
+
+---
+
+## 10. CRUD do Responsável
+
+Base URL: `https://petbuddies-java-rm563925.azurewebsites.net`. Autenticação: `POST /api/auth/login` devolve o token;
+as demais rotas usam `Authorization: Bearer <token>`. O mesmo CRUD está no painel, na tela **Responsáveis**.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/auth/login` | devolve o token JWT |
+| `GET` | `/api/responsavel?nome=` | lista os responsáveis, com filtro opcional por nome |
+| `GET` | `/api/responsavel/{id}` | busca por id |
+| `POST` | `/api/responsavel` | cria (201) |
+| `PUT` | `/api/responsavel/{id}` | atualiza (200) |
+| `DELETE` | `/api/responsavel/{id}` | exclui (204) |
+
+Corpo do login:
+
+```json
+{ "login": "ana@clinica.com", "senha": "petbuddies123" }
+```
+
+Corpo do `POST` e do `PUT`:
+
+```json
+{ "nome": "Marina Souza", "telefone": "11988887777", "email": "marina@email.com", "endereco": "Rua Augusta, 1500, São Paulo" }
+```
+
+A coleção do Postman com todas as rotas está em
+[`docs/postman/petbuddies-ai-java.postman_collection.json`](docs/postman/petbuddies-ai-java.postman_collection.json).
+
+---
+
+## 11. Evidência do CRUD no banco
+
+No vídeo, cada operação do [CRUD do Responsável](#10-crud-do-responsável) é conferida com um SELECT no Oracle da FIAP,
 no schema do Java.
 
 ```sql
@@ -219,11 +348,16 @@ SELECT * FROM T_PB_RESPONSAVEL WHERE ID_RESPONSAVEL = <id>;
 SELECT "version", "description", "success" FROM "flyway_schema_history" ORDER BY "installed_rank";
 ```
 
-Corpo do `POST /api/responsavel`:
+Depois do `DELETE`, o responsável some do primeiro SELECT.
 
-```json
-{ "nome": "Marina Souza", "telefone": "11988887777", "email": "marina@email.com", "endereco": "Rua Augusta, 1500, São Paulo" }
-```
+---
 
-A API exige o token do login (`POST /api/auth/login`). Os usuários de demonstração e as demais rotas estão no
+## 12. Credenciais de teste
+
+| Perfil | Login | Senha |
+|--------|-------|-------|
+| `VET` (veterinária) | `ana@clinica.com` | `petbuddies123` |
+| `TUTOR` (responsável) | `maria@email.com` | `petbuddies123` |
+
+Os dois usuários são criados pelo seed do Flyway (`V2__seed_demonstracao.sql`). As demais rotas da API estão no
 [README da `main`](https://github.com/3BugBuddies/PetBuddies-AI/blob/main/README.md).

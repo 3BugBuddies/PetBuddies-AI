@@ -143,7 +143,7 @@
 <div class="page">
   <header>
     <h1>PetBuddies · Arquitetura e esteira CI/CD (Sprint 4 · DevOps)</h1>
-    <p>Azure DevOps → Azure (brazilsouth) · dois Web Apps · Oracle FIAP · Cosmos DB</p>
+    <p>Azure DevOps → Azure (brazilsouth) · dois Web Apps · Oracle FIAP · Cosmos DB · Gemini · Groq</p>
   </header>
 
   <!-- ===== FAIXA 1: ESTEIRA ===== -->
@@ -368,27 +368,38 @@
 
   <!-- ===== FORA DA AZURE ===== -->
   <div class="out">
-    <div></div><div></div>
+    <div>
+      <div class="varrow" style="height:70px;"><div class="ln"></div><div class="lbl">HTTPS · transcrição</div></div>
+      <div class="card">
+        <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true">
+          <rect x="1" y="1" width="32" height="32" rx="7" fill="#F55036"/>
+          <path d="M12 9a5 5 0 0 1 10 0v7a5 5 0 0 1-10 0z" fill="#fff"/>
+          <path d="M8.5 16a8.5 8.5 0 0 0 17 0M17 25v4" stroke="#fff" stroke-width="2.2" fill="none"/>
+        </svg>
+        <div><div class="t">Groq</div><div class="s">Whisper · voz em texto</div></div>
+      </div>
+    </div>
+    <div></div>
     <div>
       <div class="out-arrows">
-        <div class="varrow"><div class="ln"></div><div class="lbl">Oracle 1521 · Java e .NET</div></div>
+        <div class="varrow"><div class="ln"></div><div class="lbl">HTTPS · Spring AI · só o Java</div></div>
         <div></div>
-        <div class="varrow"><div class="ln"></div><div class="lbl">HTTPS · Spring AI</div></div>
+        <div class="varrow"><div class="ln"></div><div class="lbl">Oracle 1521 · Java e .NET</div></div>
       </div>
       <div class="out-row">
-        <div class="card">
-          <svg width="40" height="30" viewBox="0 0 40 30" aria-hidden="true">
-            <rect x="2" y="3" width="36" height="24" rx="12" fill="none" stroke="#C74634" stroke-width="6"/>
-          </svg>
-          <div><div class="t">Oracle FIAP <span class="s">· banco em nuvem</span></div><div class="n">oracle.fiap.com.br · um schema por serviço</div></div>
-        </div>
-        <div></div>
         <div class="card">
           <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
             <defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285F4"/><stop offset="1" stop-color="#9B72CB"/></linearGradient></defs>
             <path d="M17 1c1 8.5 7.5 15 16 16-8.5 1-15 7.5-16 16-1-8.5-7.5-15-16-16 8.5-1 15-7.5 16-16z" fill="url(#gm)"/>
           </svg>
           <div><div class="t">Gemini 2.5 Flash <span class="s">· IA</span></div><div class="s">lê o relato do responsável e a fala da veterinária</div></div>
+        </div>
+        <div></div>
+        <div class="card">
+          <svg width="40" height="30" viewBox="0 0 40 30" aria-hidden="true">
+            <rect x="2" y="3" width="36" height="24" rx="12" fill="none" stroke="#C74634" stroke-width="6"/>
+          </svg>
+          <div><div class="t">Oracle FIAP <span class="s">· banco em nuvem</span></div><div class="n">oracle.fiap.com.br · um schema por serviço</div></div>
         </div>
       </div>
     </div>
@@ -417,7 +428,8 @@
         <tr><td>REST</td><td>Web App Java → Web App .NET</td><td>catálogo de protocolos e pontuação da consulta</td></tr>
         <tr><td>Oracle 1521</td><td>Web Apps → Oracle FIAP</td><td>dados das duas APIs, um schema por serviço</td></tr>
         <tr><td>MongoDB API</td><td>Web App .NET → Cosmos DB</td><td>memória de cálculo da pontuação</td></tr>
-        <tr><td>HTTPS</td><td>Web App Java → Gemini</td><td>relato do check-in e fala da prescrição</td></tr>
+        <tr><td>HTTPS · Spring AI</td><td>Web App Java → Gemini</td><td>relato do check-in e fala da prescrição</td></tr>
+        <tr><td>HTTPS · transcrição</td><td>App mobile → Groq</td><td>áudio da fala, devolvido como texto (Whisper)</td></tr>
         <tr><td>telemetria</td><td>Web Apps → App Insights</td><td>requisições, falhas e tempos</td></tr>
       </table>
     </div>
