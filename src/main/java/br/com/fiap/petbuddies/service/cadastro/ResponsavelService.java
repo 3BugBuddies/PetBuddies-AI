@@ -109,9 +109,7 @@ public class ResponsavelService {
         if (animalRepository.existsByResponsavelId(id)) {
             throw new ResponsavelComVinculosException(id, "pets cadastrados");
         }
-        if (usuarioRepository.existsByResponsavelId(id)) {
-            throw new ResponsavelComVinculosException(id, "usuário de acesso");
-        }
+        usuarioRepository.deleteByResponsavelId(id);
         repository.deleteById(id);
     }
 

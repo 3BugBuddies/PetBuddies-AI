@@ -111,9 +111,6 @@ public class AnimalService {
         if (consultaRepository.existsByAnimalId(id)) {
             throw new AnimalComVinculosException(id, "consultas");
         }
-        if (planoCuidadoRepository.existsByAnimalId(id)) {
-            throw new AnimalComVinculosException(id, "planos de cuidado");
-        }
         if (checkinRepository.existsByAnimalId(id)) {
             throw new AnimalComVinculosException(id, "check-ins");
         }
@@ -126,6 +123,8 @@ public class AnimalService {
         if (prescricaoRepository.existsByAnimalId(id)) {
             throw new AnimalComVinculosException(id, "prescrições");
         }
+        // Item só sai de pendente por atendimento ou check-in, barrados acima: o plano que resta está intocado.
+        planoCuidadoRepository.deleteAll(planoCuidadoRepository.findByAnimalId(id));
         repository.deleteById(id);
     }
 
