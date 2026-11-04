@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - deploy/next
+      - main
 
 pool:
   vmImage: 'ubuntu-latest'
