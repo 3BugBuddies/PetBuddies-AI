@@ -14,6 +14,8 @@ import br.com.fiap.petbuddies.dto.cuidado.PlanoPosCirurgicoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoPreventivoRequest;
 import br.com.fiap.petbuddies.dto.cuidado.PlanoResponse;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelResponse;
+import br.com.fiap.petbuddies.exception.cadastro.AnimalComVinculosException;
+import br.com.fiap.petbuddies.security.UsuarioPrincipal;
 import br.com.fiap.petbuddies.service.cadastro.AnimalService;
 import br.com.fiap.petbuddies.service.cadastro.PacientePainelService;
 import br.com.fiap.petbuddies.service.atendimento.ConsultaService;
@@ -22,6 +24,7 @@ import br.com.fiap.petbuddies.service.cadastro.ResponsavelService;
 import br.com.fiap.petbuddies.web.form.NovoPlanoForm;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -144,6 +147,19 @@ public class PacientesWebController {
         animalService.atualizar(id, request);
         redirect.addFlashAttribute("sucesso", "Paciente atualizado.");
         return "redirect:/pacientes/" + id;
+    }
+
+    @PostMapping("/{id}/excluir")
+    public String excluir(
+            @AuthenticationPrincipal UsuarioPrincipal usuario, @PathVariable Long id, RedirectAttributes redirect) {
+        String nome = animalService.buscarPorId(id).getNome();
+        try {
+            animalService.remover(id, usuario.getUsuarioId());
+            redirect.addFlashAttribute("sucesso", "Paciente " + nome + " excluído.");
+        } catch (AnimalComVinculosException ex) {
+            redirect.addFlashAttribute("erro", "Paciente " + nome + " não pode ser excluído: tem " + ex.getVinculo() + ".");
+        }
+        return "redirect:/pacientes";
     }
 
     @GetMapping("/{id}")

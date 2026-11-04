@@ -15,6 +15,7 @@
     </div>
 
     <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+    <p class="mensagem-erro" th:if="${erro}" th:text="${erro}">erro</p>
 
     <form method="get" th:action="@{/responsaveis}" class="pn-row">
         <input type="search" name="q" th:value="${q}" class="pn-input" style="max-width:340px"
@@ -40,7 +41,15 @@
                     <span class="pn-chip ok" th:if="${r.acessoApp}">ativo</span>
                     <span class="pn-chip" th:unless="${r.acessoApp}">sem acesso</span>
                 </td>
-                <td><a class="pn-btn ghost sm" th:href="@{/responsaveis/{id}/editar(id=${r.id})}">Editar</a></td>
+                <td>
+                    <div class="pn-row" style="flex-wrap:nowrap;gap:2px">
+                        <a class="pn-btn ghost sm" th:href="@{/responsaveis/{id}/editar(id=${r.id})}">Editar</a>
+                        <form method="post" th:action="@{/responsaveis/{id}/excluir(id=${r.id})}"
+                              onsubmit="return confirm('Excluir este responsável?');">
+                            <button type="submit" class="pn-btn ghost sm">Excluir</button>
+                        </form>
+                    </div>
+                </td>
             </tr>
             </tbody>
         </table>

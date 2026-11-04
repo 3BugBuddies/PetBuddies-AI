@@ -14,6 +14,7 @@
     </div>
 
     <p class="mensagem-sucesso" th:if="${sucesso}" th:text="${sucesso}">ok</p>
+    <p class="mensagem-erro" th:if="${erro}" th:text="${erro}">erro</p>
 
     <div class="pc-barra">
         <form class="pc-busca-form" method="get" th:action="@{/pacientes}">
@@ -69,8 +70,12 @@
                     </th:block>
                     <span class="texto-fraco" th:if="${p.proximoCuidado == null}">—</span>
                 </td>
-                <td style="text-align: right">
+                <td style="text-align: right; white-space: nowrap">
                     <a class="botao pequeno secundario" th:href="@{/pacientes/{id}(id=${p.id})}">Abrir</a>
+                    <form style="display: inline" method="post" th:action="@{/pacientes/{id}/excluir(id=${p.id})}"
+                          onsubmit="return confirm('Excluir este paciente?');">
+                        <button type="submit" class="botao pequeno secundario">Excluir</button>
+                    </form>
                 </td>
             </tr>
             </tbody>
