@@ -236,7 +236,7 @@ O script:
 - grava no Web App só as app settings do Application Insights, que não são segredo;
 - conecta o Web App ao Application Insights.
 
-O script cria o plano em B1. Em produção, o plano roda em B2.
+O script cria o plano em B1. A produção foi escalada para B2: no B1, o Java levava cerca de 6 minutos para subir.
 
 Banco, Gemini, JWT e a URL do .NET não ficam no script: a pipeline grava esses valores a partir das variáveis secretas.
 
