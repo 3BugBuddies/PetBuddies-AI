@@ -13,6 +13,8 @@ docs/*
 !docs/postman/*.json
 !docs/banco/
 !docs/banco/**
+!docs/arquitetura/
+!docs/arquitetura/*.html
 /postman/
 sql/*
 !sql/
