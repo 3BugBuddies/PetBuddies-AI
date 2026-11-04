@@ -2,6 +2,8 @@
 
 API REST e painel web do **PetBuddies**, o cuidado contínuo de pets entre a clínica veterinária e o responsável. Challenge de **Java Advanced (2TDS)**, FIAP 2026.
 
+> **Outras entregas da Sprint 4 neste repositório:** DevOps Tools & Cloud Computing (README, diagrama da arquitetura e CI/CD) em [`entrega/devops-sprint-4`](https://github.com/3BugBuddies/PetBuddies-AI/tree/entrega/devops-sprint-4) · Disruptive Architectures: IoT, IoB & Generative IA em [`entrega/aiot-sprint-4`](https://github.com/3BugBuddies/PetBuddies-AI/tree/entrega/aiot-sprint-4).
+
 A veterinária atende, prescreve e monta o plano de cuidado pelo painel da clínica. Em casa, o responsável conta pelo app como o animal está, e o serviço transforma esse relato na conduta que a veterinária deixou assinada.
 
 - **Cadastro e agenda da clínica:** clínica, equipe, responsáveis, pacientes, horários de atendimento e consultas, numa agenda em grade semanal.
@@ -38,10 +40,9 @@ A veterinária atende, prescreve e monta o plano de cuidado pelo painel da clín
 | Painel da clínica (produção)  | https://petbuddies-java-rm563925.azurewebsites.net |
 | Swagger UI (produção)         | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
 | Saúde (produção)              | https://petbuddies-java-rm563925.azurewebsites.net/actuator/health |
-| Azure DevOps                  | [Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/Sprint%204%20%E2%80%93%20Azure%20DevOps) |
+| Azure DevOps                  | [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps) |
 | Swagger UI (local)            | `http://localhost:8080/swagger-ui.html` |
 | Postman collection            | [`docs/postman/petbuddies-ai-java.postman_collection.json`](docs/postman/petbuddies-ai-java.postman_collection.json) |
-| Vídeo de apresentação         | https://youtu.be/VrChl50hDlo |
 
 ---
 
@@ -186,7 +187,7 @@ Todas em `.env.example`; `.env` está no `.gitignore`.
 
 ## Deploy e CI/CD
 
-A aplicação roda num **Azure Web App** Linux com Java 21, no grupo `rg-petbuddies` (Brazil South), sobre o banco **Oracle da FIAP**. O deploy é feito pelo **Azure Pipelines**, a partir do repositório no **Azure Repos** do projeto [Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/Sprint%204%20%E2%80%93%20Azure%20DevOps).
+A aplicação roda num **Azure Web App** Linux com Java 21, no grupo `rg-petbuddies` (Brazil South), sobre o banco **Oracle da FIAP**. O deploy é feito pelo **Azure Pipelines**, a partir do repositório no **Azure Repos** do projeto [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps).
 
 A pipeline está em [`azure-pipelines.yml`](azure-pipelines.yml) e **dispara sozinha a cada push na `main`**. A figura do topo mostra a esteira numerada.
 

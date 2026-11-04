@@ -3,8 +3,6 @@
 Entrega da disciplina de banco de dados: o modelo relacional no Oracle, os objetos PL/SQL
 empacotados, o uso deles pelo backend Java e a importação do dataset em JSON no MongoDB.
 
-O roteiro do vídeo está em [ROTEIRO_VIDEO.md](ROTEIRO_VIDEO.md).
-
 ## Arquivos, na ordem de execução
 
 | Bloco | Arquivo | O que faz |
@@ -16,7 +14,8 @@ O roteiro do vídeo está em [ROTEIRO_VIDEO.md](ROTEIRO_VIDEO.md).
 | 05 | [05_pacotes.sql](05_pacotes.sql) | os três pacotes: funções, procedimentos e a lógica da trigger |
 | 06 | [06_trigger.sql](06_trigger.sql) | trigger `PB_AUDITA_CONDICAO`, que chama o pacote de auditoria |
 | 07 | [07_testes_excecoes.sql](07_testes_excecoes.sql) | caminho feliz e cada exceção de cada objeto |
-| — | [mongodb/planos_cuidado.js](mongodb/planos_cuidado.js) | índices e consultas da coleção importada no MongoDB |
+| — | [mongodb/planos_cuidado_indices.js](mongodb/planos_cuidado_indices.js) | coleção e índices no MongoDB, **antes** da importação |
+| — | [mongodb/planos_cuidado.js](mongodb/planos_cuidado.js) | consultas da coleção importada no MongoDB |
 
 No SQL Developer, rode como script (F5), um bloco por vez, com a conexão do seu RM. Os arquivos
 estão em **UTF-8**: se os acentos aparecerem quebrados, ajuste em *Ferramentas → Preferências →
@@ -71,8 +70,12 @@ que as migrations do Java criam, com as mesmas colunas.
   [`V9__pacotes_plsql_e_auditoria.sql`](../../src/main/resources/db/migration/V9__pacotes_plsql_e_auditoria.sql)
   instala os blocos 02, 04, 05 e 06 quando o Java sobe. Ela é **gerada** a partir desta pasta por
   [gerar_migration.py](gerar_migration.py), para a entrega e o banco da aplicação nunca divergirem.
-  Mudou um bloco antes de a V9 rodar em algum banco? `python docs/banco/gerar_migration.py`.
-  Depois que ela rodou, a mudança vira uma V10.
+  A V9 já rodou em produção e está congelada.
+- **Correção:** a
+  [`V10__corrige_numero_inteiro_no_json.sql`](../../src/main/resources/db/migration/V10__corrige_numero_inteiro_no_json.sql)
+  recompila o corpo do `PKG_PB_JSON`. A Função 1 escrevia número inteiro com um ponto sobrando
+  (`"planoId":4.`), JSON inválido que o `mongoimport` recusa. A V10 também é gerada pelo
+  `gerar_migration.py`, a partir do `05_pacotes.sql`. Mudança depois que ela rodar vira uma V11.
 - **`PKG_PB_JSON.PLANO_JSON`** — `GET /api/exportacao/planos-cuidado` (perfil `VET`) executa o
   procedimento e devolve o arquivo `planos_cuidado.json`. Com `?animalId=1`, só os planos daquele
   animal. As exceções do procedimento chegam como resposta da API: `404` para animal inexistente
@@ -95,26 +98,36 @@ curl -H "Authorization: Bearer <token>" -o planos_cuidado.json http://localhost:
 
 No Swagger, a mesma rota fica no grupo **banco — exportação** e oferece o arquivo para download.
 
-**2. Importar no MongoDB.** Com o
+**2. Criar a coleção e os índices, antes de importar:**
+
+```bash
+mongosh "mongodb://localhost:27017/petbuddies" docs/banco/mongodb/planos_cuidado_indices.js
+```
+
+`planoId` único, `animalId + status` e um índice multichave sobre os eventos. Vêm **antes** da
+importação porque, no Azure Cosmos DB for MongoDB, índice único só pode ser criado com a coleção
+vazia. Num MongoDB comum a ordem tanto faz, então ela serve para os dois.
+
+**3. Importar no MongoDB.** Com o
 [MongoDB Database Tools](https://www.mongodb.com/try/download/database-tools) instalado:
 
 ```bash
 mongoimport --uri "mongodb://localhost:27017" --db petbuddies --collection planos_cuidado --jsonArray --file planos_cuidado.json
 ```
 
-Na Azure, troque a URI pela connection string do Cosmos DB. Pelo **MongoDB Compass**: banco
-`petbuddies` → *Create collection* `planos_cuidado` → *Add data* → *Import JSON or CSV file* →
-escolha o arquivo.
+Na Azure, troque a URI pela connection string de produção. Pelo **MongoDB Compass**: banco
+`petbuddies` → *Create collection* `planos_cuidado` → aba *Indexes*, crie `planoId` único → *Add
+data* → *Import JSON or CSV file* → escolha o arquivo.
 
-**3. Índices e consultas:**
+**4. Consultas:**
 
 ```bash
 mongosh "mongodb://localhost:27017/petbuddies" docs/banco/mongodb/planos_cuidado.js
 ```
 
-O script cria os índices (`planoId` único, `animalId + status` e um índice multichave sobre os
-eventos) e roda as consultas da demonstração: o plano de um pet numa leitura só, filtro dentro do
-array, `$unwind` para olhar evento a evento, agregação por espécie e um campo novo só num documento.
+O script lista os índices e roda as consultas da demonstração: o plano de um pet numa leitura só,
+filtro dentro do array, `$unwind` para olhar evento a evento, agregação por espécie e um campo novo
+só num documento.
 
 ### Por que essa forma de documento
 
