@@ -428,6 +428,15 @@ pontos. O lançamento não tem rota: acontece sozinho no fechamento da consulta
 Erros: `403` para perfil sem permissão, `404` para consulta sem memória de cálculo e `503`
 (`PONTUACAO_INDISPONIVEL`) quando o .NET ou o MongoDB dele estiverem fora do ar.
 
+### Exportação (banco de dados)
+
+| Método | Rota | Perfil | O que faz |
+|---|---|---|---|
+| `GET` | `/api/exportacao/planos-cuidado` | `VET` | executa o procedimento PL/SQL `PKG_PB_JSON.PLANO_JSON` e devolve o arquivo `planos_cuidado.json`, o dataset que se importa no MongoDB; `?animalId=` restringe a um animal |
+
+Os pacotes PL/SQL que a rota usa são instalados pela migration `V9`, gerada a partir de
+[`docs/banco`](docs/banco/README.md) — a entrega da disciplina de banco, com o roteiro do vídeo.
+
 ### Roteiro do Fluxo Principal
 
 Na ordem abaixo, com o usuário `VET` de demonstração:
@@ -491,7 +500,8 @@ mvn test
 Testes unitários com JUnit 5 e Mockito, sem banco nem Spring de pé: o resumo do período da pontuação
 (`ResumoPeriodoTest`), o envio ao .NET — sucesso, `400`, token recusado e .NET fora do ar — e as
 leituras de saldo, extrato e memória, com os erros do .NET virando `403`, `404` ou `503`
-(`PontuacaoServiceTest`). Compile com o **JDK 21**: a partir do JDK 23 o `javac` não roda mais o
+(`PontuacaoServiceTest`), e a exportação do dataset, com cada exceção do procedimento PL/SQL
+virando a resposta certa da API (`ExportacaoDatasetServiceTest`). Compile com o **JDK 21**: a partir do JDK 23 o `javac` não roda mais o
 Lombok sem configuração, e o build quebra com erros de getter ausente.
 
 ---
