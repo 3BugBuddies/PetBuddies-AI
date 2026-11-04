@@ -4,8 +4,6 @@ API REST e painel web do **PetBuddies**, publicados na Azure por pipelines CI/CD
 A aplicação Java roda num Azure Web App Linux (Java 21) e grava no **Oracle da FIAP**. O build, os testes e o deploy
 são feitos pelo [`azure-pipelines.yml`](azure-pipelines.yml), que dispara a cada push na `main`.
 
-<img src="assets/figuras/arquitetura-devops.png" alt="Arquitetura e esteira CI/CD do PetBuddies: o desenvolvedor faz o commit no GitHub, a main vai para o Azure Repos, o Azure Pipelines roda o CI com build e testes, publica o artefato e o CD faz o Zip Deploy nos Web Apps Java e .NET; em produção, a veterinária usa o painel pelo navegador e o responsável usa o app mobile, os dois chegando ao Web App Java, que usa o Oracle FIAP, o Gemini e o Web App .NET">
-
 ---
 
 ## Links
@@ -99,8 +97,9 @@ PetBuddies-AI/
 
 ## 2. Arquitetura e fluxo CI/CD
 
-A figura do topo mostra a esteira e a produção. Fonte do desenho:
-[`docs/arquitetura/arquitetura-devops.html`](docs/arquitetura/arquitetura-devops.html).
+<img src="assets/figuras/arquitetura-devops.png" alt="Arquitetura e esteira CI/CD do PetBuddies: o desenvolvedor faz o commit no GitHub, a main vai para o Azure Repos, o Azure Pipelines roda o CI com build e testes, publica o artefato e o CD faz o Zip Deploy nos Web Apps Java e .NET; em produção, a veterinária usa o painel pelo navegador e o responsável usa o app mobile, os dois chegando ao Web App Java, que usa o Oracle FIAP, o Gemini e o Web App .NET">
+
+<sub>Fonte do desenho: <a href="docs/arquitetura/arquitetura-devops.html"><code>docs/arquitetura/arquitetura-devops.html</code></a></sub>
 
 **Esteira CI/CD, na ordem:**
 
@@ -144,7 +143,7 @@ O Cosmos DB (API do MongoDB) é um armazenamento auxiliar do serviço .NET, só 
 | Campo | Valor |
 |-------|-------|
 | Project name | PetBuddies - Sprint 4 – Azure DevOps |
-| Description | Projeto para entrega da Sprint 4 do professor João Menck<br>RM565339 - Felipe Yuiti Ishii - 2TDSR<br>RM563925 - Gabriel Nogueira Peixoto - 2TDSR<br>RM566154 - Giovanna Neri dos Santos - 2TDSR<br>RM565834 - Mariana Inoue - 2TDSR |
+| Description | Projeto para entrega da Sprint 4 do professor João Menk<br>RM565339 - Felipe Yuiti Ishii - 2TDSR<br>RM563925 - Gabriel Nogueira Peixoto - 2TDSR<br>RM566154 - Giovanna Neri dos Santos - 2TDSR<br>RM565834 - Mariana Inoue - 2TDSR |
 | Visibility | Private |
 | Version control | Git |
 | Work item process | Scrum |
@@ -153,29 +152,38 @@ O Cosmos DB (API do MongoDB) é um armazenamento auxiliar do serviço .NET, só 
 
 Link: [PetBuddies - Sprint 4 – Azure DevOps](https://dev.azure.com/RM565834/PetBuddies%20-%20Sprint%204%20%E2%80%93%20Azure%20DevOps).
 
+<img src="assets/prints/devops-projeto.png" alt="Página Summary do projeto PetBuddies - Sprint 4 – Azure DevOps, com a descrição do professor e dos integrantes e a lista de membros">
+
 ---
 
 ## 5. Acesso do professor
 
-O professor João Menck é membro do projeto com o nível de acesso **Basic** (Organization settings → Users), o que dá
-acesso a Boards, Repos e Pipelines.
+O professor João Menk é membro do projeto com o nível de acesso **Basic** (Organization settings → Users), o que dá
+acesso a Boards, Repos e Pipelines. Os quatro integrantes também estão no projeto. A lista de membros aparece no print
+da [seção 4](#4-projeto-no-azure-devops).
 
 ---
 
 ## 6. Pipelines CI/CD
 
-Arquivo: [`azure-pipelines.yml`](azure-pipelines.yml), no modo YAML. Agente `ubuntu-latest`.
+Arquivo: [`azure-pipelines.yml`](azure-pipelines.yml), no modo YAML. Gatilho: push na `main`, o que inclui o merge de
+PR. Service connection: `sc-petbuddies-azure` (Azure Resource Manager). A figura mostra a execução real do build 21,
+de 04/11/2026, com o tempo de cada task.
 
-- **Gatilho:** push na `main` (inclui o merge de PR).
-- **Estágio CI · Build e Testes:** Java 21 (`JavaToolInstaller@0`) → `Maven@4` com `clean package`, que compila e roda
-  os testes JUnit → resultados publicados (`**/surefire-reports/TEST-*.xml`, título "Testes de Código") → cópia do
-  `.jar` → artefato `app` (`PublishPipelineArtifact@1`).
-- **Estágio CD · Deploy no Azure Web App:** só roda se o CI passou. Job `deployment` no environment
-  `petbuddies-java` → baixa o artefato → `AzureAppServiceSettings@1` grava as variáveis no Web App →
-  `AzureWebApp@1` publica o `.jar` por Zip Deploy.
-- **Service connection:** `sc-petbuddies-azure` (Azure Resource Manager).
+<img src="assets/figuras/anatomia-pipeline.png" alt="Anatomia da pipeline petbuddies-java no build 21: o push na main dispara o stage CI (checkout, Java 21, Maven com 25 testes, cópia do jar e publicação do artefato app, 1 min 22 s); o stage CD só roda se o CI passou e baixa o artefato, grava as variáveis no Web App e faz o Zip Deploy (1 min 13 s); total de 3 min 13 s">
 
-Os resultados dos testes aparecem na aba **Tests** da execução, e o artefato `app` na aba **Artifacts**.
+<sub>Fonte do desenho: <a href="docs/arquitetura/anatomia-pipeline.html"><code>docs/arquitetura/anatomia-pipeline.html</code></a> · tempos da timeline do build 21 na REST do Azure DevOps</sub>
+
+A mesma execução no Azure DevOps, com os stages CI e CD verdes:
+
+<img src="assets/prints/pipeline-build-21.png" alt="Execução do build 21 da pipeline petbuddies-java no Azure DevOps, com os stages CI - Build e Testes e CD - Deploy no Azure Web App concluídos com sucesso">
+
+Cada task da execução, com o tempo dela: o Maven compila e roda os testes no CI, e o Zip Deploy publica o `.jar` no CD.
+
+<img src="assets/prints/pipeline-jobs.png" alt="Jobs do build 21 no Azure DevOps: o CI instala o Java 21, roda o Maven com os testes em 44 s, prepara e publica o artefato app; o CD baixa o artefato, grava as variáveis no Web App e faz o Zip Deploy em 45 s">
+
+Os resultados dos testes estão na aba **Tests** da execução (ver a [seção 9](#9-testes)), e o artefato `app` está na aba
+**Artifacts**.
 
 A pipeline `petbuddies-net` do repositório `PetBuddies-API` segue o mesmo desenho: gatilho na `main`, CI com
 `dotnet build`, `dotnet test` (xUnit) e artefato publicado, e CD no environment `petbuddies-net` com Zip Deploy no Web
@@ -217,6 +225,8 @@ O pool de conexões (`SPRING_DATASOURCE_HIKARI_*`), o fuso (`TZ`) e o tempo de s
 
 Script: [`infra/infra-app.sh`](infra/infra-app.sh), para o lado Java. O Web App do .NET e o Cosmos DB são criados pelo
 repositório `PetBuddies-API` e usam o mesmo resource group e o mesmo plano.
+
+<img src="assets/prints/portal-rg-petbuddies.png" alt="Resource group rg-petbuddies no Portal da Azure, com o plano, os dois Web Apps, os Application Insights e o Cosmos DB">
 
 | Recurso | Nome | SKU | Região |
 |---------|------|-----|--------|
@@ -293,9 +303,18 @@ responde `UP` quando o banco está no ar.
 
 ## 9. Testes
 
-`mvn test` roda os testes unitários (JUnit 5, sem banco e sem rede), em `src/test/java/`: o resumo do cuidado e o
-cálculo da pontuação do responsável, e a exportação do dataset. A pipeline roda os mesmos testes no `clean package` e
-publica o resultado na aba **Tests**, com o título "Testes de Código".
+`mvn test` roda os testes unitários (JUnit 5 com Mockito, sem banco e sem rede), em `src/test/java/`. A pipeline roda
+os mesmos testes no `clean package` e publica o resultado na aba **Tests**, com o título "Testes de Código". No build
+21, passaram 25 de 25.
+
+| Classe de teste | O que cobre | Testes |
+|-----------------|-------------|:------:|
+| `PontuacaoServiceTest` | envio da consulta ao .NET para pontuar (pendente, enviado, recusado, reenvio), saldo, extrato e memória de cálculo, com o .NET fora do ar ou recusando o token | 15 |
+| `ExportacaoDatasetServiceTest` | exportação do dataset dos planos de cuidado pelo procedimento do Oracle, e os erros que sobem dele | 6 |
+| `ResumoPeriodoTest` | resumo do cuidado entre duas consultas: doses com check-in, dias distintos e período vazio | 4 |
+| **Total** | | **25** |
+
+<img src="assets/prints/pipeline-testes.png" alt="Aba Tests do build 21 no Azure DevOps, com os 25 testes da execução Testes de Código aprovados">
 
 ---
 
