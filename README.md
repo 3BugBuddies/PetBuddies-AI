@@ -9,7 +9,7 @@ na Azure.
 
 | | |
 |---|---|
-| Vídeo de apresentação (Sprint 4) | _a publicar_ |
+| Vídeo de apresentação (Sprint 4) | https://www.youtube.com/watch?v=NXHMKiR-icA |
 | API em produção | https://petbuddies-java-rm563925.azurewebsites.net |
 | Swagger UI (produção) | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
 | App mobile | [3BugBuddies/app-pet-buddies-mobile](https://github.com/3BugBuddies/app-pet-buddies-mobile/tree/feat/pontuacao-fase-2-visual) |
