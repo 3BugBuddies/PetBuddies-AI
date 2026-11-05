@@ -41,9 +41,14 @@
         </div>
         <div class="pn-row">
             <button type="submit" class="pn-btn">Salvar</button>
+            <button type="submit" class="pn-btn line" th:if="${responsavelId != null}" form="responsavel-excluir">Excluir</button>
             <a class="pn-btn ghost" th:href="@{/responsaveis}">Cancelar</a>
         </div>
     </form>
+
+    <form id="responsavel-excluir" method="post" th:if="${responsavelId != null}"
+          th:action="@{/responsaveis/{id}/excluir(id=${responsavelId})}"
+          onsubmit="return confirm('Excluir este responsável?');"></form>
 </main>
 </body>
 </html>
