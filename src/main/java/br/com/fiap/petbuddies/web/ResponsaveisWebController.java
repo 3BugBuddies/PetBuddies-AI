@@ -2,6 +2,7 @@ package br.com.fiap.petbuddies.web;
 
 import br.com.fiap.petbuddies.domain.entity.ResponsavelEntity;
 import br.com.fiap.petbuddies.dto.cadastro.ResponsavelRequest;
+import br.com.fiap.petbuddies.exception.cadastro.ResponsavelComVinculosException;
 import br.com.fiap.petbuddies.service.cadastro.ResponsavelService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -17,10 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Cadastro de responsáveis. Responsável não tem flag de ativo: não há exclusão nem desativação aqui;
- * o acesso ao app é do usuário, que não se gerencia por esta tela.
- */
 @Controller
 @RequestMapping("/responsaveis")
 public class ResponsaveisWebController {
@@ -91,6 +88,18 @@ public class ResponsaveisWebController {
         }
         responsavelService.atualizar(id, request);
         redirect.addFlashAttribute("sucesso", "Cadastro atualizado.");
+        return "redirect:/responsaveis";
+    }
+
+    @PostMapping("/{id}/excluir")
+    public String excluir(@PathVariable Long id, RedirectAttributes redirect) {
+        String nome = responsavelService.buscarPorId(id).getNome();
+        try {
+            responsavelService.remover(id);
+            redirect.addFlashAttribute("sucesso", "Responsável " + nome + " excluído.");
+        } catch (ResponsavelComVinculosException ex) {
+            redirect.addFlashAttribute("erro", "Responsável " + nome + " não pode ser excluído: tem " + ex.getVinculo() + ".");
+        }
         return "redirect:/responsaveis";
     }
 }
