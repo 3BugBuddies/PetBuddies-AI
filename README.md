@@ -15,7 +15,7 @@ são feitos pelo [`azure-pipelines.yml`](azure-pipelines.yml), que dispara a cad
 | Aplicação (Azure Web App) | https://petbuddies-java-rm563925.azurewebsites.net |
 | Swagger UI | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
 | Saúde | https://petbuddies-java-rm563925.azurewebsites.net/actuator/health |
-| Vídeo | a preencher |
+| Vídeo | https://www.youtube.com/watch?v=1odmtnVp9rQ |
 | Serviço .NET (PetBuddies-API) | https://github.com/3BugBuddies/PetBuddies-API |
 
 ---
