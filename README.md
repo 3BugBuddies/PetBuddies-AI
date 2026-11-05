@@ -37,6 +37,7 @@ A veterinária atende, prescreve e monta o plano de cuidado pelo painel da clín
 
 |                               | |
 |-------------------------------|---|
+| Vídeo de apresentação (Sprint 4) | https://www.youtube.com/watch?v=DT6GlDLExbY |
 | Painel da clínica (produção)  | https://petbuddies-java-rm563925.azurewebsites.net |
 | Swagger UI (produção)         | https://petbuddies-java-rm563925.azurewebsites.net/swagger-ui.html |
 | Saúde (produção)              | https://petbuddies-java-rm563925.azurewebsites.net/actuator/health |
